@@ -246,8 +246,10 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
 <div class="filter-bar">
   <button class="filter-chip active" data-filter="all" onclick="setFilter('all',this)">All listings</button>
   <div class="filter-divider"></div>
-  <button class="filter-chip" data-filter="giving" onclick="setFilter('giving',this)">🟢 Giving resources</button>
-  <button class="filter-chip" data-filter="accepting" onclick="setFilter('accepting',this)">🔵 Accepting donations</button>
+  <button class="filter-chip" data-filter="shelter" onclick="setFilter('shelter',this)">🏠 Shelter</button>
+  <button class="filter-chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">🛖 Supply Station</button>
+  <button class="filter-chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Donation Drop-off</button>
+  <button class="filter-chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteer Event</button>
   <div class="filter-divider"></div>
   <button class="filter-chip" data-category="food" onclick="toggleCategory('food',this)">🍱 Food &amp; Water</button>
   <button class="filter-chip" data-category="shelter" onclick="toggleCategory('shelter',this)">🏠 Shelter</button>
@@ -351,7 +353,7 @@ const listings = [
     lat: 21.3869, lng: -158.0093
   },
   {
-    id:4, name:"Hawaii Red Cross — Pearl City", type:"accepting", open:true, verified:true,
+    id:4, name:"Hawaiʻi Red Cross — Pearl City", type:"accepting", open:true, verified:true,
     address:"776 California Ave, Pearl City, HI", distance:"5.8 mi", hours:"8:00 AM – 8:00 PM",
     categories:["food","clothing","baby","cash"],
     items:["All supplies","Monetary donations","Volunteer sign-up"],
@@ -465,17 +467,34 @@ function initMap() {
 }
 
 // ── CUSTOM PIN ELEMENT ──
+const TYPE_COLORS = {
+  shelter: '#2a6496',
+  supply_station: '#3a7d5c',
+  donation_dropoff: '#c9983a',
+  volunteer_event: '#7b5ea7',
+  giving: '#3a7d5c',
+  accepting: '#2a6496'
+};
+const TYPE_LABELS = {
+  shelter: '🏠 Shelter',
+  supply_station: '🛖 Supply Station',
+  donation_dropoff: '📦 Drop-off',
+  volunteer_event: '🙋 Volunteer',
+  giving: 'Giving',
+  accepting: 'Accepting'
+};
+
 function createPinElement(type, open) {
-  const color = !open ? '#888888' : type === 'giving' ? '#3a7d5c' : '#2a6496';
-  const label = !open ? 'Closed' : type === 'giving' ? 'Giving' : 'Accepting';
+  const color = !open ? '#888888' : (TYPE_COLORS[type] || '#3a7d5c');
+  const label = !open ? 'Closed' : (TYPE_LABELS[type] || type);
   const dotColor = open ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)';
-  const w = label.length > 7 ? 96 : 76;
+  const w = Math.max(76, label.length * 7 + 30);
   const el = document.createElement('div');
   el.style.cssText = 'cursor:pointer;';
   el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="34">
     <rect x="1" y="1" width="${w-2}" height="24" rx="12" fill="${color}"/>
     <circle cx="14" cy="13" r="4" fill="${dotColor}"/>
-    <text x="22" y="17" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="white" letter-spacing="0.5">${label}</text>
+    <text x="22" y="17" font-family="Nunito,sans-serif" font-size="9" font-weight="700" fill="white" letter-spacing="0.3">${label}</text>
     <polygon points="${w/2-5},25 ${w/2},32 ${w/2+5},25" fill="${color}"/>
   </svg>`;
   return el;
@@ -630,8 +649,7 @@ function filterListings() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const openOnly = document.getElementById('openOnly').checked;
   visibleListings = listings.filter(l => {
-    if (activeFilter === 'giving'    && l.type !== 'giving')    return false;
-    if (activeFilter === 'accepting' && l.type !== 'accepting') return false;
+    if (activeFilter !== 'all' && l.type !== activeFilter) return false;
     if (openOnly && !l.open) return false;
     if (activeCategories.size > 0 && !l.categories.some(c => activeCategories.has(c))) return false;
     if (q && !l.name.toLowerCase().includes(q) && !l.address.toLowerCase().includes(q)) return false;
