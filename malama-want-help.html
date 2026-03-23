@@ -109,8 +109,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <div class="hero-bar">
   <h1 class="hero-title">Ways to help your community</h1>
-  <p class="hero-sub">Donation drop-offs and volunteer events near you — updated in real time</p>
-  <a href="malama-requests.html" style="display:inline-block;margin-top:0.75rem;font-size:0.78rem;font-weight:700;color:white;background:rgba(255,255,255,0.2);padding:0.45rem 1rem;border-radius:100px;text-decoration:none;border:1.5px solid rgba(255,255,255,0.4);">See what the community needs →</a>
+  <p class="hero-sub">Find donation drop-offs and volunteer events — or post your skills, labor, or equipment to offer your community.</p>
+  <a href="malama-requests.html?view=helper" style="display:inline-block;margin-top:0.75rem;font-size:0.78rem;font-weight:700;color:white;background:rgba(255,255,255,0.2);padding:0.45rem 1rem;border-radius:100px;text-decoration:none;border:1.5px solid rgba(255,255,255,0.4);">See what the community needs →</a>
 </div>
 
 <div class="filter-bar">
@@ -165,7 +165,17 @@ async function init() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
   allListings = data || [];
-  applyFilters();
+
+  // Auto-filter if URL param present
+  const params = new URLSearchParams(window.location.search);
+  const filterParam = params.get('filter');
+  if (filterParam) {
+    const matchingChip = document.querySelector(`[data-filter="${filterParam}"]`);
+    if (matchingChip) setFilter(filterParam, matchingChip);
+    else applyFilters();
+  } else {
+    applyFilters();
+  }
 }
 
 function setFilter(f, el) {
@@ -297,8 +307,4 @@ init();
     Mālama Map · Founded by Star Dahl-Thurston · Honolulu, Hawaiʻi
   </p>
   <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">
-    Questions or concerns? <a href="mailto:contact@malamamap.org" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;">contact@malamamap.org</a>
-  </p>
-</footer>
-</body>
-</html>
+    Questions or concerns? <a href="/cdn-cgi/l/email-protection#2e4d41405a4f4d5a6e434f424f434f434f5e00415c49" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;"><span class="__
