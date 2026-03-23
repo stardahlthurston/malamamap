@@ -191,10 +191,27 @@ function renderListing(l) {
   const acceptingItems = items.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
   const plainItems = items.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
 
-  // Build maps link
+  // Build maps link — use lat/lng if available for accuracy
   const mapsQuery = encodeURIComponent(l.address + ', Hawaiʻi');
-  const mapsUrl = `https://maps.google.com/?q=${mapsQuery}`;
-  const embedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=15`;
+  const mapsUrl = l.lat && l.lng
+    ? `https://maps.google.com/?q=${l.lat},${l.lng}`
+    : `https://maps.google.com/?q=${mapsQuery}`;
+  const embedSrc = l.lat && l.lng
+    ? `https://maps.google.com/maps?q=${l.lat},${l.lng}&output=embed&z=15`
+    : `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=15`;
+
+  // Extract city from address string for display
+  function extractCity(address) {
+    if (!address) return '';
+    // Try to find "City, HI" pattern
+    const m = address.match(/,\s*([^,]+),\s*HI/i);
+    if (m) return m[1].trim();
+    // Try to extract from zip — look for known HI cities
+    const parts = address.split(',');
+    if (parts.length >= 2) return parts[parts.length - 2].trim().replace(/\s*\d{5}.*/, '').trim();
+    return '';
+  }
+  const city = extractCity(l.address);
 
   // Hours display
   const hoursDisplay = l.hours || 'Hours not specified';
@@ -298,6 +315,7 @@ function renderListing(l) {
     <div class="listing-header">
       <p class="listing-brand">Mālama Map</p>
       <h1 class="listing-name">${l.name}</h1>
+      ${city ? `<p style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:0.5rem;letter-spacing:0.05em;">📍 ${city}, Hawaiʻi</p>` : ''}
       <div class="listing-meta-row">
         <span class="status-pill ${l.status ? 'open' : 'closed'}">
           ${l.status ? '<div class="status-dot"></div> Open now' : 'Closed'}
@@ -340,7 +358,7 @@ function renderListing(l) {
         class="map-frame"
         loading="lazy"
         allowfullscreen
-        src="https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=15">
+        src="${embedSrc}">
       </iframe>
       <a href="${mapsUrl}" target="_blank" class="directions-btn">
         <svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px;"><path d="M10 2L4 8h4v3H6l4 7 4-7h-2V8h4z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg>
