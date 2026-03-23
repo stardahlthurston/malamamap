@@ -92,7 +92,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Back
   </a>
-  <a href="index.html" class="topbar-logo">Mālama Map</a>
+  <a href="index.html" class="topbar-logo"><img src="logo.png" alt="Mālama Map" style="height:32px;width:auto;vertical-align:middle;"></a>
   <a href="malama-auth.html" class="add-btn">+ Add myself as a resource</a>
 </div>
 
@@ -157,10 +157,10 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 <!-- Footer -->
 <footer style="background:var(--sage-deep);padding:1.25rem 1.5rem;text-align:center;margin-top:2rem;">
   <p style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);">Mālama Map · Founded by Star Dahl-Thurston · Honolulu, Hawaiʻi</p>
-  <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">Questions? <a href="mailto:contact@malamamap.org" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;">contact@malamamap.org</a></p>
+  <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">Questions? <a href="/cdn-cgi/l/email-protection#0f6c60617b6e6c7b4f626e636e626e626e7f21607d68" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;"><span class="__cf_email__" data-cfemail="b5d6dadbc1d4d6c1f5d8d4d9d4d8d4d8d4c59bdac7d2">[email&#160;protected]</span></a></p>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SURL, SKEY);
@@ -284,7 +284,7 @@ async function sendRequest() {
           <p style="font-size:13px;color:#8a827a;font-weight:700;margin-bottom:8px;">THEIR REQUEST</p>
           <p style="font-size:14px;color:#1c1a18;line-height:1.6;">${message}</p>
         </div>
-        <p style="font-size:12px;color:#8a827a;margin-top:16px;">Reply directly to their email to connect. Mahalo for being a resource for Hawaii. 🌺</p>
+        <p style="font-size:12px;color:#8a827a;margin-top:16px;">Reply directly to their email to connect. Mahalo for being a resource for Hawaiʻi. 🌺</p>
       </div>
     </div>`;
 
@@ -311,16 +311,4 @@ async function sendRequest() {
     }
   } catch(e) {
     alert('Error sending request. Please try again.');
-    btn.textContent = 'Send request →';
-    btn.disabled = false;
-  }
-}
-
-document.getElementById('requestModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('requestModal')) closeModal();
-});
-
-init();
-</script>
-</body>
-</html>
+    btn.textCo
