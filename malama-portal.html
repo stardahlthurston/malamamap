@@ -1183,7 +1183,7 @@ function setCardColor(btn) {
   document.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   // Sync custom color picker
-  document.getElementById('customColorPicker').value = rgbToHex(btn.style.background) || shareCardColor;
+  const cp = document.getElementById('customColorPicker'); if (cp) cp.value = rgbToHex(btn.style.background) || shareCardColor;
   rebuildCard();
 }
 
@@ -1200,21 +1200,30 @@ function rgbToHex(rgb) {
 }
 
 function rebuildCard() {
-  const l = myListings.find(x => x.id === shareListingId);
+  const l = myListings.find(x => String(x.id) === String(shareListingId));
   if (l) buildShareCard(l);
 }
 
 function openShareModal(id) {
-  shareListingId = id;
-  const l = myListings.find(x => x.id === id);
-  if (!l) return;
-  // Reset to default green
+  const idStr = String(id);
+  shareListingId = idStr;
+  const l = myListings.find(x => String(x.id) === idStr);
+  if (!l) { showToast('Could not find listing — try refreshing'); return; }
+
+  // Open modal first so all elements exist in the DOM
+  const modal = document.getElementById('shareModal');
+  if (!modal) { showToast('Share feature not available'); return; }
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Now safely reset color + build card
   shareCardColor = '#275c42';
   document.querySelectorAll('.color-swatch').forEach((b,i) => b.classList.toggle('selected', i===0));
-  document.getElementById('customColorPicker').value = '#275c42';
+  const picker = document.getElementById('customColorPicker');
+  if (picker) picker.value = '#275c42';
   buildShareCard(l);
-  document.getElementById('shareModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  const modalUnused = document.getElementById('shareModal'); // keep ref for compat
+  modal.style.display = 'flex';
 }
 
 function shareFromEdit() {
@@ -1224,7 +1233,9 @@ function shareFromEdit() {
 }
 
 function closeShareModal() {
-  document.getElementById('shareModal').classList.remove('open');
+  const modal = document.getElementById('shareModal');
+  modal.classList.remove('open');
+  modal.style.display = '';
   document.body.style.overflow = '';
 }
 
