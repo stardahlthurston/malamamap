@@ -67,16 +67,22 @@ body { font-family: 'Nunito', sans-serif; background: var(--cream); min-height: 
   </div>
 
   <div class="extra" id="extraFields">
-    <div class="field">
-      <label>Full name</label>
-      <input type="text" id="fullName" placeholder="Kai Akana">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+      <div class="field">
+        <label>First name</label>
+        <input type="text" id="firstName" placeholder="Kai">
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input type="text" id="lastName" placeholder="Akana">
+      </div>
     </div>
     <div class="field">
       <label>Phone number</label>
       <input type="tel" id="phone" placeholder="(808) 555-0000">
     </div>
     <div class="field">
-      <label>Organization or your name</label>
+      <label>Organization name <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.8rem;">(or type "Personal")</span></label>
       <input type="text" id="orgName" placeholder="Kaimana Church / Personal">
     </div>
   </div>
@@ -133,10 +139,12 @@ async function handleAuth() {
     showMsg('Welcome back! Redirecting…', 'success');
     setTimeout(function(){ window.location.href = 'malama-portal.html'; }, 1000);
   } else {
-    var full = document.getElementById('fullName').value.trim();
+    var first = document.getElementById('firstName').value.trim();
+    var last = document.getElementById('lastName').value.trim();
+    var full = (first + ' ' + last).trim();
     var phone = document.getElementById('phone').value.trim();
     var org = document.getElementById('orgName').value.trim();
-    var r = await sb.auth.signUp({ email: email, password: password, options: { data: { full_name: full, phone: phone, org_name: org } } });
+    var r = await sb.auth.signUp({ email: email, password: password, options: { data: { full_name: full, first_name: first, last_name: last, phone: phone, org_name: org } } });
     if (r.error) { showMsg(r.error.message, 'error'); btn.disabled=false; btn.textContent='Create account'; return; }
     // If email confirmation is off, session exists immediately
     if (r.data && r.data.session) {
