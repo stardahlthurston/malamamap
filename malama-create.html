@@ -242,6 +242,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       <div class="field"><label>Available from</label><input type="date" id="editDateFrom"></div>
       <div class="field"><label>Available until</label><input type="date" id="editDateUntil"></div>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:700;cursor:pointer;margin-bottom:0.75rem;color:var(--sage-deep);">
+      <input type="checkbox" id="untilFurtherNotice" style="accent-color:var(--sage);width:15px;height:15px;"
+        onchange="(function(cb){ const el=document.getElementById('editDateUntil'); el.disabled=cb.checked; el.style.opacity=cb.checked?'0.4':''; el.style.cursor=cb.checked?'not-allowed':''; if(cb.checked)el.value=''; })(this)">
+      Until further notice
+    </label>
     <div class="toggle-row">
       <div class="toggle-info"><p>Currently open</p><span>Toggle off if temporarily closed</span></div>
       <label class="toggle"><input type="checkbox" id="editStatus" checked><span class="toggle-slider"></span></label>
@@ -513,6 +518,19 @@ async function saveListing() {
   else if (openTime && closeTime) { hours = openTime + ' – ' + closeTime; }
   else if (openTime) { hours = 'Opens at ' + openTime; }
   if (days.length) { const ds = days.includes('Daily') ? 'Every day' : days.join(', '); hours = ds + (hours ? ' · ' + hours : ''); }
+  const df = document.getElementById('editDateFrom')?.value || '';
+  const ufn = document.getElementById('untilFurtherNotice')?.checked;
+  const du = document.getElementById('editDateUntil')?.value || '';
+  if (ufn) {
+    if (df) { const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); hours += (hours?' · From ':'From ')+fmt(df)+' · Until further notice'; }
+    else { hours += (hours?' · ':'')+'Until further notice'; }
+  } else if (df && du) {
+    const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    hours += (hours?' · ':'')+fmt(df)+' – '+fmt(du);
+  } else if (df) {
+    const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    hours += (hours?' · From ':'From ')+fmt(df);
+  }
 
   let items = [];
   if (type === 'skills_labor') {
