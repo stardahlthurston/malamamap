@@ -157,14 +157,35 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
   <!-- EVENT EXTRAS -->
   <div id="eventExtras" class="section">
-    <p class="section-title">🙋 Event details</p>
+    <p class="section-title">🙋 What kind of event?</p>
+    <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;">Select all that apply</p>
+    <div class="check-grid" id="eventTypeGrid" style="margin-bottom:0.85rem;">
+      <label class="check-label"><input type="checkbox" value="Cleanup" class="event-type-check"> 🧹 Cleanup</label>
+      <label class="check-label"><input type="checkbox" value="Mud & flood cleanup" class="event-type-check"> 💧 Mud & flood cleanup</label>
+      <label class="check-label"><input type="checkbox" value="Debris removal" class="event-type-check"> 🗑 Debris removal</label>
+      <label class="check-label"><input type="checkbox" value="Demolition" class="event-type-check"> 🔨 Demolition</label>
+      <label class="check-label"><input type="checkbox" value="Home repair" class="event-type-check"> 🏠 Home repair</label>
+      <label class="check-label"><input type="checkbox" value="Tree & yard clearing" class="event-type-check"> 🌳 Tree & yard clearing</label>
+      <label class="check-label"><input type="checkbox" value="Donation drive" class="event-type-check"> 📦 Donation drive</label>
+      <label class="check-label"><input type="checkbox" value="Prayer & support gathering" class="event-type-check"> 🙏 Prayer & support</label>
+      <label class="check-label"><input type="checkbox" value="Kids & family support" class="event-type-check"> 👨‍👩‍👧 Kids & family support</label>
+      <label class="check-label" id="otherEventLabel" onclick="toggleOtherEvent()">
+        <input type="checkbox" value="Other" class="event-type-check" id="otherEventCheck"> ➕ Other
+      </label>
+    </div>
+    <div id="otherEventWrap" style="display:none;">
+      <div class="field">
+        <label>Describe your event in a few words</label>
+        <input type="text" id="otherEventText" placeholder="e.g. Community garden restoration">
+      </div>
+    </div>
     <div class="field-row">
       <div class="field"><label>Event date</label><input type="date" id="editEventDate"></div>
       <div class="field"><label>Start time</label>
-        <select id="editEventTime"><option value="">Select time</option><option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option></select>
+        <select id="editEventTime"><option value="">Select time</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option></select>
       </div>
     </div>
-    <div class="field"><label>What kind of volunteers are needed?</label><input type="text" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing"></div>
+    <div class="field"><label>What kind of volunteers are needed? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="text" id="editVolunteerNeeds" placeholder="e.g. Strong backs, chainsaws, gloves provided"></div>
   </div>
 
   <!-- SUPPLY STATION DROP-OFF TOGGLE -->
@@ -425,12 +446,17 @@ function selectType(type, el) {
   document.getElementById('defaultItemsSection').style.display = isSupply ? 'none' : 'block';
 }
 
+function toggleOtherEvent() {
+  const cb = document.getElementById('otherEventCheck');
+  document.getElementById('otherEventWrap').style.display = cb.checked ? 'block' : 'none';
+}
+
 function toggleAcceptingItems(cb) {
   document.getElementById('acceptingItemsSection').style.display = cb.checked ? 'block' : 'none';
 }
 
 document.addEventListener('change', function(e) {
-  if (['item-check','skill-check','giving-item','accepting-item'].some(c => e.target.classList.contains(c))) {
+  if (['item-check','skill-check','giving-item','accepting-item','event-type-check'].some(c => e.target.classList.contains(c))) {
     e.target.closest('label').classList.toggle('checked', e.target.checked);
   }
   if (e.target.classList.contains('day-check')) {
@@ -531,6 +557,12 @@ async function saveListing() {
     pet_friendly: document.getElementById('editPetFriendly')?.value === 'true',
     event_date: document.getElementById('editEventDate')?.value || null,
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim() || null,
+    event_types: (function() {
+      const types = [...document.querySelectorAll('.event-type-check:checked')].map(c => c.value);
+      const other = document.getElementById('otherEventText')?.value.trim();
+      if (types.includes('Other') && other) return [...types.filter(t=>t!=='Other'), other];
+      return types.filter(t=>t!=='Other');
+    })(),
     expires_at: new Date(Date.now() + 72 * 3600000).toISOString(),
     user_id: currentUser.id
   };
