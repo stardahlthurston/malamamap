@@ -1279,8 +1279,8 @@ function openEditModal(id) {
   }
 
   modal.classList.add('open');
-  // Init address autocomplete after modal is visible
-  setTimeout(initAddressAutocomplete, 100);
+  // Init address autocomplete + zip watcher after modal is visible
+  setTimeout(() => { initAddressAutocomplete(); watchAddressForZip(); }, 100);
 }
 
 function closeEditModal() {
@@ -2255,6 +2255,34 @@ function selectArea(area) {
   // Auto-fill name if type already selected and name not user-edited
   const type = document.getElementById('editType')?.value;
   if (type) autoFillModalName(type);
+}
+
+// ── Watch address field — if user pastes an address, extract zip + trigger area bubbles ──
+function watchAddressForZip() {
+  const addrField = document.getElementById('editAddress');
+  if (!addrField) return;
+  addrField.addEventListener('input', function() {
+    const val = this.value;
+    const zipMatch = val.match(/(96\d{3})/);
+    if (zipMatch) {
+      const zip = zipMatch[1];
+      const zipEl = document.getElementById('editZip');
+      if (zipEl && zipEl.value !== zip) {
+        zipEl.value = zip;
+        onZipInput(zip);
+      }
+    }
+  });
+  // Also handle Places autocomplete selection
+  addrField.addEventListener('change', function() {
+    const val = this.value;
+    const zipMatch = val.match(/(96\d{3})/);
+    if (zipMatch) {
+      const zip = zipMatch[1];
+      const zipEl = document.getElementById('editZip');
+      if (zipEl) { zipEl.value = zip; onZipInput(zip); }
+    }
+  });
 }
 
 try { init(); } catch(e) { console.error('Init error:', e); }
