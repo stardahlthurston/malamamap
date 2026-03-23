@@ -69,6 +69,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .pill-closed{background:#f0f0f0;color:#888;}
 .pill-shelter{background:var(--blue-pale);color:var(--blue-deep);}
 .pill-supply{background:var(--sage-pale);color:var(--sage-deep);}
+.pill-medical{background:#fdf0ee;color:#c0392b;}
 .lc-body{padding:0 1rem 0.85rem;}
 .lc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem;}
 .lc-tag{font-size:0.67rem;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--blue-pale);color:var(--blue-deep);}
@@ -127,6 +128,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <div class="chip-divider"></div>
   <button class="chip" data-filter="shelter" onclick="setFilter('shelter',this)">🏠 Shelters</button>
   <button class="chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">🛖 Supply Stations</button>
+  <button class="chip" data-filter="medical_assistance" onclick="setFilter('medical_assistance',this)">🏥 Medical</button>
   <div class="chip-divider"></div>
   <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Open right now</label>
   <div class="chip-divider"></div>
@@ -159,8 +161,8 @@ const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SURL, SKEY);
 
-const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c'};
-const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station'};
+const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',medical_assistance:'#c0392b'};
+const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',medical_assistance:'🏥 Medical Assistance'};
 
 let allListings = [];
 let filtered = [];
@@ -171,7 +173,7 @@ let mapReady = false;
 async function init() {
   const { data, error } = await sb.from('listings')
     .select('*')
-    .in('type', ['shelter','supply_station'])
+    .in('type', ['shelter','supply_station','medical_assistance'])
     .order('created_at', { ascending: false });
 
   document.getElementById('loading').style.display = 'none';
