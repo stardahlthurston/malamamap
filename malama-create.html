@@ -216,6 +216,29 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     <div class="field" style="margin-top:0.85rem;"><label>Contact email <span style="font-weight:400;text-transform:none;letter-spacing:0;">— for help requests</span></label><input type="email" id="editContactEmail" placeholder="you@email.com"></div>
   </div>
 
+  <!-- MEDICAL EXTRAS -->
+  <div id="medicalExtras" class="section" style="display:none;">
+    <p class="section-title" style="color:#c0392b;">🏥 What medical services are you offering?</p>
+    <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;">Select all that apply</p>
+    <div class="check-grid">
+      <label class="check-label"><input type="checkbox" value="Medications" class="medical-check"> Medications</label>
+      <label class="check-label"><input type="checkbox" value="Check-ups & wellness checks" class="medical-check"> Check-ups</label>
+      <label class="check-label"><input type="checkbox" value="Wound care" class="medical-check"> Wound care</label>
+      <label class="check-label"><input type="checkbox" value="Mental health support" class="medical-check"> Mental health support</label>
+      <label class="check-label"><input type="checkbox" value="First aid" class="medical-check"> First aid</label>
+      <label class="check-label"><input type="checkbox" value="Prescription refills" class="medical-check"> Prescription refills</label>
+      <label class="check-label"><input type="checkbox" value="Elderly care" class="medical-check"> Elderly care</label>
+      <label class="check-label"><input type="checkbox" value="Special needs support" class="medical-check"> Special needs support</label>
+      <label class="check-label"><input type="checkbox" value="CPR & emergency response" class="medical-check"> CPR & emergency response</label>
+      <label class="check-label"><input type="checkbox" value="Vaccination" class="medical-check"> Vaccination</label>
+      <label class="check-label"><input type="checkbox" value="Dental care" class="medical-check"> Dental care</label>
+    </div>
+    <div class="field" style="margin-top:0.75rem;">
+      <label>Anything else?</label>
+      <input type="text" id="medicalCustom" placeholder="e.g. Dialysis support, Physical therapy">
+    </div>
+  </div>
+
   <!-- LISTING NAME -->
   <div class="section">
     <p class="section-title">📍 Location & name</p>
@@ -428,8 +451,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <script>
 // Runs immediately — no Supabase needed
-const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b'};
-const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4'};
+const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
+const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4',medical_assistance:'#fdf0ee'};
 
 function selectType(type, el) {
   document.getElementById('editType').value = type;
@@ -439,7 +462,8 @@ function selectType(type, el) {
   document.getElementById('shelterExtras').style.display = type==='shelter' ? 'block' : 'none';
   document.getElementById('eventExtras').style.display = type==='volunteer_event' ? 'block' : 'none';
   document.getElementById('skillsExtras').style.display = type==='skills_labor' ? 'block' : 'none';
-  document.getElementById('itemsSection').style.display = type==='skills_labor' ? 'none' : 'block';
+  document.getElementById('medicalExtras').style.display = type==='medical_assistance' ? 'block' : 'none';
+  document.getElementById('itemsSection').style.display = (type==='skills_labor'||type==='medical_assistance') ? 'none' : 'block';
   const isSupply = type==='supply_station';
   document.getElementById('givingItemsToggle').style.display = isSupply ? 'block' : 'none';
   document.getElementById('supplyAcceptingToggle').style.display = isSupply ? 'block' : 'none';
@@ -456,7 +480,7 @@ function toggleAcceptingItems(cb) {
 }
 
 document.addEventListener('change', function(e) {
-  if (['item-check','skill-check','giving-item','accepting-item','event-type-check'].some(c => e.target.classList.contains(c))) {
+  if (['item-check','skill-check','giving-item','accepting-item','event-type-check','medical-check'].some(c => e.target.classList.contains(c))) {
     e.target.closest('label').classList.toggle('checked', e.target.checked);
   }
   if (e.target.classList.contains('day-check')) {
@@ -521,6 +545,10 @@ async function saveListing() {
   let items = [];
   if (type === 'skills_labor') {
     items = [...document.querySelectorAll('.skill-check:checked')].map(c => c.value);
+  } else if (type === 'medical_assistance') {
+    const medItems = [...document.querySelectorAll('.medical-check:checked')].map(c => c.value);
+    const medCustom = (document.getElementById('medicalCustom')?.value || '').split(',').map(i=>i.trim()).filter(Boolean);
+    items = [...medItems, ...medCustom];
   } else if (type === 'supply_station') {
     const givingItems = [...document.querySelectorAll('.giving-item:checked')].map(c => c.value);
     const givingCustom = (document.getElementById('givingCustomItems')?.value || '').split(',').map(i=>i.trim()).filter(Boolean);
