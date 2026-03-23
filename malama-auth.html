@@ -13,8 +13,12 @@
   --text-dark: #1c1a18; --text-muted: #8a827a;
   --border: rgba(0,0,0,0.1); --red: #c0392b; --red-pale: #fdf0ee;
 }
-body { font-family: 'Nunito', sans-serif; background: var(--cream); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
-.card { background: white; border-radius: 20px; border: 1px solid var(--border); padding: 2.5rem 2rem; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.06); margin: 0 auto; }
+body { font-family: 'Nunito', sans-serif; background: var(--cream); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box; }
+.card { background: white; border-radius: 20px; border: 1px solid var(--border); padding: 2.5rem 2rem; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.06); box-sizing: border-box; }
+@media (max-width: 500px) {
+  body { padding: 1rem; align-items: center; }
+  .card { max-width: 100%; width: 100%; padding: 2rem 1.25rem; }
+}
 .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 800; color: var(--sage-deep); text-align: center; margin-bottom: 0.25rem; }
 .logo-sub { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); text-align: center; margin-bottom: 2rem; }
 
