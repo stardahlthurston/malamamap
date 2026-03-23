@@ -572,6 +572,27 @@ function selectArea(area) {
   if (type) autoFillModalName(type);
 }
 
+
+// Split on commas only outside parentheses
+function smartSplit(str) {
+  const results = [];
+  let depth = 0, current = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (ch === ',' && depth === 0) {
+      const trimmed = current.trim();
+      if (trimmed) results.push(trimmed);
+      current = ''; continue;
+    }
+    current += ch;
+  }
+  const trimmed = current.trim();
+  if (trimmed) results.push(trimmed);
+  return results;
+}
+
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'malama-auth.html'; return; }
@@ -685,13 +706,13 @@ async function saveListing() {
     items = [...medItems,...medCustom];
   } else if (type === 'supply_station') {
     const gi = [...document.querySelectorAll('.giving-item:checked')].map(c=>'GIVING:'+c.value);
-    const gc = (document.getElementById('givingCustomItems')?.value||'').split(',').map(i=>i.trim()).filter(Boolean).map(i=>'GIVING:'+i);
+    const gc = smartSplit(document.getElementById('givingCustomItems')?.value||'').map(i=>'GIVING:'+i);
     const ai = [...document.querySelectorAll('.accepting-item:checked')].map(c=>'ACCEPTING:'+c.value);
-    const ac = (document.getElementById('acceptingCustomItems')?.value||'').split(',').map(i=>i.trim()).filter(Boolean).map(i=>'ACCEPTING:'+i);
+    const ac = smartSplit(document.getElementById('acceptingCustomItems')?.value||'').map(i=>'ACCEPTING:'+i);
     items = [...gi,...gc,...ai,...ac];
   } else {
     const ci = [...document.querySelectorAll('.item-check:checked')].map(c=>c.value);
-    const cu = (document.getElementById('editCustomItems')?.value||'').split(',').map(i=>i.trim()).filter(Boolean);
+    const cu = smartSplit(document.getElementById('editCustomItems')?.value||'');
     items = [...ci,...cu];
   }
 
