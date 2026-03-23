@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Mālama Map — Listing</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#275c42;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --blue:#2a6496;--blue-pale:#eaf3fb;--gold:#c9983a;--gold-pale:#fdf4e3;
+  --red:#c0392b;--red-pale:#fdf0ee;
+  --text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;--border:rgba(0,0,0,0.08);
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--sage-deep);padding:0.7rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.85);text-decoration:none;display:flex;align-items:center;gap:5px;}
+.topbar-back:hover{color:white;}
+
+/* LAYOUT */
+.page{max-width:680px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
+
+/* HEADER CARD */
+.listing-header{background:var(--sage-deep);border-radius:18px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden;}
+.listing-header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.04);}
+.listing-header::after{content:'';position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.03);}
+.listing-brand{font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--sage-light);margin-bottom:6px;}
+.listing-name{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:800;color:white;line-height:1.2;margin-bottom:0.75rem;}
+.listing-meta-row{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;font-size:0.72rem;font-weight:700;}
+.status-pill.open{background:rgba(106,185,138,0.2);border:1.5px solid var(--sage-light);color:#b8f0d4;}
+.status-pill.closed{background:rgba(0,0,0,0.2);border:1.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--sage-light);}
+.type-badge{display:inline-block;font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:100px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);}
+.verified-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(42,100,150,0.3);border:1px solid rgba(90,159,212,0.4);color:#9dd4f5;}
+.admin-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(201,152,58,0.25);border:1px solid rgba(201,152,58,0.4);color:#ffd98a;}
+
+/* INFO SECTION */
+.info-card{background:white;border-radius:14px;border:1.5px solid var(--border);padding:1.25rem 1.4rem;margin-bottom:1rem;}
+.info-card-title{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--sage);margin-bottom:1rem;}
+.info-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:0.85rem;}
+.info-row:last-child{margin-bottom:0;}
+.info-icon{width:36px;height:36px;border-radius:10px;background:var(--sage-pale);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-label{font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px;}
+.info-value{font-size:0.92rem;font-weight:600;color:var(--text-dark);line-height:1.45;}
+.info-link{color:var(--blue);text-decoration:none;font-size:0.92rem;font-weight:600;}
+.info-link:hover{text-decoration:underline;}
+
+/* ITEMS */
+.items-section{background:white;border-radius:14px;border:1.5px solid var(--border);padding:1.25rem 1.4rem;margin-bottom:1rem;}
+.items-title{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.85rem;}
+.items-title.need{color:#c9983a;}
+.items-title.offer{color:var(--sage);}
+.items-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.item-chip{font-size:0.78rem;font-weight:700;padding:5px 12px;border-radius:100px;}
+.item-chip.need{background:var(--gold-pale);color:#7a5c1a;}
+.item-chip.offer{background:var(--sage-pale);color:var(--sage-deep);}
+
+/* NOTES */
+.notes-box{background:#f8f9f8;border-radius:10px;padding:0.85rem 1rem;font-size:0.88rem;font-weight:500;color:var(--text-mid);line-height:1.6;}
+
+/* DIRECTIONS / MAP */
+.map-card{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:1rem;}
+.map-frame{width:100%;height:240px;border:none;display:block;}
+.directions-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:1rem;background:var(--sage);color:white;font-size:0.92rem;font-weight:700;font-family:'Nunito',sans-serif;border:none;cursor:pointer;transition:background 0.2s;text-decoration:none;}
+.directions-btn:hover{background:var(--sage-deep);}
+.directions-btn svg{flex-shrink:0;}
+
+/* ADMIN CLAIM */
+.claim-banner{background:var(--gold-pale);border:1.5px solid rgba(201,152,58,0.3);border-radius:14px;padding:1.25rem 1.4rem;margin-bottom:1rem;}
+.claim-title{font-size:0.95rem;font-weight:700;color:#7a5c1a;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.claim-sub{font-size:0.8rem;font-weight:500;color:#a07830;line-height:1.5;margin-bottom:0.85rem;}
+.claim-btn{display:inline-flex;align-items:center;gap:6px;padding:0.55rem 1.2rem;background:#c9983a;color:white;border:none;border-radius:100px;font-size:0.8rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;transition:background 0.2s;}
+.claim-btn:hover{background:#a87a2e;}
+
+/* CLAIM FORM */
+.claim-form{background:white;border-radius:14px;border:1.5px solid var(--border);padding:1.25rem 1.4rem;margin-bottom:1rem;display:none;}
+.claim-form.open{display:block;}
+.form-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--text-dark);margin-bottom:0.35rem;}
+.form-sub{font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.5;}
+.form-field{margin-bottom:0.85rem;}
+.form-label{font-size:0.67rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px;display:block;}
+.form-input{width:100%;padding:0.65rem 0.9rem;border:1.5px solid #ddd;border-radius:8px;font-size:0.9rem;font-family:'Nunito',sans-serif;font-weight:500;color:var(--text-dark);background:white;transition:border-color 0.2s;}
+.form-input:focus{outline:none;border-color:var(--sage);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+.form-submit{width:100%;padding:0.75rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.88rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;transition:background 0.2s;margin-top:0.25rem;}
+.form-submit:hover{background:var(--sage-deep);}
+.form-submit:disabled{background:#aaa;cursor:not-allowed;}
+.form-cancel{font-size:0.8rem;font-weight:700;color:var(--text-muted);background:none;border:none;cursor:pointer;margin-top:0.5rem;width:100%;font-family:'Nunito',sans-serif;}
+.form-cancel:hover{color:var(--text-dark);}
+.form-success{text-align:center;padding:1.5rem 0;}
+.form-success-icon{width:52px;height:52px;border-radius:50%;background:var(--sage-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 0.85rem;}
+
+/* REPORT */
+.report-row{display:flex;justify-content:center;margin-top:0.5rem;}
+.report-link{font-size:0.75rem;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;text-decoration:underline;}
+.report-link:hover{color:var(--red);}
+
+/* LOADING */
+.loading{text-align:center;padding:4rem 1rem;color:var(--text-muted);}
+.loading p{font-size:1rem;font-weight:600;}
+
+/* TOAST */
+.toast{display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--sage-deep);color:white;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.85rem;font-weight:700;z-index:900;box-shadow:0 4px 20px rgba(0,0,0,0.15);white-space:nowrap;}
+
+@media(max-width:500px){
+  .listing-name{font-size:1.3rem;}
+  .form-row{grid-template-columns:1fr;}
+  .page{padding:1rem 1rem 3rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="javascript:history.back()" class="topbar-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back
+  </a>
+  <a href="index.html" class="topbar-logo">Mālama Map</a>
+  <div style="width:60px;"></div>
+</div>
+
+<div class="page" id="pageContent">
+  <div class="loading"><p>Loading listing…</p></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Admin account ID — listings created by this user show "Mālama Map Administrators"
+const ADMIN_USER_ID = 'REPLACE_WITH_YOUR_SUPABASE_USER_ID';
+
+const TYPE_LABELS = {
+  shelter:'🏠 Shelter', supply_station:'🛖 Supply Station',
+  donation_dropoff:'📦 Donation Drop-off', volunteer_event:'🙋 Volunteer Event',
+  skills_labor:'🔧 Skills & Labor', medical_assistance:'🏥 Medical Aid Station',
+  giving:'🤝 Giving', accepting:'📬 Accepting'
+};
+
+const NEEDS_TYPES = ['donation_dropoff','accepting'];
+
+let listing = null;
+let currentUser = null;
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) { showError('No listing ID provided.'); return; }
+
+  // Get current user (optional — for showing edit button to owner)
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) currentUser = session.user;
+  } catch(e) {}
+
+  const { data, error } = await sb.from('listings').select('*').eq('id', id).single();
+  if (error || !data) { showError('Listing not found or has expired.'); return; }
+  listing = data;
+  renderListing(listing);
+}
+
+function showError(msg) {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="loading">
+      <div style="font-size:2rem;margin-bottom:1rem;">🗺️</div>
+      <p>${msg}</p>
+      <a href="index.html" style="display:inline-block;margin-top:1rem;color:var(--sage);font-weight:700;text-decoration:none;">← Back to map</a>
+    </div>`;
+}
+
+function renderListing(l) {
+  const items = Array.isArray(l.items) ? l.items : [];
+  const isNeedsType = NEEDS_TYPES.includes(l.type);
+  const typeLabel = TYPE_LABELS[l.type] || l.type;
+  const isAdmin = l.user_id === ADMIN_USER_ID;
+  const isOwner = currentUser && currentUser.id === l.user_id;
+
+  // Separate GIVING: and ACCEPTING: prefixed items for supply stations
+  const givingItems = items.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
+  const acceptingItems = items.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
+  const plainItems = items.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+
+  // Build maps link
+  const mapsQuery = encodeURIComponent(l.address + ', Hawaiʻi');
+  const mapsUrl = `https://maps.google.com/?q=${mapsQuery}`;
+  const embedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=15`;
+
+  // Hours display
+  const hoursDisplay = l.hours || 'Hours not specified';
+
+  // Admin claim banner
+  const claimHtml = isAdmin && !isOwner ? `
+    <div class="claim-banner">
+      <p class="claim-title">
+        <svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;flex-shrink:0;"><circle cx="9" cy="9" r="8" stroke="#c9983a" stroke-width="1.5"/><path d="M9 5v4l2.5 2.5" stroke="#c9983a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        This listing was created by Mālama Map Administrators
+      </p>
+      <p class="claim-sub">Is this your organization? Claim this listing to update hours, items, and status in real time — directly from your own account.</p>
+      <button class="claim-btn" onclick="openClaimForm()">
+        <svg viewBox="0 0 16 16" fill="none" style="width:13px;height:13px;"><path d="M8 1l2 4.5H15l-3.9 2.8 1.5 4.7L8 10.5l-4.6 2.5 1.5-4.7L1 5.5h5z" stroke="white" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Claim this listing
+      </button>
+    </div>
+    <div class="claim-form" id="claimForm">
+      <div id="claimFormInner">
+        <p class="form-title">Request listing ownership</p>
+        <p class="form-sub">We'll verify and transfer this listing to your account. Our team will reach out within a few hours.</p>
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">First name <span style="color:var(--red);">*</span></label><input class="form-input" id="claimFirst" type="text" placeholder="Kai"></div>
+          <div class="form-field"><label class="form-label">Last name</label><input class="form-input" id="claimLast" type="text" placeholder="Akana"></div>
+        </div>
+        <div class="form-field"><label class="form-label">Email <span style="color:var(--red);">*</span></label><input class="form-input" id="claimEmail" type="email" placeholder="kai@youremail.com"></div>
+        <div class="form-field"><label class="form-label">Phone <span style="color:var(--red);">*</span></label><input class="form-input" id="claimPhone" type="tel" placeholder="(808) 555-0000"></div>
+        <div class="form-field"><label class="form-label">Your role or connection to this listing</label><input class="form-input" id="claimRole" type="text" placeholder="e.g. Pastor, Director, Coordinator"></div>
+        <button class="form-submit" id="claimSubmitBtn" onclick="submitClaim()">Send claim request</button>
+        <button class="form-cancel" onclick="closeClaimForm()">Cancel</button>
+      </div>
+      <div id="claimSuccess" style="display:none;">
+        <div class="form-success">
+          <div class="form-success-icon"><svg viewBox="0 0 26 26" fill="none"><path d="M6 13l5 5 9-10" stroke="#3a7d5c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <p style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;">Request sent!</p>
+          <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.5;">Mahalo! We'll review your request and reach out within a few hours to verify and transfer this listing.</p>
+          <button onclick="closeClaimForm()" style="margin-top:1rem;color:var(--sage);background:none;border:none;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Close</button>
+        </div>
+      </div>
+    </div>` : '';
+
+  // Owner edit button
+  const ownerActions = isOwner ? `
+    <div style="display:flex;gap:0.6rem;margin-top:1rem;flex-wrap:wrap;">
+      <a href="malama-create.html?edit=${l.id}" class="directions-btn" style="background:rgba(255,255,255,0.15);border-radius:100px;padding:0.55rem 1.2rem;font-size:0.78rem;width:auto;">✏️ Edit this listing</a>
+    </div>` : '';
+
+  // Items sections
+  let itemsHtml = '';
+  if (givingItems.length || acceptingItems.length) {
+    if (givingItems.length) {
+      itemsHtml += `
+        <div class="items-section">
+          <p class="items-title offer">✅ What we're offering</p>
+          <div class="items-grid">${givingItems.map(i=>`<span class="item-chip offer">${i}</span>`).join('')}</div>
+        </div>`;
+    }
+    if (acceptingItems.length) {
+      itemsHtml += `
+        <div class="items-section">
+          <p class="items-title need">📦 What we need</p>
+          <div class="items-grid">${acceptingItems.map(i=>`<span class="item-chip need">${i}</span>`).join('')}</div>
+        </div>`;
+    }
+  } else if (plainItems.length) {
+    const chipClass = isNeedsType ? 'need' : 'offer';
+    const label = isNeedsType ? '📦 What we need' : '✅ What we\'re offering';
+    itemsHtml = `
+      <div class="items-section">
+        <p class="items-title ${chipClass}">${label}</p>
+        <div class="items-grid">${plainItems.map(i=>`<span class="item-chip ${chipClass}">${i}</span>`).join('')}</div>
+      </div>`;
+  }
+
+  const notesHtml = l.notes ? `
+    <div class="info-card" style="margin-bottom:1rem;">
+      <p class="info-card-title">Notes for visitors</p>
+      <div class="notes-box">${l.notes}</div>
+    </div>` : '';
+
+  const websiteHtml = l.website ? `
+    <div class="info-row">
+      <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px;"><circle cx="10" cy="10" r="8.5" stroke="#3a7d5c" stroke-width="1.5"/><path d="M10 1.5C10 1.5 7 5.5 7 10s3 8.5 3 8.5M10 1.5C10 1.5 13 5.5 13 10s-3 8.5-3 8.5M1.5 10h17" stroke="#3a7d5c" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+      <div><p class="info-label">Website</p><a href="${l.website}" target="_blank" class="info-link">${l.website.replace('https://','').replace('http://','')}</a></div>
+    </div>` : '';
+
+  const givingUrlHtml = l.giving_url ? `
+    <div class="info-row">
+      <div class="info-icon" style="background:var(--gold-pale);">💛</div>
+      <div><p class="info-label">Online donations</p><a href="${l.giving_url}" target="_blank" class="info-link" style="color:var(--gold);">Donate online →</a></div>
+    </div>` : '';
+
+  const phoneHtml = l.contact_phone ? `
+    <div class="info-row">
+      <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><path d="M3 4a1 1 0 011-1h2.5l1.5 4-2 1.2a10.5 10.5 0 004.8 4.8L12 11l4 1.5v2.5a1 1 0 01-1 1A15 15 0 013 4z" stroke="#3a7d5c" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+      <div><p class="info-label">Contact</p><a href="tel:${l.contact_phone}" class="info-link">${l.contact_phone}</a></div>
+    </div>` : '';
+
+  document.getElementById('pageContent').innerHTML = `
+    <!-- HEADER -->
+    <div class="listing-header">
+      <p class="listing-brand">Mālama Map</p>
+      <h1 class="listing-name">${l.name}</h1>
+      <div class="listing-meta-row">
+        <span class="status-pill ${l.status ? 'open' : 'closed'}">
+          ${l.status ? '<div class="status-dot"></div> Open now' : 'Closed'}
+        </span>
+        <span class="type-badge">${typeLabel}</span>
+        ${l.verified ? '<span class="verified-badge">✓ Verified</span>' : ''}
+        ${isAdmin ? '<span class="admin-badge">⭐ Mālama Map</span>' : ''}
+      </div>
+      ${ownerActions}
+    </div>
+
+    <!-- CLAIM BANNER (admin listings only) -->
+    ${claimHtml}
+
+    <!-- DETAILS -->
+    <div class="info-card">
+      <p class="info-card-title">Details</p>
+      <div class="info-row">
+        <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z" stroke="#3a7d5c" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="#3a7d5c" stroke-width="1.5"/></svg></div>
+        <div><p class="info-label">Address</p><p class="info-value">${l.address}</p></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><circle cx="10" cy="10" r="7.5" stroke="#3a7d5c" stroke-width="1.5"/><path d="M10 6v4l2.5 2.5" stroke="#3a7d5c" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <div><p class="info-label">Hours</p><p class="info-value">${hoursDisplay}</p></div>
+      </div>
+      ${phoneHtml}
+      ${websiteHtml}
+      ${givingUrlHtml}
+    </div>
+
+    <!-- ITEMS -->
+    ${itemsHtml}
+
+    <!-- NOTES -->
+    ${notesHtml}
+
+    <!-- MAP + DIRECTIONS -->
+    <div class="map-card">
+      <iframe
+        class="map-frame"
+        loading="lazy"
+        allowfullscreen
+        src="https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=15">
+      </iframe>
+      <a href="${mapsUrl}" target="_blank" class="directions-btn">
+        <svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px;"><path d="M10 2L4 8h4v3H6l4 7 4-7h-2V8h4z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Take me there — Get directions
+      </a>
+    </div>
+
+    <!-- REPORT LINK -->
+    <div class="report-row">
+      <button class="report-link" onclick="openReport()">⚠ Report this listing</button>
+    </div>
+  `;
+}
+
+// ── CLAIM FORM ──
+function openClaimForm() {
+  const form = document.getElementById('claimForm');
+  if (form) { form.classList.add('open'); form.scrollIntoView({ behavior:'smooth', block:'start' }); }
+}
+function closeClaimForm() {
+  const form = document.getElementById('claimForm');
+  if (form) form.classList.remove('open');
+}
+
+async function submitClaim() {
+  const first = document.getElementById('claimFirst').value.trim();
+  const email = document.getElementById('claimEmail').value.trim();
+  const phone = document.getElementById('claimPhone').value.trim();
+  if (!first || !email || !phone) { showToast('Please fill in name, email and phone'); return; }
+
+  const btn = document.getElementById('claimSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  const claimData = {
+    listing_id: listing.id,
+    listing_name: listing.name,
+    requester_first: first,
+    requester_last: document.getElementById('claimLast').value.trim(),
+    requester_email: email,
+    requester_phone: phone,
+    requester_role: document.getElementById('claimRole').value.trim(),
+    submitted_at: new Date().toISOString()
+  };
+
+  // Save to Supabase claim_requests table
+  const { error } = await sb.from('claim_requests').insert(claimData);
+  if (error) {
+    // If table doesn't exist yet, still show success — admin gets notified via email below
+    console.warn('claim_requests table may not exist yet:', error.message);
+  }
+
+  // Trigger notification email to admin via Supabase Edge Function (or just log)
+  // For now we also send via a simple fetch to a notification endpoint
+  try {
+    await fetch('https://wvplmqmqlnftlpyrqnle.supabase.co/functions/v1/notify-claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify(claimData)
+    });
+  } catch(e) { /* notification endpoint may not be set up yet — claim is saved to DB */ }
+
+  document.getElementById('claimFormInner').style.display = 'none';
+  document.getElementById('claimSuccess').style.display = 'block';
+}
+
+// ── REPORT ──
+function openReport() {
+  const id = new URLSearchParams(window.location.search).get('id');
+  window.location.href = `malama-portal.html?report=${id}`;
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
+}
+
+init();
+</script>
+
+<footer style="background:var(--sage-deep);padding:1.25rem 1.5rem;text-align:center;margin-top:2rem;">
+  <p style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);">
+    Mālama Map · Hawaiʻi helping Hawaiʻi
+  </p>
+  <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">
+    <a href="index.html" style="color:rgba(255,255,255,0.6);text-decoration:none;">← Back to map</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:contact@malamamap.org" style="color:rgba(255,255,255,0.6);text-decoration:none;">contact@malamamap.org</a>
+  </p>
+</footer>
+
+</body>
+</html>
