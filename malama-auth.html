@@ -78,19 +78,23 @@ body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(-
 </div>
 
 <script>
+// Tab switching — runs immediately, no Supabase needed
+let mode = 'login';
+function switchTab(m) {
+  mode = m;
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0&&m==='login')||(i===1&&m==='signup'));
+  });
+  document.getElementById('signupExtra').style.display = m === 'signup' ? 'block' : 'none';
+  document.getElementById('authBtn').textContent = m === 'login' ? 'Log in' : 'Create account';
+  const msg = document.getElementById('msg');
+  msg.className = 'msg';
+}
+</script>
+<script>
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_czTQoNIGcZeH8uW47U5Plw_jRBD7wVD';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let mode = 'login';
-
-function switchTab(m) {
-  mode = m;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&m==='login')||(i===1&&m==='signup')));
-  document.getElementById('signupExtra').style.display = m === 'signup' ? 'block' : 'none';
-  document.getElementById('authBtn').textContent = m === 'login' ? 'Log in' : 'Create account';
-  document.getElementById('msg').className = 'msg';
-}
 
 function showMsg(text, type) {
   const el = document.getElementById('msg');
