@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — I Want to Help</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#275c42;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --blue:#2a6496;--blue-pale:#eaf3fb;--blue-light:#5a9fd4;
+  --gold:#c9983a;--gold-pale:#fdf4e3;--gold-deep:#8a6010;
+  --purple:#7b5ea7;--purple-pale:#f3eeff;--purple-deep:#4a3570;
+  --cream:#fdf8f2;--text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.08);--red:#c0392b;--red-pale:#fdf0ee;
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+
+.topbar{background:var(--sage-deep);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.75);text-decoration:none;display:flex;align-items:center;gap:4px;transition:color 0.2s;}
+.topbar-back:hover{color:white;}
+.topbar-right{display:flex;align-items:center;gap:0.75rem;}
+.topbar-link{font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.7);text-decoration:none;padding:0.38rem 0.85rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.25);transition:all 0.2s;}
+.topbar-link:hover{background:rgba(255,255,255,0.1);color:white;}
+.add-btn{font-size:0.72rem;font-weight:700;color:white;background:var(--sage);border:none;padding:0.38rem 0.9rem;border-radius:100px;cursor:pointer;text-decoration:none;transition:background 0.2s;}
+.add-btn:hover{background:#275c42;}
+
+.hero-bar{background:var(--sage);padding:1.25rem 1.5rem;color:white;}
+.hero-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;margin-bottom:0.25rem;}
+.hero-sub{font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.85);}
+
+.filter-bar{background:white;border-bottom:1px solid var(--border);padding:0.7rem 1.5rem;display:flex;align-items:center;gap:0.5rem;overflow-x:auto;scrollbar-width:none;position:sticky;top:48px;z-index:90;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.chip{font-size:0.72rem;font-weight:700;white-space:nowrap;padding:0.38rem 0.9rem;border-radius:100px;border:1.5px solid #ddd;background:white;color:var(--text-mid);cursor:pointer;transition:all 0.18s;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;}
+.chip:hover{border-color:var(--sage);color:var(--sage);}
+.chip.active{border-color:var(--sage);background:var(--sage-pale);color:var(--sage-deep);}
+.chip-divider{width:1px;height:20px;background:#eee;flex-shrink:0;}
+.open-only{display:flex;align-items:center;gap:6px;font-size:0.72rem;font-weight:700;color:var(--text-mid);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.open-only input{accent-color:var(--sage);width:14px;height:14px;}
+.view-toggle{display:flex;background:#f0f0ec;border-radius:100px;padding:3px;gap:2px;flex-shrink:0;}
+.view-btn{font-size:0.68rem;font-weight:700;padding:0.3rem 0.75rem;border-radius:100px;border:none;cursor:pointer;transition:all 0.2s;color:var(--text-muted);background:transparent;display:flex;align-items:center;gap:4px;font-family:'Nunito',sans-serif;}
+.view-btn svg{width:12px;height:12px;}
+.view-btn.active{background:white;color:var(--sage-deep);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+
+.content{padding:1.25rem 1.5rem;max-width:900px;margin:0 auto;}
+.result-count{font-size:0.82rem;font-weight:700;color:var(--text-muted);margin-bottom:1rem;}
+.result-count span{color:var(--sage-deep);}
+
+.listing-card{background:white;border-radius:14px;border:1.5px solid var(--border);margin-bottom:0.85rem;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s,border-color 0.2s;}
+.listing-card:hover{box-shadow:0 3px 14px rgba(0,0,0,0.09);}
+.lc-stripe{height:5px;}
+.lc-stripe.donation_dropoff{background:var(--gold);}
+.lc-stripe.volunteer_event{background:var(--purple);}
+.lc-header{padding:0.85rem 1rem 0.65rem;display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;}
+.lc-name{font-size:0.92rem;font-weight:700;color:var(--text-dark);margin-bottom:3px;}
+.lc-addr{font-size:0.74rem;font-weight:500;color:var(--text-muted);}
+.lc-badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.pill{font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:100px;white-space:nowrap;}
+.pill-open{background:var(--sage-pale);color:var(--sage-deep);}
+.pill-closed{background:#f0f0f0;color:#888;}
+.pill-dropoff{background:var(--gold-pale);color:var(--gold-deep);}
+.pill-event{background:var(--purple-pale);color:var(--purple-deep);}
+.lc-body{padding:0 1rem 0.85rem;}
+.lc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem;}
+.lc-tag-gold{font-size:0.67rem;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--gold-pale);color:var(--gold-deep);}
+.lc-tag-purple{font-size:0.67rem;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--purple-pale);color:var(--purple-deep);}
+.lc-meta{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.55rem;}
+.lc-meta-item{display:flex;align-items:center;gap:4px;font-size:0.74rem;font-weight:600;color:var(--text-mid);}
+.lc-notes{font-size:0.77rem;font-weight:500;color:var(--text-muted);line-height:1.55;margin-bottom:0.65rem;}
+.lc-actions{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.lc-btn{font-size:0.68rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.38rem 0.85rem;border-radius:100px;border:1.5px solid currentColor;cursor:pointer;transition:all 0.18s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-family:'Nunito',sans-serif;}
+.btn-go{color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);}
+.btn-go:hover{background:var(--sage);color:white;}
+.btn-volunteer{color:var(--purple);background:var(--purple-pale);border-color:#b8a0d8;}
+.btn-volunteer:hover{background:var(--purple);color:white;}
+.btn-report{color:var(--text-muted);background:white;border-color:#ddd;margin-left:auto;}
+.btn-report:hover{color:var(--red);border-color:var(--red);background:var(--red-pale);}
+
+.event-date-badge{display:inline-flex;align-items:center;gap:5px;background:var(--purple-pale);color:var(--purple-deep);font-size:0.75rem;font-weight:700;padding:5px 12px;border-radius:100px;margin-bottom:0.6rem;}
+
+.empty{text-align:center;padding:4rem 1.5rem;color:var(--text-muted);}
+.empty-icon{font-size:3rem;margin-bottom:1rem;}
+.empty h3{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.empty p{font-size:0.88rem;font-weight:500;margin-bottom:1.5rem;line-height:1.6;}
+.empty-btn{display:inline-block;padding:0.65rem 1.5rem;background:var(--sage);color:white;border-radius:100px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:background 0.2s;}
+.empty-btn:hover{background:var(--sage-deep);}
+
+#mapView{display:none;height:calc(100vh - 160px);}
+#map{width:100%;height:100%;}
+.loading{text-align:center;padding:3rem;color:var(--text-muted);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back
+  </a>
+  <a href="index.html" class="topbar-logo">Mālama Map</a>
+  <div class="topbar-right">
+    <a href="malama-auth.html" class="add-btn">+ Add your listing</a>
+  </div>
+</div>
+
+<div class="hero-bar">
+  <h1 class="hero-title">Ways to help your community</h1>
+  <p class="hero-sub">Donation drop-offs and volunteer events near you — updated in real time</p>
+</div>
+
+<div class="filter-bar">
+  <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
+  <div class="chip-divider"></div>
+  <button class="chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Donation Drop-offs</button>
+  <button class="chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteer Events</button>
+  <div class="chip-divider"></div>
+  <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Open right now</label>
+  <div class="chip-divider"></div>
+  <div class="view-toggle">
+    <button class="view-btn active" onclick="switchView('list',this)">
+      <svg viewBox="0 0 12 12" fill="none"><rect x="0" y="1" width="12" height="2" rx="1" fill="currentColor"/><rect x="0" y="5" width="12" height="2" rx="1" fill="currentColor"/><rect x="0" y="9" width="12" height="2" rx="1" fill="currentColor"/></svg>
+      List
+    </button>
+    <button class="view-btn" onclick="switchView('map',this)">
+      <svg viewBox="0 0 12 12" fill="none"><path d="M1 2.5l3.5 1.5v6L1 8.5V2.5zM4.5 4l3-1.5v6l-3 1.5V4zM7.5 2.5L11 4v6l-3.5-1.5V2.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      Map
+    </button>
+  </div>
+</div>
+
+<div id="listView">
+  <div class="content">
+    <div class="loading" id="loading"><p>Finding ways to help near you… 🌺</p></div>
+    <div id="resultCount" class="result-count" style="display:none;"></div>
+    <div id="listingsContainer"></div>
+  </div>
+</div>
+
+<div id="mapView">
+  <div id="map"></div>
+</div>
+
+<script>
+const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SURL, SKEY);
+
+const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7'};
+const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Event'};
+
+let allListings = [], filtered = [], activeFilter = 'all';
+let map, markers = [], mapReady = false;
+
+async function init() {
+  const { data } = await sb.from('listings')
+    .select('*')
+    .in('type', ['donation_dropoff','volunteer_event'])
+    .order('created_at', { ascending: false });
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('resultCount').style.display = 'block';
+  allListings = data || [];
+  applyFilters();
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('[data-filter]').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const openOnly = document.getElementById('openOnly').checked;
+  filtered = allListings.filter(l => {
+    if (activeFilter !== 'all' && l.type !== activeFilter) return false;
+    if (openOnly && !l.status) return false;
+    return true;
+  });
+  renderList();
+  if (mapReady) renderMarkers();
+}
+
+function renderList() {
+  const count = document.getElementById('resultCount');
+  const container = document.getElementById('listingsContainer');
+  count.innerHTML = `<span>${filtered.length}</span> listing${filtered.length !== 1 ? 's' : ''} near you`;
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🌺</div>
+        <h3>No listings yet</h3>
+        <p>Be the first to add a donation drop-off or volunteer event in your area.<br>It takes 2 minutes and goes live immediately.</p>
+        <a href="malama-auth.html" class="empty-btn">+ Add your listing</a>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(l => {
+    const isEvent = l.type === 'volunteer_event';
+    const items = (l.items || []).slice(0,5);
+    const tagClass = isEvent ? 'lc-tag-purple' : 'lc-tag-gold';
+    return `
+    <div class="listing-card">
+      <div class="lc-stripe ${l.type}"></div>
+      <div class="lc-header">
+        <div>
+          <p class="lc-name">${l.name}</p>
+          <p class="lc-addr">📍 ${l.address}</p>
+        </div>
+        <div class="lc-badges">
+          <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Open' : 'Closed'}</span>
+          <span class="pill ${isEvent ? 'pill-event' : 'pill-dropoff'}">${TYPE_LABELS[l.type]}</span>
+          ${l.verified ? `<span class="pill" style="background:var(--blue-pale);color:var(--blue-deep);">✓ Verified</span>` : ''}
+        </div>
+      </div>
+      <div class="lc-body">
+        ${isEvent && l.event_date ? `<div class="event-date-badge">📅 ${new Date(l.event_date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}${l.hours ? ' · '+l.hours : ''}</div>` : ''}
+        ${isEvent && l.volunteer_needs ? `<p class="lc-notes">Volunteers needed: ${l.volunteer_needs}</p>` : ''}
+        ${!isEvent && items.length ? `<div class="lc-tags">${items.map(i=>`<span class="${tagClass}">${i}</span>`).join('')}${l.items.length>5?`<span class="${tagClass}" style="background:#f0f0ec;color:var(--text-muted);">+${l.items.length-5} more</span>`:''}</div>` : ''}
+        <div class="lc-meta">
+          ${!isEvent && l.hours ? `<span class="lc-meta-item">🕐 ${l.hours}</span>` : ''}
+          ${l.contact_phone ? `<span class="lc-meta-item">📞 ${l.contact_phone}</span>` : ''}
+        </div>
+        ${l.notes ? `<p class="lc-notes">${l.notes}</p>` : ''}
+        <div class="lc-actions">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(l.address)}" target="_blank" class="lc-btn ${isEvent ? 'btn-volunteer' : 'btn-go'}">📍 ${isEvent ? 'Get directions' : 'Drop off here'}</a>
+          ${l.website ? `<a href="${l.website}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
+          ${l.giving_url ? `<a href="${l.giving_url}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
+          <button class="lc-btn btn-report" onclick="event.stopPropagation()">Report</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchView(v, el) {
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('listView').style.display = v==='list' ? 'block' : 'none';
+  document.getElementById('mapView').style.display = v==='map' ? 'block' : 'none';
+  if (v==='map' && !mapReady) initMap();
+}
+
+function renderMarkers() {
+  markers.forEach(m => m.map = null);
+  markers = [];
+  if (!window._AME) return;
+  filtered.forEach(l => {
+    const color = !l.status ? '#888' : (TYPE_COLORS[l.type] || '#c9983a');
+    const label = TYPE_LABELS[l.type] || l.type;
+    const w = Math.max(80, label.length * 7 + 20);
+    const el = document.createElement('div');
+    el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="34" style="cursor:pointer">
+      <rect x="1" y="1" width="${w-2}" height="24" rx="12" fill="${color}"/>
+      <text x="${w/2}" y="17" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="700" fill="white">${l.status ? label : 'Closed'}</text>
+      <polygon points="${w/2-5},25 ${w/2},32 ${w/2+5},25" fill="${color}"/>
+    </svg>`;
+    const marker = new window._AME({position:{lat:l.lat,lng:l.lng},map,title:l.name,content:el});
+    markers.push(marker);
+  });
+}
+
+async function initMap() {
+  if (mapReady) return;
+  const {Map} = await google.maps.importLibrary('maps');
+  const {AdvancedMarkerElement} = await google.maps.importLibrary('marker');
+  window._AME = AdvancedMarkerElement;
+  map = new Map(document.getElementById('map'), {
+    center:{lat:21.3750,lng:-157.9600}, zoom:11, mapId:'malama_want',
+    mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
+    styles:[
+      {featureType:'water',elementType:'geometry',stylers:[{color:'#a8c8e0'}]},
+      {featureType:'landscape',elementType:'geometry',stylers:[{color:'#d8e4cc'}]},
+      {featureType:'poi',elementType:'labels',stylers:[{visibility:'off'}]},
+      {featureType:'poi.business',stylers:[{visibility:'off'}]},
+      {featureType:'transit',stylers:[{visibility:'off'}]}
+    ]
+  });
+  mapReady = true;
+  renderMarkers();
+}
+
+init();
+</script>
+<script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src='https://maps.'+c+'apis.com/maps/api/js?'+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:"AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU",v:"weekly"});</script>
+</body>
+</html>
