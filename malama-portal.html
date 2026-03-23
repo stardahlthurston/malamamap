@@ -718,7 +718,7 @@ async function renewListing(id) {
 
 // ── GEOCODE ADDRESS ──
 async function geocodeAddress(address) {
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaii')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaiʻi')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
   try {
     const r = await fetch(url);
     const d = await r.json();
@@ -973,8 +973,4 @@ init();
     Mālama Map · Founded by Star Dahl-Thurston · Honolulu, Hawaiʻi
   </p>
   <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">
-    Questions or concerns? <a href="mailto:contact@malamamap.org" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;">contact@malamamap.org</a>
-  </p>
-</footer>
-</body>
-</html>
+    Questions or concerns? <a href="/cdn-cgi/l/email-protection#c9aaa6a7bda8aabd89a4a8a5a8a4a8a4a8b9e7a6bbae" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;"><span class="__
