@@ -182,6 +182,39 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .modal-success { text-align:center; padding:1rem 0; }
 .modal-success-icon { width:52px; height:52px; border-radius:50%; background:var(--sage-pale); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; }
 
+
+/* ── SHARE CARD ── */
+.share-card {
+  width:420px; background:white; border-radius:20px;
+  overflow:hidden; font-family:'Nunito',sans-serif;
+  box-shadow:0 8px 40px rgba(0,0,0,0.18);
+}
+.share-card-header { background:var(--sage-deep); padding:1.1rem 1.4rem 1rem; display:flex; align-items:flex-start; justify-content:space-between; gap:0.75rem; }
+.share-card-logo { font-size:0.6rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--sage-light); margin-bottom:5px; }
+.share-card-name { font-size:1.15rem; font-weight:800; color:white; line-height:1.2; }
+.share-open-pill { background:rgba(106,185,138,0.25); border:1.5px solid var(--sage-light); border-radius:100px; padding:3px 10px; display:flex; align-items:center; gap:5px; flex-shrink:0; margin-top:2px; }
+.share-open-dot { width:7px; height:7px; border-radius:50%; background:var(--sage-light); }
+.share-open-text { font-size:0.7rem; font-weight:700; color:var(--sage-light); }
+.share-closed-pill { background:rgba(200,200,200,0.15); border:1.5px solid #888; border-radius:100px; padding:3px 10px; display:flex; align-items:center; gap:5px; flex-shrink:0; margin-top:2px; }
+.share-closed-text { font-size:0.7rem; font-weight:700; color:#bbb; }
+.share-card-type-row { padding:0.7rem 1.4rem 0; }
+.share-card-badge { display:inline-block; font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:100px; background:var(--gold-pale); color:#7a5c1a; }
+.share-card-info { padding:0.7rem 1.4rem 0.85rem; display:flex; flex-direction:column; gap:7px; }
+.share-info-row { display:flex; align-items:flex-start; gap:10px; }
+.share-info-label { font-size:0.68rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); min-width:55px; padding-top:1px; }
+.share-info-val { font-size:0.85rem; font-weight:600; color:var(--text-dark); line-height:1.4; }
+.share-card-tags { padding:0 1.4rem 0.85rem; display:flex; flex-wrap:wrap; gap:5px; }
+.share-tag { font-size:0.68rem; font-weight:700; padding:3px 9px; border-radius:100px; background:var(--sage-pale); color:var(--sage-deep); }
+.share-card-notes { margin:0 1.4rem 0.85rem; background:#f4f6f4; border-radius:10px; padding:0.55rem 0.85rem; }
+.share-card-notes p { font-size:0.78rem; font-weight:500; color:var(--text-mid); line-height:1.5; margin:0; }
+.share-card-footer-bar { border-top:1px solid var(--border); padding:0.65rem 1.4rem; display:flex; align-items:center; justify-content:space-between; background:#fafafa; }
+.share-card-site { font-size:0.7rem; font-weight:700; color:var(--sage); }
+.share-card-tagline { font-size:0.7rem; font-weight:600; color:var(--text-muted); }
+.share-preview-bg { display:flex; justify-content:center; padding:1.5rem 1rem 1rem; background:#e8ede8; border-radius:14px; margin-bottom:1.25rem; overflow-x:auto; }
+.share-dl-btn { width:100%; padding:0.7rem; border-radius:100px; border:none; background:var(--sage); color:white; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; transition:background 0.2s; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+.share-dl-btn:hover { background:var(--sage-deep); }
+.share-dl-btn:disabled { background:#aaa; cursor:not-allowed; }
+
 .toast { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--sage-deep); color:white; padding:0.75rem 1.5rem; border-radius:100px; font-size:0.85rem; font-weight:700; z-index:900; box-shadow:0 4px 20px rgba(0,0,0,0.15); white-space:nowrap; }
 
 @media (max-width:800px) {
@@ -344,6 +377,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
     <div class="modal-actions">
       <button class="btn-cancel" id="discardBtn" onclick="closeEditModal()">Discard edits</button>
+      <button class="btn-outline btn btn-sm" id="shareFromEditBtn" onclick="shareFromEdit()" style="display:none;">Share listing</button>
       <button class="btn-submit" id="saveBtn" onclick="saveListing()">Save listing</button>
     </div>
   </div>
@@ -388,6 +422,34 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
         <p style="font-size:0.85rem;color:var(--text-muted);">Mahalo for helping keep Mālama Map accurate. We'll review within the hour.</p>
         <button class="btn btn-outline" style="margin-top:1.25rem;" onclick="closeReport()">Close</button>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     SHARE MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal" style="max-width:520px;">
+    <h2 class="modal-title">Share this listing</h2>
+    <p class="modal-sub" id="shareModalSub">Preview your listing card below, then download it as an image to post anywhere.</p>
+
+    <!-- Live card preview -->
+    <div class="share-preview-bg" id="sharePreviewBg">
+      <div class="share-card" id="shareCardEl">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <button class="share-dl-btn" id="shareDownloadBtn" onclick="downloadShareCard()">
+      <svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download image
+    </button>
+    <p style="font-size:0.73rem;font-weight:500;color:var(--text-muted);text-align:center;margin-top:0.6rem;line-height:1.5;">Saves as a PNG — perfect for Instagram, text, or Facebook</p>
+
+    <div class="modal-actions" style="margin-top:0.85rem;">
+      <button class="btn-cancel" onclick="closeShareModal()">Close</button>
     </div>
   </div>
 </div>
@@ -626,6 +688,7 @@ function renderListingCard(l) {
         <p class="expiry-note">⏱ Expires in ${expHrs} hrs — renew to stay visible</p>
         <div class="card-actions">
           <button class="report-btn" onclick="openReport('${l.id}')">⚠ Report</button>
+          <button class="btn btn-outline btn-sm" onclick="openShareModal('${l.id}')">Share</button>
           <button class="btn btn-outline btn-sm" onclick="openEditModal('${l.id}')">Edit listing</button>
           <button class="btn btn-primary btn-sm" onclick="renewListing('${l.id}')">Renew</button>
         </div>
@@ -651,6 +714,28 @@ function renderProfilePage() {
       <div class="profile-card">
         <p class="profile-card-title">Contact info</p>
         <p class="profile-card-sub">This is how people and our team can reach you. Your email is your login and can't be changed here.</p>
+
+        <!-- Profile photo upload -->
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
+          <div style="flex-shrink:0;">
+            ${meta.profile_pic
+              ? `<img src="${meta.profile_pic}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2.5px solid var(--sage-light);">`
+              : `<div style="width:60px;height:60px;border-radius:50%;background:var(--sage-pale);border:2px dashed var(--sage-light);display:flex;align-items:center;justify-content:center;"><svg viewBox='0 0 24 24' fill='none' style='width:22px;height:22px;'><circle cx='12' cy='8' r='4' stroke='#6ab98a' stroke-width='1.5'/><path d='M4 20c0-4 3.6-7 8-7s8 3 8 7' stroke='#6ab98a' stroke-width='1.5' stroke-linecap='round'/></svg></div>`
+            }
+          </div>
+          <div>
+            <p style="font-size:0.8rem;font-weight:700;color:var(--text-dark);margin-bottom:3px;">Profile photo</p>
+            <p style="font-size:0.73rem;font-weight:500;color:var(--text-muted);margin-bottom:8px;line-height:1.4;">Shows on your share cards next to your name. Optional.</p>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:0.73rem;font-weight:700;color:var(--sage);cursor:pointer;padding:0.33rem 0.85rem;border:1.5px solid var(--sage);border-radius:100px;transition:background 0.15s;" onmouseover="this.style.background='var(--sage-pale)'" onmouseout="this.style.background=''">
+                <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;"><path d="M8 2v8M4.5 5.5L8 2l3.5 3.5M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                ${meta.profile_pic ? 'Change photo' : 'Upload photo'}
+                <input type="file" accept="image/*" style="display:none;" onchange="handleProfilePicUpload(this)">
+              </label>
+              ${meta.profile_pic ? `<button onclick="removeProfilePic()" style="font-size:0.73rem;font-weight:700;color:var(--red);background:none;border:1.5px solid var(--red);border-radius:100px;padding:0.33rem 0.75rem;cursor:pointer;font-family:'Nunito',sans-serif;">Remove</button>` : ''}
+            </div>
+          </div>
+        </div>
 
         <div class="profile-row">
           <div class="profile-field">
@@ -846,6 +931,8 @@ function openEditModal(id) {
     document.getElementById('modalSub').textContent = 'Update your details below. Nothing saves until you hit Save changes.';
     document.getElementById('saveBtn').textContent = 'Save changes';
     document.getElementById('discardBtn').textContent = 'Discard edits';
+    document.getElementById('shareFromEditBtn').style.display = 'inline-flex';
+    document.getElementById('shareFromEditBtn').dataset.listingId = id;
     document.getElementById('editId').value = id;
 
     // Basic fields — pre-filled, nothing cleared
@@ -907,6 +994,7 @@ function openEditModal(id) {
     document.getElementById('modalSub').textContent = 'Fill in your details below. Nothing saves until you hit Save listing.';
     document.getElementById('saveBtn').textContent = 'Save listing';
     document.getElementById('discardBtn').textContent = 'Cancel';
+    document.getElementById('shareFromEditBtn').style.display = 'none';
     document.getElementById('editId').value = '';
     document.getElementById('editName').value = '';
     document.getElementById('editType').value = '';
@@ -1035,6 +1123,272 @@ function showToast(msg) {
 // Close modals on overlay click
 document.getElementById('editModal').addEventListener('click', e => { if (e.target === document.getElementById('editModal')) closeEditModal(); });
 document.getElementById('reportModal').addEventListener('click', e => { if (e.target === document.getElementById('reportModal')) closeReport(); });
+
+
+// ══════════════════════════════════════
+// SHARE MODAL
+// ══════════════════════════════════════
+const TYPE_LABELS_SHARE = {
+  shelter: '🏠 Shelter',
+  supply_station: '🛖 Supply Station',
+  donation_dropoff: '📦 Donation Drop-off',
+  volunteer_event: '🙋 Volunteer Event',
+  skills_labor: '🔧 Skills & Labor',
+  medical_assistance: '🏥 Medical Aid Station',
+  giving: '🤝 Giving',
+  accepting: '📬 Accepting'
+};
+const NEEDS_TYPES = ['donation_dropoff', 'accepting'];
+
+let shareListingId = null;
+// Active card color (hex)
+let shareCardColor = '#275c42';
+
+// ── Color helpers ──
+function hexToHsl(hex) {
+  let r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max===min){h=s=0;}else{const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}
+  return [Math.round(h*360), Math.round(s*100), Math.round(l*100)];
+}
+function hslToHex(h,s,l) {
+  s/=100;l/=100;
+  const a=s*Math.min(l,1-l);
+  const f=n=>{const k=(n+h/30)%12;const col=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*col).toString(16).padStart(2,'0');};
+  return '#'+f(0)+f(8)+f(4);
+}
+function lightenHex(hex, amount) {
+  const [h,s,l] = hexToHsl(hex);
+  return hslToHex(h, Math.max(0,s-10), Math.min(95, l+amount));
+}
+function darkenHex(hex, amount) {
+  const [h,s,l] = hexToHsl(hex);
+  return hslToHex(h, s, Math.max(5, l-amount));
+}
+
+function setCardColor(btn) {
+  shareCardColor = btn.style.background;
+  document.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // Sync custom color picker
+  document.getElementById('customColorPicker').value = rgbToHex(btn.style.background) || shareCardColor;
+  rebuildCard();
+}
+
+function setCardColorFromHex(hex) {
+  shareCardColor = hex;
+  document.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('selected'));
+  rebuildCard();
+}
+
+function rgbToHex(rgb) {
+  const m = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (!m) return rgb;
+  return '#' + [m[1],m[2],m[3]].map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
+function rebuildCard() {
+  const l = myListings.find(x => x.id === shareListingId);
+  if (l) buildShareCard(l);
+}
+
+function openShareModal(id) {
+  shareListingId = id;
+  const l = myListings.find(x => x.id === id);
+  if (!l) return;
+  // Reset to default green
+  shareCardColor = '#275c42';
+  document.querySelectorAll('.color-swatch').forEach((b,i) => b.classList.toggle('selected', i===0));
+  document.getElementById('customColorPicker').value = '#275c42';
+  buildShareCard(l);
+  document.getElementById('shareModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function shareFromEdit() {
+  const id = document.getElementById('shareFromEditBtn').dataset.listingId;
+  closeEditModal();
+  setTimeout(() => openShareModal(id), 200);
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function buildShareCard(l) {
+  const items = Array.isArray(l.items) ? l.items : [];
+  const isNeedsType = NEEDS_TYPES.includes(l.type);
+  const sectionLabel = isNeedsType ? 'What we need' : 'What we offer';
+  const typeLabel = TYPE_LABELS_SHARE[l.type] || l.type;
+  const statusOpen = l.status;
+
+  // Color palette derived from chosen color
+  const headerBg = shareCardColor;
+  const accentLight = lightenHex(shareCardColor, 38);  // for tag bg
+  const accentDeep = darkenHex(shareCardColor, 10);    // for tag text / site text
+  const accentPill = lightenHex(shareCardColor, 22);   // open pill bg tint
+
+  // Profile picture — only show if uploaded
+  const profileImg = currentUser.user_metadata?.profile_pic || null;
+  const orgName = currentUser.user_metadata?.org_name || '';
+  const firstName = currentUser.user_metadata?.first_name || '';
+  const displayName = orgName && orgName.toLowerCase() !== 'personal' && orgName.toLowerCase() !== 'individual'
+    ? orgName : (firstName || '');
+
+  const avatarHtml = (profileImg && displayName) ? `
+    <div style="display:flex;align-items:center;gap:8px;padding:0.55rem 1.4rem 0;border-top:1px solid rgba(255,255,255,0.12);">
+      <img src="${profileImg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.4);" crossorigin="anonymous">
+      <span style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.85);">${displayName}</span>
+    </div>` : (displayName ? `
+    <div style="display:flex;align-items:center;gap:8px;padding:0.55rem 1.4rem 0;border-top:1px solid rgba(255,255,255,0.12);">
+      <span style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.75);">${displayName}</span>
+    </div>` : '');
+
+  const tagsHtml = items.length
+    ? items.map(i => `<span style="font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:${accentLight};color:${accentDeep};">${i}</span>`).join('')
+    : '';
+
+  const notesHtml = l.notes
+    ? `<div style="margin:0 1.4rem 0.85rem;background:#f4f6f4;border-radius:10px;padding:0.55rem 0.85rem;"><p style="font-size:0.78rem;font-weight:500;color:#4a453f;line-height:1.5;margin:0;">${l.notes}</p></div>`
+    : '';
+
+  const websiteHtml = l.website
+    ? `<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8a827a;min-width:55px;padding-top:1px;">Website</span><span style="font-size:0.85rem;font-weight:600;color:${accentDeep};line-height:1.4;">${l.website.replace('https://','')}</span></div>`
+    : '';
+
+  document.getElementById('shareCardEl').innerHTML = `
+    <div style="background:${headerBg};padding:1.1rem 1.4rem 0.85rem;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;">
+        <div style="flex:1;min-width:0;">
+          <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${accentPill};margin-bottom:5px;">Mālama Map</p>
+          <p style="font-size:1.15rem;font-weight:800;color:white;line-height:1.2;margin:0;">${l.name}</p>
+        </div>
+        ${statusOpen
+          ? `<div style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.45);border-radius:100px;padding:3px 10px;display:flex;align-items:center;gap:5px;flex-shrink:0;margin-top:2px;">
+               <div style="width:7px;height:7px;border-radius:50%;background:#7dffb0;"></div>
+               <span style="font-size:0.7rem;font-weight:700;color:white;">Open</span>
+             </div>`
+          : `<div style="background:rgba(0,0,0,0.2);border:1.5px solid rgba(255,255,255,0.2);border-radius:100px;padding:3px 10px;flex-shrink:0;margin-top:2px;">
+               <span style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.6);">Closed</span>
+             </div>`
+        }
+      </div>
+      ${avatarHtml}
+    </div>
+    <div style="padding:0.7rem 1.4rem 0;">
+      <span style="display:inline-block;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:100px;background:#fdf4e3;color:#7a5c1a;">${typeLabel}</span>
+    </div>
+    <div style="padding:0.7rem 1.4rem 0.85rem;display:flex;flex-direction:column;gap:7px;">
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8a827a;min-width:55px;padding-top:1px;">Address</span>
+        <span style="font-size:0.85rem;font-weight:600;color:#1c1a18;line-height:1.4;">${l.address}</span>
+      </div>
+      ${l.hours ? `<div style="display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8a827a;min-width:55px;padding-top:1px;">Hours</span>
+        <span style="font-size:0.85rem;font-weight:600;color:#1c1a18;line-height:1.4;">${l.hours}</span>
+      </div>` : ''}
+      ${websiteHtml}
+    </div>
+    ${items.length ? `
+    <div style="padding:0 1.4rem 0.3rem;">
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#8a827a;margin-bottom:6px;">${sectionLabel}</p>
+    </div>
+    <div style="padding:0 1.4rem 0.85rem;display:flex;flex-wrap:wrap;gap:5px;">${tagsHtml}</div>
+    ` : ''}
+    ${notesHtml}
+    <div style="border-top:1px solid rgba(0,0,0,0.08);padding:0.65rem 1.4rem;display:flex;align-items:center;justify-content:space-between;background:#fafafa;">
+      <span style="font-size:0.7rem;font-weight:700;color:${accentDeep};">malamamap.org</span>
+      <span style="font-size:0.7rem;font-weight:600;color:#8a827a;">Hawaiʻi helping Hawaiʻi 🌺</span>
+    </div>
+  `;
+}
+
+async function downloadShareCard() {
+  const btn = document.getElementById('shareDownloadBtn');
+  const l = myListings.find(x => x.id === shareListingId);
+  if (!l) return;
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  if (!window.html2canvas) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      script.onload = resolve; script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+  try {
+    const cardEl = document.getElementById('shareCardEl');
+    const canvas = await html2canvas(cardEl, { scale:3, useCORS:true, backgroundColor:'#ffffff', logging:false });
+    const link = document.createElement('a');
+    const safeName = l.name.replace(/[^a-z0-9]/gi,'-').toLowerCase();
+    link.download = 'malama-map-' + safeName + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
+    showToast('🌺 Image downloaded!');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Download image';
+    showToast('Could not generate image — try again');
+    console.error(e);
+  }
+}
+
+document.getElementById('shareModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('shareModal')) closeShareModal();
+});
+
+// ══════════════════════════════════════
+// PROFILE PIC UPLOAD
+// ══════════════════════════════════════
+function handleProfilePicUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2MB'); return; }
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const dataUrl = e.target.result;
+    const resized = await resizeImageDataUrl(dataUrl, 200);
+    const { error } = await sb.auth.updateUser({ data: { profile_pic: resized } });
+    if (error) { showToast('Error saving photo'); return; }
+    const { data: { user } } = await sb.auth.getUser();
+    currentUser = user;
+    showToast('🌺 Profile photo saved!');
+    renderProfilePage();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removeProfilePic() {
+  const { error } = await sb.auth.updateUser({ data: { profile_pic: null } });
+  if (error) { showToast('Error removing photo'); return; }
+  const { data: { user } } = await sb.auth.getUser();
+  currentUser = user;
+  showToast('Photo removed');
+  renderProfilePage();
+}
+
+function resizeImageDataUrl(dataUrl, maxSize) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = Math.min(img.width, img.height);
+      canvas.width = maxSize; canvas.height = maxSize;
+      const ctx = canvas.getContext('2d');
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, maxSize, maxSize);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = dataUrl;
+  });
+}
+
 
 try { init(); } catch(e) { console.error('Init error:', e); }
 </script>
