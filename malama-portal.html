@@ -566,16 +566,28 @@ document.getElementById('itemCheckboxGrid').addEventListener('change', function(
 // HELPERS
 // ══════════════════════════════════════
 function getDisplayName(user) {
-  const org = user.user_metadata?.org_name || '';
-  const full = user.user_metadata?.full_name || '';
+  const m = user.user_metadata || {};
+  // New system: display_name set from account type flow
+  if (m.display_name) return m.display_name;
+  // Legacy fallback
+  const org = m.org_name || '';
+  const full = m.full_name || '';
   if (!org || org.toLowerCase() === 'personal' || org.toLowerCase() === 'individual') return full || user.email;
   return org;
 }
 
 function getGreeting(user) {
-  const org = user.user_metadata?.org_name || '';
-  const first = user.user_metadata?.first_name || '';
-  const full = user.user_metadata?.full_name || '';
+  const m = user.user_metadata || {};
+  if (m.display_name) {
+    // For individual/personal: use first name only in greeting
+    const type = m.account_type || '';
+    if (type === 'individual') return 'Aloha, ' + (m.first_name || m.display_name);
+    return 'Aloha, ' + m.display_name;
+  }
+  // Legacy fallback
+  const org = m.org_name || '';
+  const first = m.first_name || '';
+  const full = m.full_name || '';
   const isPersonal = !org || org.toLowerCase() === 'personal' || org.toLowerCase() === 'individual';
   const name = isPersonal ? (first || full.split(' ')[0] || user.email) : org;
   return 'Aloha, ' + name;
@@ -748,6 +760,26 @@ function renderProfilePage() {
           </div>
         </div>
 
+        <!-- Account type + entity name -->
+        <div class="profile-field">
+          <p class="profile-label">Account type <span style="color:var(--red);">*</span></p>
+          <select class="profile-input" id="profAccountType" onchange="onAccountTypeChange()" style="cursor:pointer;">
+            <option value="individual" ${meta.account_type === 'individual' || !meta.account_type ? 'selected' : ''}>Individual</option>
+            <option value="group" ${meta.account_type === 'group' ? 'selected' : ''}>Community group / volunteers</option>
+            <option value="organization" ${meta.account_type === 'organization' ? 'selected' : ''}>Organization / nonprofit</option>
+            <option value="church" ${meta.account_type === 'church' ? 'selected' : ''}>Church</option>
+          </select>
+          <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:4px;">This determines how your listings are titled on the map.</p>
+        </div>
+
+        <div class="profile-field">
+          <p class="profile-label" id="entityNameLabel">${meta.account_type === 'individual' || !meta.account_type ? 'Your neighborhood or area' : (meta.account_type === 'church' ? 'Church name' : meta.account_type === 'group' ? 'Group name' : 'Organization name')}</p>
+          <input class="profile-input" id="profEntityName" type="text"
+            placeholder="${meta.account_type === 'individual' || !meta.account_type ? 'e.g. Kailua, Mānoa, Kaimukī' : meta.account_type === 'church' ? 'e.g. Kaimana Community Church' : meta.account_type === 'group' ? 'e.g. Kailua Community Volunteers' : 'e.g. Red Cross Hawaiʻi'}"
+            value="${escHtml(meta.entity_name || meta.org_name || '')}">
+          <p id="entityNameHint" style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:4px;">${meta.account_type === 'individual' || !meta.account_type ? 'Used as your listing identifier — e.g. "Kailua — Donation Drop-off"' : 'Your listings will be titled "[Name] — [Listing type]"'}</p>
+        </div>
+
         <div class="profile-row">
           <div class="profile-field">
             <p class="profile-label">First name <span style="color:var(--red);">*</span></p>
@@ -757,11 +789,6 @@ function renderProfilePage() {
             <p class="profile-label">Last name</p>
             <input class="profile-input" id="profLastName" type="text" placeholder="Akana" value="${escHtml(meta.last_name || '')}">
           </div>
-        </div>
-
-        <div class="profile-field">
-          <p class="profile-label">Organization / church name</p>
-          <input class="profile-input" id="profOrgName" type="text" placeholder="e.g. Kaimana Community Church" value="${escHtml(meta.org_name || '')}">
         </div>
 
         <div class="profile-field">
@@ -846,22 +873,63 @@ function removeCollaborator(index) {
 }
 
 async function saveProfile() {
+  const accountType = document.getElementById('profAccountType').value;
+  const entityName = document.getElementById('profEntityName').value.trim();
   const first = document.getElementById('profFirstName').value.trim();
   if (!first) { showToast('First name is required'); return; }
+  if (accountType !== 'individual' && !entityName) { showToast('Please enter your ' + getEntityLabel(accountType).toLowerCase()); return; }
+
+  // Build display_name based on account type
+  let displayName;
+  if (accountType === 'individual') {
+    displayName = entityName || first; // neighborhood/area or first name
+  } else {
+    displayName = entityName;
+  }
+
   const updates = {
+    account_type: accountType,
+    display_name: displayName,
+    entity_name: entityName,
     first_name: first,
     last_name: document.getElementById('profLastName').value.trim(),
-    org_name: document.getElementById('profOrgName').value.trim(),
     contact_phone: document.getElementById('profPhone').value.trim(),
     website: document.getElementById('profWebsite').value.trim(),
+    // Keep legacy fields for backwards compat
+    org_name: entityName,
   };
   const { error } = await sb.auth.updateUser({ data: updates });
   if (error) { showToast('Error saving: ' + error.message); return; }
-  // Refresh user
   const { data: { user } } = await sb.auth.getUser();
   currentUser = user;
   document.getElementById('userEmail').textContent = getGreeting(currentUser);
   showToast('🌺 Profile saved!');
+}
+
+function getEntityLabel(type) {
+  const labels = { church: 'Church name', organization: 'Organization name', group: 'Group name', individual: 'Neighborhood or area' };
+  return labels[type] || 'Name';
+}
+
+function getEntityPlaceholder(type) {
+  const ph = { church: 'e.g. Kaimana Community Church', organization: 'e.g. Red Cross Hawaiʻi', group: 'e.g. Kailua Community Volunteers', individual: 'e.g. Kailua, Mānoa, Kaimukī' };
+  return ph[type] || 'Enter name';
+}
+
+function onAccountTypeChange() {
+  const type = document.getElementById('profAccountType').value;
+  const label = document.getElementById('entityNameLabel');
+  const input = document.getElementById('profEntityName');
+  const hint = document.getElementById('entityNameHint');
+  if (type === 'individual') {
+    label.textContent = 'Your neighborhood or area';
+    input.placeholder = getEntityPlaceholder('individual');
+    hint.textContent = 'Used as your listing identifier — e.g. "Kailua — Donation Drop-off"';
+  } else {
+    label.textContent = getEntityLabel(type);
+    input.placeholder = getEntityPlaceholder(type);
+    hint.textContent = 'Your listings will be titled "[Name] — [Listing type]"';
+  }
 }
 
 async function saveCollaborators() {
