@@ -189,7 +189,8 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <input type="hidden" id="editId">
 
     <p class="modal-label">Listing name</p>
-    <input type="text" class="modal-input" id="editName" placeholder="e.g. Kaimana Church Donation Drop-off">
+    <input type="text" class="modal-input" id="editName" placeholder="e.g. Kaimana Church — Nuuanu Drop-off">
+    <p class="link-hint">If you have multiple locations, give each one a specific name so people can tell them apart.</p>
 
     <div class="modal-row">
       <div>
@@ -213,18 +214,58 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <input type="text" class="modal-input" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
     <div class="modal-row">
       <div>
-        <p class="modal-label">Hours today</p>
-        <input type="text" class="modal-input" id="editHours" placeholder="9:00 AM – 5:00 PM">
+        <p class="modal-label">Opens at</p>
+        <select class="modal-input" id="editHoursOpen">
+          <option value="">Select time</option>
+          <option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option>
+          <option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
+          <option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option>
+          <option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option>
+          <option>6:00 PM</option><option>7:00 PM</option><option>8:00 PM</option>
+          <option>Open 24 hours</option><option>Sunrise – Sunset</option>
+        </select>
       </div>
       <div>
-        <p class="modal-label">Contact phone</p>
-        <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
+        <p class="modal-label">Closes at</p>
+        <select class="modal-input" id="editHoursClose">
+          <option value="">Select time</option>
+          <option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option>
+          <option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option>
+          <option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option>
+          <option>5:00 PM</option><option>6:00 PM</option><option>7:00 PM</option>
+          <option>8:00 PM</option><option>9:00 PM</option><option>10:00 PM</option>
+          <option>Midnight</option>
+        </select>
       </div>
+    </div>
+    <div>
+      <p class="modal-label">Contact phone</p>
+      <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
     </div>
 
     <p class="modal-section">What you're offering or accepting</p>
-    <p class="modal-label">Items (separate with commas)</p>
-    <input type="text" class="modal-input" id="editItems" placeholder="Canned food, Water, Diapers, Blankets">
+    <p class="modal-label">Select all that apply</p>
+    <div id="itemCheckboxes" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Water & hydration" style="accent-color:var(--sage);width:15px;height:15px;"> Water & hydration</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Canned & dry food" style="accent-color:var(--sage);width:15px;height:15px;"> Canned & dry food</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hot meals" style="accent-color:var(--sage);width:15px;height:15px;"> Hot meals</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Baby formula & diapers" style="accent-color:var(--sage);width:15px;height:15px;"> Baby formula & diapers</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Clothing & shoes" style="accent-color:var(--sage);width:15px;height:15px;"> Clothing & shoes</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hygiene kits" style="accent-color:var(--sage);width:15px;height:15px;"> Hygiene kits</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Blankets & bedding" style="accent-color:var(--sage);width:15px;height:15px;"> Blankets & bedding</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Gasoline" style="accent-color:var(--sage);width:15px;height:15px;"> Gasoline</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Flashlights & batteries" style="accent-color:var(--sage);width:15px;height:15px;"> Flashlights & batteries</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="First aid supplies" style="accent-color:var(--sage);width:15px;height:15px;"> First aid supplies</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Medications" style="accent-color:var(--sage);width:15px;height:15px;"> Medications</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Pet food & supplies" style="accent-color:var(--sage);width:15px;height:15px;"> Pet food & supplies</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Emergency shelter" style="accent-color:var(--sage);width:15px;height:15px;"> Emergency shelter</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Cash donations" style="accent-color:var(--sage);width:15px;height:15px;"> Cash donations</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Volunteer support" style="accent-color:var(--sage);width:15px;height:15px;"> Volunteer support</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Tarps & tools" style="accent-color:var(--sage);width:15px;height:15px;"> Tarps & tools</label>
+    </div>
+    <p class="modal-label">Anything else? Add custom items <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></p>
+    <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Generator, Ice, Propane tanks">
+
     <p class="modal-label">Notes for visitors</p>
     <textarea class="modal-input" id="editNotes" rows="2" placeholder="Drive-through available, cash donations accepted, etc."></textarea>
 
@@ -299,12 +340,31 @@ let currentUser = null;
 let myListings = [];
 let reportingListingId = null;
 
+// Smart greeting — personal vs org
+function getDisplayName(user) {
+  const org = user.user_metadata?.org_name || '';
+  const full = user.user_metadata?.full_name || '';
+  if (!org || org.toLowerCase() === 'personal' || org.toLowerCase() === 'individual') {
+    return full || user.email;
+  }
+  return org;
+}
+
+function getGreeting(user) {
+  const org = user.user_metadata?.org_name || '';
+  const full = user.user_metadata?.full_name || '';
+  const isPersonal = !org || org.toLowerCase() === 'personal' || org.toLowerCase() === 'individual';
+  // Use first name if personal, org name if org
+  const name = isPersonal ? (full.split(' ')[0] || user.email) : org;
+  return 'Aloha, ' + name;
+}
+
 // ── INIT ──
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
-  document.getElementById('userEmail').textContent = 'Aloha, ' + (currentUser.user_metadata?.org_name || currentUser.email);
+  document.getElementById('userEmail').textContent = getGreeting(currentUser);
   await loadListings();
 }
 
@@ -346,7 +406,7 @@ function renderMain() {
 
   main.innerHTML = `
     <div class="page-header">
-      <div><h1 class="page-title">My listings</h1><p class="page-subtitle">${myListings.length} listing${myListings.length>1?'s':''} · ${myListings.filter(l=>l.status).length} open</p></div>
+      <div><h1 class="page-title">My listings</h1><p class="page-subtitle">${getDisplayName(currentUser)} · ${myListings.length} listing${myListings.length>1?'s':''} · ${myListings.filter(l=>l.status).length} open</p></div>
       <button class="btn btn-primary" onclick="openEditModal(null)">+ Add new listing</button>
     </div>
     ${expiringListing ? `<div class="expiry-banner"><div style="font-size:1.4rem;">⏳</div><p class="expiry-text"><strong>A listing expires soon.</strong> Renew it to keep your pin active on the map.</p></div>` : ''}
@@ -443,8 +503,23 @@ async function saveListing() {
   const address = document.getElementById('editAddress').value.trim();
   if (!name || !address) { showToast('Please fill in name and address'); return; }
 
-  const itemsRaw = document.getElementById('editItems').value;
-  const items = itemsRaw.split(',').map(i=>i.trim()).filter(Boolean);
+  // Build hours string from dropdowns
+  const openTime = document.getElementById('editHoursOpen').value;
+  const closeTime = document.getElementById('editHoursClose').value;
+  let hours = '';
+  if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') {
+    hours = openTime;
+  } else if (openTime && closeTime) {
+    hours = openTime + ' – ' + closeTime;
+  } else if (openTime) {
+    hours = 'Opens at ' + openTime;
+  }
+
+  // Build items from checkboxes + custom
+  const checked = [...document.querySelectorAll('#itemCheckboxes input:checked')].map(cb => cb.value);
+  const custom = document.getElementById('editCustomItems').value.split(',').map(i=>i.trim()).filter(Boolean);
+  const items = [...checked, ...custom];
+
   const coords = await geocodeAddress(address);
 
   const payload = {
@@ -454,7 +529,7 @@ async function saveListing() {
     address,
     lat: coords.lat,
     lng: coords.lng,
-    hours: document.getElementById('editHours').value.trim(),
+    hours,
     contact_phone: document.getElementById('editPhone').value.trim(),
     items,
     notes: document.getElementById('editNotes').value.trim(),
@@ -473,7 +548,12 @@ async function saveListing() {
 
   if (error) { showToast('Error saving: ' + error.message); return; }
   closeEditModal();
-  showToast('🌺 Listing published and live on the map!');
+  // Remind unverified users to confirm email
+  if (!currentUser.email_confirmed_at) {
+    showToast('🌺 Listing live! Check your email to verify your account.');
+  } else {
+    showToast('🌺 Listing published and live on the map!');
+  }
   await loadListings();
 }
 
@@ -489,9 +569,27 @@ function openEditModal(id) {
     document.getElementById('editType').value = l.type;
     document.getElementById('editStatus').value = String(l.status);
     document.getElementById('editAddress').value = l.address;
-    document.getElementById('editHours').value = l.hours || '';
+    // Restore hours dropdowns
+    if (l.hours) {
+      if (l.hours === 'Open 24 hours' || l.hours === 'Sunrise – Sunset') {
+        document.getElementById('editHoursOpen').value = l.hours;
+      } else if (l.hours.includes('–')) {
+        const parts = l.hours.split('–').map(s=>s.trim());
+        document.getElementById('editHoursOpen').value = parts[0] || '';
+        document.getElementById('editHoursClose').value = parts[1] || '';
+      }
+    }
     document.getElementById('editPhone').value = l.contact_phone || '';
-    document.getElementById('editItems').value = (l.items || []).join(', ');
+    // Restore checkboxes
+    const knownItems = [...document.querySelectorAll('#itemCheckboxes input')].map(cb=>cb.value);
+    const savedItems = l.items || [];
+    document.querySelectorAll('#itemCheckboxes input').forEach(cb => {
+      cb.checked = savedItems.includes(cb.value);
+      cb.closest('label').style.borderColor = cb.checked ? 'var(--sage)' : '#ddd';
+      cb.closest('label').style.background = cb.checked ? 'var(--sage-pale)' : '';
+    });
+    const customItems = savedItems.filter(i => !knownItems.includes(i));
+    document.getElementById('editCustomItems').value = customItems.join(', ');
     document.getElementById('editNotes').value = l.notes || '';
     document.getElementById('editWebsite').value = l.website || '';
     if (l.giving_url) {
@@ -504,9 +602,15 @@ function openEditModal(id) {
     document.getElementById('editId').value = '';
     document.getElementById('editName').value = '';
     document.getElementById('editAddress').value = '';
-    document.getElementById('editHours').value = '';
+    document.getElementById('editHoursOpen').value = '';
+    document.getElementById('editHoursClose').value = '';
     document.getElementById('editPhone').value = '';
-    document.getElementById('editItems').value = '';
+    document.querySelectorAll('#itemCheckboxes input').forEach(cb => {
+      cb.checked = false;
+      cb.closest('label').style.borderColor = '#ddd';
+      cb.closest('label').style.background = '';
+    });
+    document.getElementById('editCustomItems').value = '';
     document.getElementById('editNotes').value = '';
     document.getElementById('editWebsite').value = '';
     document.getElementById('givingCheck').checked = false;
@@ -554,7 +658,16 @@ function showToast(msg) {
   setTimeout(() => t.style.display='none', 3500);
 }
 
-// ── CLOSE ON OVERLAY CLICK ──
+// Checkbox visual feedback
+document.addEventListener('change', function(e) {
+  if (e.target.type === 'checkbox' && e.target.closest('#itemCheckboxes')) {
+    const label = e.target.closest('label');
+    label.style.borderColor = e.target.checked ? 'var(--sage)' : '#ddd';
+    label.style.background = e.target.checked ? 'var(--sage-pale)' : '';
+  }
+});
+
+// Close on overlay click
 document.getElementById('editModal').addEventListener('click', e => { if(e.target===document.getElementById('editModal')) closeEditModal(); });
 document.getElementById('reportModal').addEventListener('click', e => { if(e.target===document.getElementById('reportModal')) closeReport(); });
 
