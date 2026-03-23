@@ -10,6 +10,7 @@
 <title>Mālama Map — Add a listing</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU&libraries=places" async defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -198,7 +199,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     </div>
     <div class="field">
       <label>Full address</label>
-      <input type="text" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
+      <input type="text" id="editAddress" placeholder="Start typing your address…" autocomplete="off">
+      <p class="hint">Select from the suggestions to pin your exact location on the map.</p>
     </div>
     <div class="field">
       <label>Contact phone</label>
@@ -272,6 +274,13 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="giving-item"> Cleanup supplies</label>
           <label class="check-label"><input type="checkbox" value="Hygiene kits" class="giving-item"> Hygiene kits</label>
           <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="giving-item"> Pet food & supplies</label>
+          <label class="check-label"><input type="checkbox" value="Baby wipes" class="giving-item"> Baby wipes</label>
+          <label class="check-label"><input type="checkbox" value="Hygiene items (toothpaste, toothbrushes, soap, deodorant)" class="giving-item"> Hygiene items</label>
+          <label class="check-label"><input type="checkbox" value="Towels" class="giving-item"> Towels</label>
+          <label class="check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)" class="giving-item"> Work supplies</label>
+          <label class="check-label"><input type="checkbox" value="Medical supplies" class="giving-item"> Medical supplies</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="giving-item"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="giving-item"> Batteries</label>
         </div>
         <div class="field" style="margin-top:0.75rem;"><label>Anything else? (commas)</label><input type="text" id="givingCustomItems" placeholder="e.g. Ice, Tarps"></div>
       </div>
@@ -297,6 +306,13 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
             <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="accepting-item"> Cleanup supplies</label>
             <label class="check-label"><input type="checkbox" value="First aid supplies" class="accepting-item"> First aid supplies</label>
             <label class="check-label"><input type="checkbox" value="Hygiene kits" class="accepting-item"> Hygiene kits</label>
+            <label class="check-label"><input type="checkbox" value="Baby wipes" class="accepting-item"> Baby wipes</label>
+            <label class="check-label"><input type="checkbox" value="Hygiene items (toothpaste, toothbrushes, soap, deodorant)" class="accepting-item"> Hygiene items</label>
+            <label class="check-label"><input type="checkbox" value="Towels" class="accepting-item"> Towels</label>
+            <label class="check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)" class="accepting-item"> Work supplies</label>
+            <label class="check-label"><input type="checkbox" value="Medical supplies" class="accepting-item"> Medical supplies</label>
+            <label class="check-label"><input type="checkbox" value="Flashlights" class="accepting-item"> Flashlights</label>
+            <label class="check-label"><input type="checkbox" value="Batteries" class="accepting-item"> Batteries</label>
           </div>
           <div class="field" style="margin-top:0.75rem;"><label>Anything else? (commas)</label><input type="text" id="acceptingCustomItems" placeholder="e.g. Tents, Tarps"></div>
         </div>
@@ -320,6 +336,13 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="item-check"> Cleanup supplies</label>
           <label class="check-label"><input type="checkbox" value="Hygiene kits" class="item-check"> Hygiene kits</label>
           <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="item-check"> Pet food & supplies</label>
+          <label class="check-label"><input type="checkbox" value="Baby wipes" class="item-check"> Baby wipes</label>
+          <label class="check-label"><input type="checkbox" value="Hygiene items (toothpaste, toothbrushes, soap, deodorant)" class="item-check"> Hygiene items</label>
+          <label class="check-label"><input type="checkbox" value="Towels" class="item-check"> Towels</label>
+          <label class="check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)" class="item-check"> Work supplies</label>
+          <label class="check-label"><input type="checkbox" value="Medical supplies" class="item-check"> Medical supplies</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="item-check"> Batteries</label>
         </div>
         <div class="field" style="margin-top:0.75rem;"><label>Anything else? (commas)</label><input type="text" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks"></div>
       </div>
@@ -445,10 +468,42 @@ const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb = window.supabase.createClient(SURL, SKEY);
 let currentUser = null;
 
+function getCity(components) {
+  if (!components) return '';
+  const city = components.find(c => c.types.includes('locality'));
+  if (city) return city.long_name;
+  const area = components.find(c => c.types.includes('sublocality') || c.types.includes('neighborhood'));
+  return area ? area.long_name : '';
+}
+
+function initAddressAutocomplete() {
+  const input = document.getElementById('editAddress');
+  if (!input || !window.google?.maps?.places) {
+    setTimeout(initAddressAutocomplete, 500); return;
+  }
+  const ac = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'us' },
+    fields: ['formatted_address','geometry','address_components'],
+    types: ['address']
+  });
+  ac.addListener('place_changed', function() {
+    const place = ac.getPlace();
+    if (!place.formatted_address) return;
+    input.value = place.formatted_address;
+    if (place.geometry?.location) {
+      input.dataset.lat = place.geometry.location.lat();
+      input.dataset.lng = place.geometry.location.lng();
+    }
+    const city = getCity(place.address_components);
+    if (city) input.dataset.city = city;
+  });
+}
+
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
+  initAddressAutocomplete();
   const meta = currentUser.user_metadata || {};
 
   // Build display name for auto-title
@@ -551,7 +606,13 @@ async function saveListing() {
     items = [...ci,...cu];
   }
 
-  const coords = await geocodeAddress(address);
+  const addrInput = document.getElementById('editAddress');
+  let coords;
+  if (addrInput?.dataset.lat && addrInput?.dataset.lng) {
+    coords = { lat: parseFloat(addrInput.dataset.lat), lng: parseFloat(addrInput.dataset.lng) };
+  } else {
+    coords = await geocodeAddress(address);
+  }
 
   const payload = {
     name, type,
