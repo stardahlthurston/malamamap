@@ -243,6 +243,7 @@ function renderList() {
           ${l.website ? `<a href="${l.website}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
           ${l.giving_url ? `<a href="${l.giving_url}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
           <button class="lc-btn btn-report" onclick="event.stopPropagation()">Report</button>
+          <button class="lc-btn" onclick="event.stopPropagation();openClaim('${l.id}')" style="color:#275c42;background:#edf7f1;border-color:#6ab98a;font-size:0.65rem;">🌺 Claim listing</button>
         </div>
       </div>
     </div>`;
