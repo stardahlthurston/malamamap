@@ -219,13 +219,13 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
   <nav class="sidebar">
     <div class="sidebar-section">
       <p class="sidebar-label">My listings</p>
-      <a class="sidebar-link active" id="navListings" href="#" onclick="showPage('listings')">My listings</a>
-      <a class="sidebar-link" href="#" onclick="openEditModal(null)">+ Add new listing</a>
+      <a class="sidebar-link active" id="navListings" href="#" onclick="event.preventDefault();showPage('listings')">My listings</a>
+      <a class="sidebar-link" href="#" onclick="event.preventDefault();openEditModal(null)">+ Add new listing</a>
     </div>
     <hr class="sidebar-divider">
     <div class="sidebar-section">
       <p class="sidebar-label">Account</p>
-      <a class="sidebar-link" id="navProfile" href="#" onclick="showPage('profile')">Profile & contact</a>
+      <a class="sidebar-link" id="navProfile" href="#" onclick="event.preventDefault();showPage('profile')">Profile & contact</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
   </nav>
