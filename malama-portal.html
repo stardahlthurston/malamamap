@@ -237,6 +237,11 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
         <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Skills & Labor</p>
         <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">I have skills, equipment or labor to offer — truck, tools, trades, medical, childcare</p>
       </div>
+      <div class="type-card" data-type="medical_assistance" onclick="selectType('medical_assistance')" style="padding:0.9rem;border:2px solid #fcc;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;grid-column:1/-1;">
+        <div style="font-size:1.4rem;margin-bottom:4px;">🏥</div>
+        <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Medical Aid Station</p>
+        <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">Medical care, check-ups & health support</p>
+      </div>
     </div>
     <input type="hidden" id="editType" value="">
 
@@ -434,7 +439,8 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
     </div>
 
-    <p class="modal-section">What you're offering or accepting</p>
+    <div id="itemsSection">
+    <p class="modal-section">What you're offering</p>
     <p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.75rem;">Select everything that applies to your listing.</p>
 
     <p class="modal-label" style="margin-top:0.75rem;">🍱 Food & water</p>
@@ -479,6 +485,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
     <p class="modal-label" style="margin-top:0.75rem;">Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></p>
     <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+    </div><!-- end itemsSection -->
 
         <p class="modal-label">Notes for visitors</p>
     <textarea class="modal-input" id="editNotes" rows="2" placeholder="Drive-through available, cash donations accepted, etc."></textarea>
@@ -576,16 +583,20 @@ const TYPE_LABELS = {
 
 function selectType(type) {
   document.getElementById('editType').value = type;
-  const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#fff3ee'};
+  const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#fff3ee',medical_assistance:'#fdf0ee'};
+  const colorMap = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
   document.querySelectorAll('.type-card').forEach(c => {
     const sel = c.dataset.type === type;
-    c.style.borderColor = sel ? TYPE_COLORS[type] : '#ddd';
+    c.style.borderColor = sel ? (colorMap[type] || '#3a7d5c') : '#ddd';
     c.style.background = sel ? (bgMap[type] || 'white') : 'white';
   });
   document.getElementById('eventExtras').style.display = type==='volunteer_event' ? 'block' : 'none';
   document.getElementById('shelterExtras').style.display = type==='shelter' ? 'block' : 'none';
   document.getElementById('dropoffToggle').style.display = type==='supply_station' ? 'block' : 'none';
   document.getElementById('skillsExtras').style.display = type==='skills_labor' ? 'block' : 'none';
+  // Hide items section for types that don't need it
+  const itemsSection = document.getElementById('itemsSection');
+  if (itemsSection) itemsSection.style.display = (type==='skills_labor'||type==='medical_assistance') ? 'none' : 'block';
 }
 
 // Smart greeting — personal vs org
