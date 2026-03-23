@@ -367,16 +367,20 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.5rem;">
       <div>
         <p class="modal-label">Available from <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></p>
         <input type="date" class="modal-input" id="editDateFrom">
       </div>
       <div>
-        <p class="modal-label">Available until <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></p>
-        <input type="date" class="modal-input" id="editDateUntil">
+        <p class="modal-label">Available until</p>
+        <input type="date" class="modal-input" id="editDateUntil" placeholder="">
       </div>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-bottom:0.85rem;color:var(--sage-deep);">
+      <input type="checkbox" id="untilFurtherNotice" style="accent-color:var(--sage);width:15px;height:15px;" onchange="toggleUntilFurtherNotice(this)">
+      Until further notice
+    </label>
 
     <div id="itemsSection" style="display:none;">
       <p class="modal-section" id="itemsSectionTitle">What you're offering</p>
@@ -1110,6 +1114,12 @@ function openEditModal(id) {
     const dateUntilEl = document.getElementById('editDateUntil');
     if (dateFromEl) dateFromEl.value = l.date_from || '';
     if (dateUntilEl) dateUntilEl.value = l.date_until || '';
+    const ufnEl = document.getElementById('untilFurtherNotice');
+    if (ufnEl) {
+      const isUFN = (l.hours || '').includes('Until further notice');
+      ufnEl.checked = isUFN;
+      if (isUFN && dateUntilEl) { dateUntilEl.disabled = true; dateUntilEl.style.opacity = '0.4'; }
+    }
     document.getElementById('editNotes').value = l.notes || '';
     document.getElementById('editWebsite').value = l.website || '';
 
@@ -1181,7 +1191,9 @@ function openEditModal(id) {
     const dateFromClear = document.getElementById('editDateFrom');
     const dateUntilClear = document.getElementById('editDateUntil');
     if (dateFromClear) dateFromClear.value = '';
-    if (dateUntilClear) dateUntilClear.value = '';
+    if (dateUntilClear) { dateUntilClear.value = ''; dateUntilClear.disabled = false; dateUntilClear.style.opacity = ''; }
+    const ufnClear = document.getElementById('untilFurtherNotice');
+    if (ufnClear) { ufnClear.checked = false; }
     document.getElementById('editNotes').value = '';
     document.getElementById('editWebsite').value = '';
     document.getElementById('editCustomItems').value = '';
@@ -1196,6 +1208,20 @@ function openEditModal(id) {
 function closeEditModal() {
   document.getElementById('editModal').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+function toggleUntilFurtherNotice(cb) {
+  const dateUntil = document.getElementById('editDateUntil');
+  if (cb.checked) {
+    dateUntil.value = '';
+    dateUntil.disabled = true;
+    dateUntil.style.opacity = '0.4';
+    dateUntil.style.cursor = 'not-allowed';
+  } else {
+    dateUntil.disabled = false;
+    dateUntil.style.opacity = '';
+    dateUntil.style.cursor = '';
+  }
 }
 
 // ══════════════════════════════════════
@@ -1224,7 +1250,15 @@ async function saveListing() {
   } else if (openTime) {
     hoursText = 'Opens at ' + openTime;
   }
-  if (dateFrom && dateUntil) {
+  const untilFurther = document.getElementById('untilFurtherNotice')?.checked;
+  if (untilFurther) {
+    if (dateFrom) {
+      const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
+      hoursText += (hoursText ? ' · From ' : 'From ') + fmt(dateFrom) + ' · Until further notice';
+    } else {
+      hoursText += (hoursText ? ' · ' : '') + 'Until further notice';
+    }
+  } else if (dateFrom && dateUntil) {
     const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
     hoursText += (hoursText ? ' · ' : '') + fmt(dateFrom) + ' – ' + fmt(dateUntil);
   } else if (dateFrom) {
