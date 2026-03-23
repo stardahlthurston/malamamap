@@ -254,60 +254,183 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   </div>
 
   <!-- ITEMS -->
-  <div class="section" id="itemsSection">
-    <p class="section-title">📋 What you're offering or accepting</p>
-    <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;">Select all that apply</p>
+  <div id="itemsSection">
 
-    <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🍱 Food & water</p>
-    <div class="check-grid" style="margin-bottom:1rem;">
-      <label class="check-label"><input type="checkbox" value="Water" class="item-check"> Water</label>
-      <label class="check-label"><input type="checkbox" value="Canned food" class="item-check"> Canned food</label>
-      <label class="check-label"><input type="checkbox" value="Packaged snacks" class="item-check"> Packaged snacks</label>
-      <label class="check-label"><input type="checkbox" value="Rice" class="item-check"> Rice</label>
-      <label class="check-label"><input type="checkbox" value="Non-perishable foods" class="item-check"> Non-perishable foods</label>
-      <label class="check-label"><input type="checkbox" value="Hot meals" class="item-check"> Hot meals</label>
-      <label class="check-label"><input type="checkbox" value="Baby formula" class="item-check"> Baby formula</label>
-      <label class="check-label"><input type="checkbox" value="Diapers" class="item-check"> Diapers</label>
+    <!-- Giving items — shown for supply stations -->
+    <div id="givingItemsToggle" style="display:none;">
+      <div class="section" style="background:#f0f7f4;">
+        <p class="section-title" style="color:var(--sage-deep);">✅ What we have to give</p>
+        <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:0.75rem;">What are you distributing to people in need?</p>
+        <button type="button" onclick="toggleGivingItems()" id="givingItemsBtn" style="width:100%;padding:0.75rem;background:var(--sage-pale);color:var(--sage-deep);border:1.5px solid var(--sage-light);border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Select what we're giving out</button>
+      </div>
+      
+    <div id="givingItemsSection" style="display:none;">
+      <div class="section" style="border-color:#3a7d5c;border-width:2px;">
+        <p class="section-title" style="color:#3a7d5c;">✅ Select what you have to give out</p>
+        <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;">Select everything that applies</p>
+
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🍱 Food & water</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Water" class="giving-item"> Water</label>
+          <label class="check-label"><input type="checkbox" value="Canned food" class="giving-item"> Canned food</label>
+          <label class="check-label"><input type="checkbox" value="Packaged snacks" class="giving-item"> Packaged snacks</label>
+          <label class="check-label"><input type="checkbox" value="Rice" class="giving-item"> Rice</label>
+          <label class="check-label"><input type="checkbox" value="Non-perishable foods" class="giving-item"> Non-perishable foods</label>
+          <label class="check-label"><input type="checkbox" value="Hot meals" class="giving-item"> Hot meals</label>
+          <label class="check-label"><input type="checkbox" value="Baby formula" class="giving-item"> Baby formula</label>
+          <label class="check-label"><input type="checkbox" value="Diapers" class="giving-item"> Diapers</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">👕 Clothing & shelter</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Clothing" class="giving-item"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="Shoes" class="giving-item"> Shoes</label>
+          <label class="check-label"><input type="checkbox" value="Blankets" class="giving-item"> Blankets</label>
+          <label class="check-label"><input type="checkbox" value="Bedding" class="giving-item"> Bedding</label>
+          <label class="check-label"><input type="checkbox" value="Tent / sleeping bags" class="giving-item"> Tent / sleeping bags</label>
+          <label class="check-label"><input type="checkbox" value="Emergency shelter" class="giving-item"> Emergency shelter</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🔦 Supplies & equipment</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Gasoline" class="giving-item"> Gasoline</label>
+          <label class="check-label"><input type="checkbox" value="Propane" class="giving-item"> Propane</label>
+          <label class="check-label"><input type="checkbox" value="Hot plates" class="giving-item"> Hot plates</label>
+          <label class="check-label"><input type="checkbox" value="Generators" class="giving-item"> Generators</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="giving-item"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="giving-item"> Batteries</label>
+          <label class="check-label"><input type="checkbox" value="Radio" class="giving-item"> Radio</label>
+          <label class="check-label"><input type="checkbox" value="First aid supplies" class="giving-item"> First aid supplies</label>
+          <label class="check-label"><input type="checkbox" value="Medications" class="giving-item"> Medications</label>
+          <label class="check-label"><input type="checkbox" value="Hygiene kits" class="giving-item"> Hygiene kits</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🧹 Cleanup & other</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="giving-item"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="giving-item"> Pet food & supplies</label>
+          <label class="check-label"><input type="checkbox" value="Volunteer support" class="giving-item"> Volunteer support</label>
+        </div>
+        <div class="field">
+          <label>Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></label>
+          <input type="text" id="givingCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+        </div>
+      </div>
+    </div>
     </div>
 
-    <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">👕 Clothing & shelter</p>
-    <div class="check-grid" style="margin-bottom:1rem;">
-      <label class="check-label"><input type="checkbox" value="Clothing" class="item-check"> Clothing</label>
-      <label class="check-label"><input type="checkbox" value="Shoes" class="item-check"> Shoes</label>
-      <label class="check-label"><input type="checkbox" value="Blankets" class="item-check"> Blankets</label>
-      <label class="check-label"><input type="checkbox" value="Bedding" class="item-check"> Bedding</label>
-      <label class="check-label"><input type="checkbox" value="Tent / sleeping bags" class="item-check"> Tent / sleeping bags</label>
-      <label class="check-label"><input type="checkbox" value="Emergency shelter" class="item-check"> Emergency shelter</label>
+    <!-- Accepting items — shown for donation dropoffs and supply stations with toggle -->
+    <div id="acceptingItemsSection" style="display:none;">
+      <div class="section" style="background:#fdf4e3;">
+        <div class="giving-row">
+          <input type="checkbox" id="acceptingDropoffs" onchange="toggleAcceptingItems(this)">
+          <label for="acceptingDropoffs" style="font-size:0.88rem;font-weight:700;">We're also accepting donation drop-offs here</label>
+        </div>
+        <p style="font-size:0.76rem;font-weight:500;color:var(--text-muted);margin-top:4px;line-height:1.5;">If checked, your listing will also appear under Donation Drop-offs so people know what to bring.</p>
+      </div>
+      
+    <div id="acceptingItemsSection" style="display:none;">
+      <div class="section" style="border-color:#c9983a;border-width:2px;">
+        <p class="section-title" style="color:#c9983a;">📦 Select what you need people to bring</p>
+        <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;">Select everything that applies</p>
+
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🍱 Food & water</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Water" class="accepting-item"> Water</label>
+          <label class="check-label"><input type="checkbox" value="Canned food" class="accepting-item"> Canned food</label>
+          <label class="check-label"><input type="checkbox" value="Packaged snacks" class="accepting-item"> Packaged snacks</label>
+          <label class="check-label"><input type="checkbox" value="Rice" class="accepting-item"> Rice</label>
+          <label class="check-label"><input type="checkbox" value="Non-perishable foods" class="accepting-item"> Non-perishable foods</label>
+          <label class="check-label"><input type="checkbox" value="Hot meals" class="accepting-item"> Hot meals</label>
+          <label class="check-label"><input type="checkbox" value="Baby formula" class="accepting-item"> Baby formula</label>
+          <label class="check-label"><input type="checkbox" value="Diapers" class="accepting-item"> Diapers</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">👕 Clothing & shelter</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Clothing" class="accepting-item"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="Shoes" class="accepting-item"> Shoes</label>
+          <label class="check-label"><input type="checkbox" value="Blankets" class="accepting-item"> Blankets</label>
+          <label class="check-label"><input type="checkbox" value="Bedding" class="accepting-item"> Bedding</label>
+          <label class="check-label"><input type="checkbox" value="Tent / sleeping bags" class="accepting-item"> Tent / sleeping bags</label>
+          <label class="check-label"><input type="checkbox" value="Emergency shelter" class="accepting-item"> Emergency shelter</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🔦 Supplies & equipment</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Gasoline" class="accepting-item"> Gasoline</label>
+          <label class="check-label"><input type="checkbox" value="Propane" class="accepting-item"> Propane</label>
+          <label class="check-label"><input type="checkbox" value="Hot plates" class="accepting-item"> Hot plates</label>
+          <label class="check-label"><input type="checkbox" value="Generators" class="accepting-item"> Generators</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="accepting-item"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="accepting-item"> Batteries</label>
+          <label class="check-label"><input type="checkbox" value="Radio" class="accepting-item"> Radio</label>
+          <label class="check-label"><input type="checkbox" value="First aid supplies" class="accepting-item"> First aid supplies</label>
+          <label class="check-label"><input type="checkbox" value="Medications" class="accepting-item"> Medications</label>
+          <label class="check-label"><input type="checkbox" value="Hygiene kits" class="accepting-item"> Hygiene kits</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🧹 Cleanup & other</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="accepting-item"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="accepting-item"> Pet food & supplies</label>
+          <label class="check-label"><input type="checkbox" value="Volunteer support" class="accepting-item"> Volunteer support</label>
+        </div>
+        <div class="field">
+          <label>Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></label>
+          <input type="text" id="acceptingCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+        </div>
+      </div>
+    </div>
     </div>
 
-    <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🔦 Supplies & equipment</p>
-    <div class="check-grid" style="margin-bottom:1rem;">
-      <label class="check-label"><input type="checkbox" value="Gasoline" class="item-check"> Gasoline</label>
-      <label class="check-label"><input type="checkbox" value="Propane" class="item-check"> Propane</label>
-      <label class="check-label"><input type="checkbox" value="Hot plates" class="item-check"> Hot plates</label>
-      <label class="check-label"><input type="checkbox" value="Generators" class="item-check"> Generators</label>
-      <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
-      <label class="check-label"><input type="checkbox" value="Batteries" class="item-check"> Batteries</label>
-      <label class="check-label"><input type="checkbox" value="Radio" class="item-check"> Radio</label>
-      <label class="check-label"><input type="checkbox" value="First aid supplies" class="item-check"> First aid supplies</label>
-      <label class="check-label"><input type="checkbox" value="Medications" class="item-check"> Medications</label>
-      <label class="check-label"><input type="checkbox" value="Hygiene kits" class="item-check"> Hygiene kits</label>
-    </div>
-
-    <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🧹 Cleanup & other</p>
-    <div class="check-grid" style="margin-bottom:1rem;">
-      <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="item-check"> Cleanup supplies</label>
-      <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="item-check"> Pet food & supplies</label>
-      <label class="check-label"><input type="checkbox" value="Volunteer support" class="item-check"> Volunteer support</label>
-    </div>
-
-    <div class="field">
-      <label>Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></label>
-      <input type="text" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+    <!-- Default items — shown for donation dropoffs and other types -->
+    <div id="defaultItemsSection">
+      <div class="section">
+        <p class="section-title">📋 What you're offering or accepting</p>
+        <p style="font-size:0.8rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;">Select all that apply</p>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🍱 Food & water</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Water" class="item-check"> Water</label>
+          <label class="check-label"><input type="checkbox" value="Canned food" class="item-check"> Canned food</label>
+          <label class="check-label"><input type="checkbox" value="Packaged snacks" class="item-check"> Packaged snacks</label>
+          <label class="check-label"><input type="checkbox" value="Rice" class="item-check"> Rice</label>
+          <label class="check-label"><input type="checkbox" value="Non-perishable foods" class="item-check"> Non-perishable foods</label>
+          <label class="check-label"><input type="checkbox" value="Hot meals" class="item-check"> Hot meals</label>
+          <label class="check-label"><input type="checkbox" value="Baby formula" class="item-check"> Baby formula</label>
+          <label class="check-label"><input type="checkbox" value="Diapers" class="item-check"> Diapers</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">👕 Clothing & shelter</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Clothing" class="item-check"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="Shoes" class="item-check"> Shoes</label>
+          <label class="check-label"><input type="checkbox" value="Blankets" class="item-check"> Blankets</label>
+          <label class="check-label"><input type="checkbox" value="Bedding" class="item-check"> Bedding</label>
+          <label class="check-label"><input type="checkbox" value="Tent / sleeping bags" class="item-check"> Tent / sleeping bags</label>
+          <label class="check-label"><input type="checkbox" value="Emergency shelter" class="item-check"> Emergency shelter</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🔦 Supplies & equipment</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Gasoline" class="item-check"> Gasoline</label>
+          <label class="check-label"><input type="checkbox" value="Propane" class="item-check"> Propane</label>
+          <label class="check-label"><input type="checkbox" value="Hot plates" class="item-check"> Hot plates</label>
+          <label class="check-label"><input type="checkbox" value="Generators" class="item-check"> Generators</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="item-check"> Batteries</label>
+          <label class="check-label"><input type="checkbox" value="Radio" class="item-check"> Radio</label>
+          <label class="check-label"><input type="checkbox" value="First aid supplies" class="item-check"> First aid supplies</label>
+          <label class="check-label"><input type="checkbox" value="Medications" class="item-check"> Medications</label>
+          <label class="check-label"><input type="checkbox" value="Hygiene kits" class="item-check"> Hygiene kits</label>
+        </div>
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">🧹 Cleanup & other</p>
+        <div class="check-grid" style="margin-bottom:1rem;">
+          <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="item-check"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="item-check"> Pet food & supplies</label>
+          <label class="check-label"><input type="checkbox" value="Volunteer support" class="item-check"> Volunteer support</label>
+        </div>
+        <div class="field">
+          <label>Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></label>
+          <input type="text" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- NOTES & LINKS -->
+    <!-- NOTES & LINKS -->
   <div class="section">
     <p class="section-title">📝 Notes & links</p>
     <div class="field">
@@ -362,9 +485,12 @@ function selectType(type, el) {
   el.style.background = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4'}[type] || 'white';
   document.getElementById('shelterExtras').style.display = type === 'shelter' ? 'block' : 'none';
   document.getElementById('eventExtras').style.display = type === 'volunteer_event' ? 'block' : 'none';
-  document.getElementById('dropoffToggle').style.display = type === 'supply_station' ? 'block' : 'none';
   document.getElementById('skillsExtras').style.display = type === 'skills_labor' ? 'block' : 'none';
   document.getElementById('itemsSection').style.display = type === 'skills_labor' ? 'none' : 'block';
+  // Supply station gets special dual-list treatment
+  document.getElementById('givingItemsToggle').style.display = type === 'supply_station' ? 'block' : 'none';
+  document.getElementById('acceptingItemsSection').style.display = type === 'supply_station' ? 'block' : 'none';
+  document.getElementById('defaultItemsSection').style.display = type === 'supply_station' ? 'none' : 'block';
 }
 
 // Checkbox visual feedback
@@ -386,6 +512,18 @@ document.addEventListener('change', function(e) {
     }
   }
 });
+
+function toggleGivingItems() {
+  const section = document.getElementById('givingItemsSection');
+  const btn = document.getElementById('givingItemsBtn');
+  const shown = section.style.display !== 'none';
+  section.style.display = shown ? 'none' : 'block';
+  btn.textContent = shown ? '+ Select what we're giving out' : '− Hide giving list';
+}
+
+function toggleAcceptingItems(cb) {
+  document.getElementById('acceptingItemsSection').style.display = cb.checked ? 'block' : 'none';
+}
 
 async function geocodeAddress(address) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaiʻi')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
@@ -419,10 +557,26 @@ async function saveListing() {
   const du = document.getElementById('editDateUntil').value;
   if (df && du) { const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); hours += (hours?' · ':'')+fmt(df)+' – '+fmt(du); }
 
-  const checkedItems = [...document.querySelectorAll('.item-check:checked')].map(c => c.value);
-  const customItems = document.getElementById('editCustomItems').value.split(',').map(i=>i.trim()).filter(Boolean);
-  const skillItems = [...document.querySelectorAll('.skill-check:checked')].map(c => c.value);
-  const items = type === 'skills_labor' ? skillItems : [...checkedItems, ...customItems];
+  let items = [];
+  if (type === 'skills_labor') {
+    items = [...document.querySelectorAll('.skill-check:checked')].map(c => c.value);
+  } else if (type === 'supply_station') {
+    const givingItems = [...document.querySelectorAll('.giving-item:checked')].map(c => c.value);
+    const givingCustom = (document.getElementById('givingCustomItems')?.value || '').split(',').map(i=>i.trim()).filter(Boolean);
+    const acceptingItems = [...document.querySelectorAll('.accepting-item:checked')].map(c => c.value);
+    const acceptingCustom = (document.getElementById('acceptingCustomItems')?.value || '').split(',').map(i=>i.trim()).filter(Boolean);
+    // Tag items so we know which are giving vs accepting
+    items = [
+      ...givingItems.map(i => 'GIVING:' + i),
+      ...givingCustom.map(i => 'GIVING:' + i),
+      ...acceptingItems.map(i => 'ACCEPTING:' + i),
+      ...acceptingCustom.map(i => 'ACCEPTING:' + i)
+    ];
+  } else {
+    const checkedItems = [...document.querySelectorAll('.item-check:checked')].map(c => c.value);
+    const customItems = (document.getElementById('editCustomItems')?.value || '').split(',').map(i=>i.trim()).filter(Boolean);
+    items = [...checkedItems, ...customItems];
+  }
 
   const coords = await geocodeAddress(address);
 
