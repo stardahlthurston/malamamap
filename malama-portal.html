@@ -224,6 +224,10 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .share-dl-btn:hover { background:var(--sage-deep); }
 .share-dl-btn:disabled { background:#aaa; cursor:not-allowed; }
 
+.area-bubble { padding:6px 14px; border-radius:100px; border:2px solid #ddd; background:white; font-size:0.82rem; font-weight:700; color:var(--text-mid); cursor:pointer; font-family:'Nunito',sans-serif; transition:all 0.15s; }
+.area-bubble:hover { border-color:var(--sage); color:var(--sage-deep); }
+.area-bubble.selected { background:var(--sage); border-color:var(--sage); color:white; }
+
 .toast { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--sage-deep); color:white; padding:0.75rem 1.5rem; border-radius:100px; font-size:0.85rem; font-weight:700; z-index:900; box-shadow:0 4px 20px rgba(0,0,0,0.15); white-space:nowrap; }
 
 @media (max-width:800px) {
@@ -325,23 +329,18 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <select class="modal-input" id="editStatus"><option value="true">Open</option><option value="false">Closed</option></select>
 
 
-    <p class="modal-label">ZIP code</p>
-    <div style="display:flex;gap:0.6rem;align-items:center;margin-bottom:0.5rem;">
-      <input type="text" class="modal-input" id="editZip" placeholder="e.g. 96825"
-        maxlength="5" inputmode="numeric"
-        style="max-width:140px;margin-bottom:0;"
-        oninput="onZipInput(this.value)">
-      <span id="zipSpinner" style="font-size:0.78rem;color:var(--text-muted);display:none;">Looking up…</span>
-    </div>
+
+    <p class="modal-label">Full address <span style="color:var(--red);">*</span></p>
+    <input type="text" class="modal-input" id="editAddress"
+      placeholder="Start typing your address…" autocomplete="off"
+      oninput="onAddressInput(this.value)">
+    <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:-8px;margin-bottom:0.5rem;">Type your address — your neighborhood will auto-detect.</p>
+    <input type="hidden" id="editLocation">
     <div id="areaSuggestion" style="display:none;margin-bottom:0.85rem;">
-      <p style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Area detected</p>
+      <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Neighborhood</p>
       <div id="areaBubbles" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
     </div>
-    <input type="hidden" id="editLocation">
 
-    <p class="modal-label">Full address</p>
-    <input type="text" class="modal-input" id="editAddress" placeholder="Start typing your address…" autocomplete="off">
-    <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:-8px;margin-bottom:0.75rem;">Select from the suggestions — this pins your exact location on the map.</p>
 
 
     <p class="modal-label">Listing name</p>
@@ -1122,19 +1121,15 @@ function openEditModal(id) {
     nameFieldEdit.value = l.name || '';
     nameFieldEdit.dataset.userEdited = 'true';
     nameFieldEdit.dataset.autoFilled = 'false';
-    // Restore zip + area
+    // Restore area bubble from saved location
     if (l.location) {
       const locEl = document.getElementById('editLocation');
       if (locEl) locEl.value = l.location;
-      if (l.address) {
-        const zipMatch = (l.address || '').match(/96\d{3}/);
-        const zipEl = document.getElementById('editZip');
-        if (zipEl && zipMatch) {
-          zipEl.value = zipMatch[0];
-          onZipInput(zipMatch[0]);
-          setTimeout(() => selectArea(l.location), 60);
-        }
-      }
+      // Trigger address input to show the correct bubble
+      setTimeout(() => {
+        onAddressInput(l.address || '');
+        setTimeout(() => selectArea(l.location), 80);
+      }, 120);
     }
     document.getElementById('editStatus').value = String(l.status);
     document.getElementById('editAddress').value = l.address || '';
@@ -1251,12 +1246,7 @@ function openEditModal(id) {
     nameFieldReset.dataset.autoFilled = 'false';
     nameFieldReset.placeholder = 'Auto-fills after selecting type & address';
     document.getElementById('editType').value = '';
-    const zipReset = document.getElementById('editZip');
-    if (zipReset) zipReset.value = '';
-    const areaSug = document.getElementById('areaSuggestion');
-    if (areaSug) areaSug.style.display = 'none';
-    const locHidden = document.getElementById('editLocation');
-    if (locHidden) locHidden.value = '';
+    clearAreaSuggestion();
     document.getElementById('editStatus').value = 'true';
     document.getElementById('editAddress').value = '';
     document.getElementById('editPhone').value = '';
@@ -1279,8 +1269,8 @@ function openEditModal(id) {
   }
 
   modal.classList.add('open');
-  // Init address autocomplete + zip watcher after modal is visible
-  setTimeout(() => { initAddressAutocomplete(); watchAddressForZip(); }, 100);
+  // Init address autocomplete after modal is visible
+  setTimeout(initAddressAutocomplete, 100);
 }
 
 function closeEditModal() {
@@ -1309,7 +1299,10 @@ async function saveListing() {
   const id = document.getElementById('editId').value;
   const name = document.getElementById('editName').value.trim();
   const address = document.getElementById('editAddress').value.trim();
-  if (!name || !address) { showToast('Please fill in name and address'); return; }
+  const location = document.getElementById('editLocation')?.value || '';
+  if (!address) { showToast('Please enter an address'); return; }
+  if (!location) { showToast('Please select a neighborhood from the suggestions'); return; }
+  if (!name) { showToast('Please fill in listing name'); return; }
 
   const type = document.getElementById('editType').value;
   if (!type) { showToast('Please select a listing type'); return; }
@@ -2206,84 +2199,56 @@ function getCity(components) {
 }
 
 
-// ── ZIP → AREA LOOKUP ──
 const ZIP_TO_AREA = {"96701": "ʻAiea", "96706": "ʻEwa Beach", "96707": "Kapolei", "96708": "Makakilo", "96712": "Haleʻiwa", "96720": "Hawaiʻi Island — Hilo", "96730": "Kahuku", "96731": "Kahuku / Turtle Bay", "96734": "Kailua", "96740": "Hawaiʻi Island — Kona", "96744": "Kāneʻohe", "96748": "Molokaʻi", "96761": "Maui — Lahaina", "96762": "Lāʻie", "96763": "Lānaʻi", "96766": "Kauaʻi — Līhuʻe", "96768": "Maui — Wailuku", "96782": "Pearl City", "96786": "Wahiawā", "96789": "Mililani", "96791": "Waialua", "96792": "Waiʻanae / Māʻili / Nānākuli", "96793": "Maui — Kahului", "96795": "Waimānalo", "96797": "Waipahu / Waipiʻo", "96813": "Downtown Honolulu", "96814": "Makiki / Punchbowl", "96815": "Waikīkī", "96816": "Kaimukī", "96817": "Nuuanu / Pauoa / Liliha", "96818": "Āliamanu / Salt Lake", "96819": "Kalihi", "96821": "Aina Haina / Wailupe", "96822": "Mānoa / Makiki / Pauoa", "96825": "Hawaiʻi Kai", "96826": "Mōʻiliʻili / Kaimukī", "96853": "Diamond Head / Kahala", "96862": "Royal Kunia"};
 
-function onZipInput(val) {
-  const zip = val.trim();
-  const suggestion = document.getElementById('areaSuggestion');
-  const bubbles = document.getElementById('areaBubbles');
-  const locInput = document.getElementById('editLocation');
-  if (zip.length < 5) {
-    if (suggestion) suggestion.style.display = 'none';
+function onAddressInput(val) {
+  const zipMatch = val.match(/96\d{3}/);
+  if (!zipMatch) {
+    // Clear suggestions if no zip detected yet
+    const sug = document.getElementById('areaSuggestion');
+    if (sug) sug.style.display = 'none';
     return;
   }
+  const zip = zipMatch[0];
   const area = ZIP_TO_AREA[zip];
-  if (area) {
-    // Could be "Area1 / Area2" — split into multiple bubbles
-    const areas = area.split(' / ').map(a => a.trim());
-    bubbles.innerHTML = areas.map(a => `
-      <button type="button" onclick="selectArea('${a}')"
-        style="padding:6px 14px;border-radius:100px;border:2px solid #ddd;background:white;
-               font-size:0.82rem;font-weight:700;color:var(--text-mid);cursor:pointer;
-               font-family:'Nunito',sans-serif;transition:all 0.15s;"
-        onmouseover="this.style.borderColor='var(--sage)';this.style.color='var(--sage-deep)';this.style.background='var(--sage-pale)'"
-        onmouseout="if(!this.classList.contains('selected-area')){this.style.borderColor='#ddd';this.style.color='var(--text-mid)';this.style.background='white'}"
-      >${a}</button>`).join('');
-    suggestion.style.display = 'block';
-    // Auto-select if only one result
-    if (areas.length === 1) selectArea(areas[0]);
+  const sug = document.getElementById('areaSuggestion');
+  const bubbles = document.getElementById('areaBubbles');
+  const locInput = document.getElementById('editLocation');
+  if (!area || !sug || !bubbles) return;
+  const areas = area.split(' / ').map(a => a.trim());
+  // Auto-select if only one option, otherwise show choices unselected
+  if (areas.length === 1) {
+    selectArea(areas[0]);
+    bubbles.innerHTML = `<button type="button" class="area-bubble selected" onclick="selectArea('${areas[0]}')">${areas[0]}</button>`;
+    sug.style.display = 'block';
   } else {
-    bubbles.innerHTML = `<span style="font-size:0.82rem;font-weight:500;color:var(--text-muted);">Zip not recognized — type your area below or continue with address</span>`;
-    suggestion.style.display = 'block';
+    bubbles.innerHTML = areas.map(a =>
+      `<button type="button" class="area-bubble" onclick="selectArea('${a}')">${a}</button>`
+    ).join('');
     if (locInput) locInput.value = '';
+    sug.style.display = 'block';
   }
 }
 
 function selectArea(area) {
   const locInput = document.getElementById('editLocation');
   if (locInput) locInput.value = area;
-  // Visual feedback — highlight selected bubble
-  document.querySelectorAll('#areaBubbles button').forEach(btn => {
+  document.querySelectorAll('.area-bubble').forEach(btn => {
     const isThis = btn.textContent.trim() === area;
-    btn.style.borderColor = isThis ? 'var(--sage)' : '#ddd';
-    btn.style.background = isThis ? 'var(--sage-pale)' : 'white';
-    btn.style.color = isThis ? 'var(--sage-deep)' : 'var(--text-mid)';
-    if (isThis) btn.classList.add('selected-area');
-    else btn.classList.remove('selected-area');
+    btn.classList.toggle('selected', isThis);
   });
-  // Auto-fill name if type already selected and name not user-edited
   const type = document.getElementById('editType')?.value;
-  if (type) autoFillModalName(type);
+  if (type) autoFillModalName && autoFillModalName(type);
 }
 
-// ── Watch address field — if user pastes an address, extract zip + trigger area bubbles ──
-function watchAddressForZip() {
-  const addrField = document.getElementById('editAddress');
-  if (!addrField) return;
-  addrField.addEventListener('input', function() {
-    const val = this.value;
-    const zipMatch = val.match(/(96\d{3})/);
-    if (zipMatch) {
-      const zip = zipMatch[1];
-      const zipEl = document.getElementById('editZip');
-      if (zipEl && zipEl.value !== zip) {
-        zipEl.value = zip;
-        onZipInput(zip);
-      }
-    }
-  });
-  // Also handle Places autocomplete selection
-  addrField.addEventListener('change', function() {
-    const val = this.value;
-    const zipMatch = val.match(/(96\d{3})/);
-    if (zipMatch) {
-      const zip = zipMatch[1];
-      const zipEl = document.getElementById('editZip');
-      if (zipEl) { zipEl.value = zip; onZipInput(zip); }
-    }
-  });
+function clearAreaSuggestion() {
+  const sug = document.getElementById('areaSuggestion');
+  const loc = document.getElementById('editLocation');
+  if (sug) sug.style.display = 'none';
+  if (loc) loc.value = '';
+  document.querySelectorAll('.area-bubble').forEach(b => b.classList.remove('selected'));
 }
+
 
 
 // Split on commas only outside parentheses
