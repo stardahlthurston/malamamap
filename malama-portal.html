@@ -199,6 +199,87 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
   </main>
 </div>
 
+<!-- Edit/Create Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2 class="modal-title" id="modalTitle">Edit listing</h2>
+    <p class="modal-sub">Update your listing details below.</p>
+    <input type="hidden" id="editId">
+    <p class="modal-label">Listing name</p>
+    <input type="text" class="modal-input" id="editName" placeholder="e.g. Kaimana Church — Nuuanu Drop-off">
+    <p class="modal-label">What are you offering? <span style="font-weight:400;text-transform:none;letter-spacing:0;">Choose one</span></p>
+    <div id="typeCards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+      <div class="type-card" data-type="shelter" onclick="selectType('shelter')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🏠</div><p style="font-size:0.82rem;font-weight:700;">Shelter</p></div>
+      <div class="type-card" data-type="supply_station" onclick="selectType('supply_station')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🛖</div><p style="font-size:0.82rem;font-weight:700;">Supply Station</p></div>
+      <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">📦</div><p style="font-size:0.82rem;font-weight:700;">Donation Drop-off</p></div>
+      <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🙋</div><p style="font-size:0.82rem;font-weight:700;">Volunteer Event</p></div>
+      <div class="type-card" data-type="skills_labor" onclick="selectType('skills_labor')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🔧</div><p style="font-size:0.82rem;font-weight:700;">Skills & Labor</p></div>
+      <div class="type-card" data-type="medical_assistance" onclick="selectType('medical_assistance')" style="padding:0.9rem;border:2px solid #fcc;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🏥</div><p style="font-size:0.82rem;font-weight:700;">Medical Aid Station</p></div>
+    </div>
+    <input type="hidden" id="editType" value="">
+    <div id="eventExtras" style="display:none;">
+      <p class="modal-label">Event date</p><input type="date" class="modal-input" id="editEventDate">
+      <p class="modal-label">What kind of volunteers are needed?</p>
+      <input type="text" class="modal-input" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing">
+    </div>
+    <div id="shelterExtras" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+        <div><p class="modal-label">Capacity</p><input type="number" class="modal-input" id="editCapacity" placeholder="50"></div>
+        <div><p class="modal-label">Pet friendly?</p><select class="modal-input" id="editPetFriendly"><option value="false">No pets</option><option value="true">Yes</option></select></div>
+      </div>
+    </div>
+    <div id="dropoffToggle" style="display:none;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;cursor:pointer;"><input type="checkbox" id="acceptingDropoffs" style="accent-color:var(--sage);width:15px;height:15px;"> Also accepting donation drop-offs</label>
+    </div>
+    <div id="skillsExtras" style="display:none;">
+      <p class="modal-label">Contact email for requests</p>
+      <input type="email" class="modal-input" id="editContactEmail" placeholder="you@email.com">
+    </div>
+    <p class="modal-label">Status</p>
+    <select class="modal-input" id="editStatus"><option value="true">Open</option><option value="false">Closed</option></select>
+    <p class="modal-label">Full address</p>
+    <input type="text" class="modal-input" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
+    <p class="modal-label">Contact phone</p>
+    <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
+    <p class="modal-label">Hours</p>
+    <input type="text" class="modal-input" id="editHoursDisplay" placeholder="e.g. Mon–Fri · 9:00 AM – 5:00 PM">
+    <div id="itemsSection">
+      <p class="modal-section">What you're offering</p>
+      <p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.75rem;">Select everything that applies.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0.5rem;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Water" style="accent-color:var(--sage);width:14px;height:14px;"> Water</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Canned food" style="accent-color:var(--sage);width:14px;height:14px;"> Canned food</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Hot meals" style="accent-color:var(--sage);width:14px;height:14px;"> Hot meals</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Baby formula" style="accent-color:var(--sage);width:14px;height:14px;"> Baby formula</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Diapers" style="accent-color:var(--sage);width:14px;height:14px;"> Diapers</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Clothing" style="accent-color:var(--sage);width:14px;height:14px;"> Clothing</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Blankets" style="accent-color:var(--sage);width:14px;height:14px;"> Blankets</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Gasoline" style="accent-color:var(--sage);width:14px;height:14px;"> Gasoline</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Generators" style="accent-color:var(--sage);width:14px;height:14px;"> Generators</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="First aid supplies" style="accent-color:var(--sage);width:14px;height:14px;"> First aid</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Medications" style="accent-color:var(--sage);width:14px;height:14px;"> Medications</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Cleanup supplies" style="accent-color:var(--sage);width:14px;height:14px;"> Cleanup supplies</label>
+      </div>
+      <p class="modal-label">Anything else?</p>
+      <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+    </div><!-- end itemsSection -->
+    <p class="modal-label">Notes for visitors</p>
+    <textarea class="modal-input" id="editNotes" rows="2" placeholder="Drive-through available, cash donations accepted, etc."></textarea>
+    <p class="modal-section">Links</p>
+    <p class="modal-label">Your website (optional)</p>
+    <input type="url" class="modal-input" id="editWebsite" placeholder="https://yourchurch.org">
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin:0.75rem 0;cursor:pointer;"><input type="checkbox" id="givingCheck" style="accent-color:var(--sage);width:15px;height:15px;" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'"> We accept online donations</label>
+    <div id="givingUrlWrap" style="display:none;">
+      <p class="modal-label">Online giving link</p>
+      <input type="url" class="modal-input" id="editGivingUrl" placeholder="https://yourchurch.org/give">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-submit" id="saveBtn" onclick="saveListing()">Save listing</button>
+    </div>
+  </div>
+</div>
+
 <!-- Report Modal -->
 <div class="modal-overlay" id="reportModal">
   <div class="modal">
@@ -523,9 +604,12 @@ async function saveListing() {
   await loadListings();
 }
 
-// ── EDIT MODAL ──
+// ── EDIT — redirect to create page ──
 function openEditModal(id) {
-  document.getElementById('editModal').classList.add('open');
+  if (!id) { window.location.href = 'malama-create.html'; return; }
+  window.location.href = 'malama-create.html?edit=' + id;
+  return;
+  // legacy modal code below kept for reference
   document.body.style.overflow = 'hidden';
   // Always hide items section until type is selected
   const itemsSection = document.getElementById('itemsSection');
