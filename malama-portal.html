@@ -495,7 +495,7 @@ async function saveListing() {
     items,
     notes: document.getElementById('editNotes').value.trim(),
     website: document.getElementById('editWebsite').value.trim(),
-    giving_url: document.getElementById('givingCheck').checked ? document.getElementById('editGivingUrl').value.trim() : null,
+    giving_url: document.getElementById('givingCheck')?.checked ? document.getElementById('editGivingUrl')?.value.trim() : null,
     accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked || false,
     capacity: document.getElementById('editCapacity')?.value || null,
     pet_friendly: document.getElementById('editPetFriendly')?.value === 'true',
@@ -563,7 +563,7 @@ function openEditModal(id) {
     document.getElementById('editNotes').value = l.notes || '';
     document.getElementById('editWebsite').value = l.website || '';
     if (l.giving_url) {
-      document.getElementById('givingCheck').checked = true;
+      if(document.getElementById('givingCheck')) document.getElementById('givingCheck').checked = true;
       document.getElementById('givingUrlWrap').style.display = 'block';
       document.getElementById('editGivingUrl').value = l.giving_url;
     }
@@ -595,7 +595,7 @@ function openEditModal(id) {
     document.getElementById('editCustomItems').value = '';
     document.getElementById('editNotes').value = '';
     document.getElementById('editWebsite').value = '';
-    document.getElementById('givingCheck').checked = false;
+    if(document.getElementById('givingCheck')) document.getElementById('givingCheck').checked = false;
     document.getElementById('givingUrlWrap').style.display = 'none';
     document.getElementById('editGivingUrl').value = '';
   }
@@ -679,9 +679,12 @@ document.addEventListener('change', function(e) {
 });
 
 // Close on overlay click
-document.getElementById('editModal').addEventListener('click', e => { if(e.target===document.getElementById('editModal')) closeEditModal(); });
+const editModalEl = document.getElementById('editModal');
+if (editModalEl) editModalEl.addEventListener('click', e => { if(e.target===editModalEl) closeEditModal(); });
+const reportModalEl = document.getElementById('reportModal');
+if (reportModalEl) reportModalEl.addEventListener('click', e => { if(e.target===reportModalEl) closeReport(); });
 
-init();
+try { init(); } catch(e) { console.error('Init error:', e); }
 </script>
 
 <!-- Footer -->
