@@ -481,7 +481,7 @@ function renderListingCard(l) {
         <p class="expiry-note">⏱ Expires in ${expHrs} hrs — renew to stay visible</p>
         <div class="card-actions">
           <button class="report-btn" onclick="openReport('${l.id}')">⚠ Report this listing</button>
-          <button class="btn btn-outline btn-sm" onclick="openEditModal('${l.id}')">Edit</button>
+          <button class="btn btn-outline btn-sm" onclick="window.location.href='malama-edit.html?id=${l.id}'">Edit</button>
           <button class="btn btn-primary btn-sm" onclick="renewListing('${l.id}')">Renew</button>
         </div>
       </div>
