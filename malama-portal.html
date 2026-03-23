@@ -1361,7 +1361,7 @@ async function saveListing() {
 
   // Items
   const checked = [...document.querySelectorAll('#itemCheckboxGrid input:checked')].map(cb => cb.value);
-  const custom = document.getElementById('editCustomItems').value.split(',').map(i => i.trim()).filter(Boolean);
+  const custom = smartSplit(document.getElementById('editCustomItems').value).filter(Boolean);
   const items = [...checked, ...custom];
 
   // Use coordinates from Places autocomplete if available (more accurate)
@@ -2283,6 +2283,27 @@ function watchAddressForZip() {
       if (zipEl) { zipEl.value = zip; onZipInput(zip); }
     }
   });
+}
+
+
+// Split on commas only outside parentheses
+function smartSplit(str) {
+  const results = [];
+  let depth = 0, current = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (ch === ',' && depth === 0) {
+      const trimmed = current.trim();
+      if (trimmed) results.push(trimmed);
+      current = ''; continue;
+    }
+    current += ch;
+  }
+  const trimmed = current.trim();
+  if (trimmed) results.push(trimmed);
+  return results;
 }
 
 try { init(); } catch(e) { console.error('Init error:', e); }
