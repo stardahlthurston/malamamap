@@ -688,7 +688,7 @@ function renderListingCard(l) {
     <div class="card" id="card-${l.id}">
       <div class="card-header">
         <div class="card-title-wrap">
-          <p class="card-title">${l.name}</p>
+          <a href="malama-listing.html?id=${l.id}" class="card-title" style="text-decoration:none;color:inherit;">${l.name}</a>
           ${l.verified ? `<span class="verified-badge">✓ Verified</span>` : ''}
         </div>
         <span class="open-pill ${l.status ? 'open' : 'closed'}">${l.status ? 'Open' : 'Closed'}</span>
