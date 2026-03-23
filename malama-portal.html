@@ -9,6 +9,7 @@
 <title>Mālama Map — My Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU&libraries=places&callback=initPlacesAutocomplete" async defer></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -316,7 +317,8 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <select class="modal-input" id="editStatus"><option value="true">Open</option><option value="false">Closed</option></select>
 
     <p class="modal-label">Full address</p>
-    <input type="text" class="modal-input" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
+    <input type="text" class="modal-input" id="editAddress" placeholder="Start typing your address…" autocomplete="off">
+    <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:-8px;margin-bottom:0.75rem;">Select from the suggestions — this pins your exact location on the map.</p>
 
     <p class="modal-label">Listing name</p>
     <input type="text" class="modal-input" id="editName" placeholder="Select a type and address first">
@@ -400,6 +402,13 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
         <label class="item-check-label"><input type="checkbox" value="Cleanup supplies"> Cleanup supplies</label>
         <label class="item-check-label"><input type="checkbox" value="Hygiene kits"> Hygiene kits</label>
         <label class="item-check-label"><input type="checkbox" value="Pet food & supplies"> Pet food & supplies</label>
+        <label class="item-check-label"><input type="checkbox" value="Baby wipes"> Baby wipes</label>
+        <label class="item-check-label"><input type="checkbox" value="Hygiene items (toothpaste, toothbrushes, soap, deodorant)"> Hygiene items</label>
+        <label class="item-check-label"><input type="checkbox" value="Towels"> Towels</label>
+        <label class="item-check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)"> Work supplies</label>
+        <label class="item-check-label"><input type="checkbox" value="Medical supplies"> Medical supplies</label>
+        <label class="item-check-label"><input type="checkbox" value="Flashlights"> Flashlights</label>
+        <label class="item-check-label"><input type="checkbox" value="Batteries"> Batteries</label>
       </div>
       <p class="modal-label">Anything else?</p>
       <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
@@ -1203,6 +1212,8 @@ function openEditModal(id) {
   }
 
   modal.classList.add('open');
+  // Init address autocomplete after modal is visible
+  setTimeout(initAddressAutocomplete, 100);
 }
 
 function closeEditModal() {
@@ -1278,7 +1289,14 @@ async function saveListing() {
   const custom = document.getElementById('editCustomItems').value.split(',').map(i => i.trim()).filter(Boolean);
   const items = [...checked, ...custom];
 
-  const coords = await geocodeAddress(address);
+  // Use coordinates from Places autocomplete if available (more accurate)
+  const addrInput = document.getElementById('editAddress');
+  let coords;
+  if (addrInput?.dataset.lat && addrInput?.dataset.lng) {
+    coords = { lat: parseFloat(addrInput.dataset.lat), lng: parseFloat(addrInput.dataset.lng) };
+  } else {
+    coords = await geocodeAddress(address);
+  }
 
   const payload = {
     name, type,
@@ -1574,8 +1592,13 @@ async function downloadShareCard() {
     const cardCanvas = await drawShareCardCanvas(l);
     const storyCanvas = await wrapInStoryCanvas(cardCanvas, l);
 
-    const safeName = l.name.replace(/[^a-z0-9]/gi,'-').toLowerCase();
-    const filename = 'malama-map-' + safeName + '.png';
+    const meta = currentUser?.user_metadata || {};
+    const orgName = meta.display_name || meta.org_name || meta.first_name || '';
+    const cleanOrg = orgName ? orgName.replace(/[^a-z0-9 ]/gi,' ').trim() : '';
+    const cleanName = l.name.replace(/[^a-z0-9 ]/gi,' ').trim();
+    const filename = cleanOrg && !cleanName.toLowerCase().startsWith(cleanOrg.toLowerCase())
+      ? 'Malama Map - ' + cleanOrg + ' - ' + cleanName + '.png'
+      : 'Malama Map - ' + cleanName + '.png';
 
     storyCanvas.toBlob(async (blob) => {
       // Try Web Share API first (triggers iOS native share sheet)
@@ -2055,6 +2078,56 @@ function resizeImageDataUrl(dataUrl, maxSize) {
   });
 }
 
+
+// ── GOOGLE PLACES AUTOCOMPLETE ──
+let placesAutocomplete = null;
+
+function initPlacesAutocomplete() {
+  const input = document.getElementById('editAddress');
+  if (!input || !window.google) return;
+  placesAutocomplete = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'us' },
+    fields: ['formatted_address', 'geometry', 'address_components'],
+    types: ['address']
+  });
+  placesAutocomplete.addListener('place_changed', function() {
+    const place = placesAutocomplete.getPlace();
+    if (!place.formatted_address) return;
+    input.value = place.formatted_address;
+    // Store coordinates directly so we don't need to re-geocode
+    if (place.geometry?.location) {
+      input.dataset.lat = place.geometry.location.lat();
+      input.dataset.lng = place.geometry.location.lng();
+    }
+    // Extract city from components
+    const city = getCity(place.address_components);
+    if (city) input.dataset.city = city;
+  });
+}
+
+// Re-init when edit modal opens (input may not exist at page load)
+function initAddressAutocomplete() {
+  if (window.google && !placesAutocomplete) initPlacesAutocomplete();
+  else if (window.google && placesAutocomplete) {
+    const input = document.getElementById('editAddress');
+    if (input) placesAutocomplete = new google.maps.places.Autocomplete(input, {
+      componentRestrictions: { country: 'us' },
+      fields: ['formatted_address', 'geometry', 'address_components'],
+      types: ['address']
+    });
+  }
+}
+
+function getCity(components) {
+  if (!components) return '';
+  const city = components.find(c => c.types.includes('locality'));
+  if (city) return city.long_name;
+  const neighborhood = components.find(c => c.types.includes('neighborhood'));
+  if (neighborhood) return neighborhood.long_name;
+  const area = components.find(c => c.types.includes('sublocality'));
+  if (area) return area.long_name;
+  return '';
+}
 
 try { init(); } catch(e) { console.error('Init error:', e); }
 </script>
