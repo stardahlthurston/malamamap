@@ -309,20 +309,37 @@ function setFilter(f, el) {
   renderNeeds();
 }
 
-// Handle "need met" link
+// Handle "need met" and "extend" links
 async function checkMetLink() {
   const params = new URLSearchParams(window.location.search);
   const metId = params.get('met');
-  if (!metId) return;
-  const { error } = await sb.from('community_needs').delete().eq('id', metId);
-  if (!error) {
-    document.querySelector('.post-section').innerHTML = `
-      <div style="text-align:center;padding:1.5rem;">
-        <div style="font-size:2rem;margin-bottom:0.5rem;">🌺</div>
-        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.35rem;">Need removed</h3>
-        <p style="font-size:0.84rem;font-weight:500;color:var(--text-muted);">Mahalo! Your need has been removed from the board. So glad it was met.</p>
-      </div>`;
-    window.history.replaceState({}, '', window.location.pathname);
+  const extendId = params.get('extend');
+
+  if (metId) {
+    const { error } = await sb.from('community_needs').delete().eq('id', metId);
+    if (!error) {
+      document.querySelector('.post-section').innerHTML = `
+        <div style="text-align:center;padding:1.5rem;">
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.35rem;">Need removed</h3>
+          <p style="font-size:0.84rem;font-weight:500;color:var(--text-muted);">Mahalo! Your need has been removed from the board. So glad it was met.</p>
+        </div>`;
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }
+
+  if (extendId) {
+    const newExpiry = new Date(Date.now() + 48 * 3600000).toISOString();
+    const { error } = await sb.from('community_needs')
+      .update({ expires_at: newExpiry, reminder_sent: false })
+      .eq('id', extendId);
+    if (!error) {
+      document.querySelector('.post-section').innerHTML = `
+        <div style="text-align:center;padding:1.5rem;">
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.35rem;">Request extended 🌺</h3>
+          <p style="font-size:0.84rem;font-weight:500;color:var(--text-muted);">Your need has been extended for another 48 hours. We'll remind you again before it expires.</p>
+        </div>`;
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }
 }
 
@@ -392,5 +409,15 @@ function renderNeeds() {
 
 loadNeeds();
 </script>
+
+<!-- Footer -->
+<footer style="background:var(--sage-deep);padding:1.25rem 1.5rem;text-align:center;margin-top:auto;">
+  <p style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);">
+    Mālama Map · Founded by Star Dahl-Thurston · Honolulu, Hawaiʻi
+  </p>
+  <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">
+    Questions or concerns? <a href="mailto:contact@malamamap.org" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;">contact@malamamap.org</a>
+  </p>
+</footer>
 </body>
 </html>
