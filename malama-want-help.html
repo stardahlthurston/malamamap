@@ -63,6 +63,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .pill-closed{background:#f0f0f0;color:#888;}
 .pill-dropoff{background:var(--gold-pale);color:var(--gold-deep);}
 .pill-event{background:var(--purple-pale);color:var(--purple-deep);}
+.pill-skills{background:#fff3ee;color:#8a3010;}
 .lc-body{padding:0 1rem 0.85rem;}
 .lc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem;}
 .lc-tag-gold{font-size:0.67rem;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--gold-pale);color:var(--gold-deep);}
@@ -117,6 +118,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <div class="chip-divider"></div>
   <button class="chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Donation Drop-offs</button>
   <button class="chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteer Events</button>
+  <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔧 Skills & Labor</button>
   <div class="chip-divider"></div>
   <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Open right now</label>
   <div class="chip-divider"></div>
@@ -149,8 +151,8 @@ const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SURL, SKEY);
 
-const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7'};
-const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Event'};
+const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#d4580a'};
+const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Event',skills_labor:'🔧 Skills & Labor'};
 
 let allListings = [], filtered = [], activeFilter = 'all';
 let map, markers = [], mapReady = false;
@@ -158,7 +160,7 @@ let map, markers = [], mapReady = false;
 async function init() {
   const { data } = await sb.from('listings')
     .select('*')
-    .in('type', ['donation_dropoff','volunteer_event'])
+    .in('type', ['donation_dropoff','volunteer_event','skills_labor'])
     .order('created_at', { ascending: false });
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
@@ -288,5 +290,15 @@ async function initMap() {
 init();
 </script>
 <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src='https://maps.'+c+'apis.com/maps/api/js?'+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:"AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU",v:"weekly"});</script>
+
+<!-- Footer -->
+<footer style="background:var(--sage-deep);padding:1.25rem 1.5rem;text-align:center;margin-top:auto;">
+  <p style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);">
+    Mālama Map · Founded by Star Dahl-Thurston · Honolulu, Hawaiʻi
+  </p>
+  <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">
+    Questions or concerns? <a href="mailto:contact@malamamap.org" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;">contact@malamamap.org</a>
+  </p>
+</footer>
 </body>
 </html>
