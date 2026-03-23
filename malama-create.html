@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<!-- v3 -->
 <title>Mālama Map — Add a listing</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -29,8 +32,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 /* TYPE CARDS */
 .section-label{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.6rem;display:block;}
 .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem;}
-.type-card{padding:1rem;border:2px solid #ddd;border-radius:14px;cursor:pointer;transition:all 0.18s;text-align:center;background:white;}
-.type-card:active{transform:scale(0.97);}
+.type-card{padding:1rem;border:2px solid #ddd;border-radius:14px;cursor:pointer;transition:all 0.18s;text-align:center;background:white;-webkit-tap-highlight-color:transparent;user-select:none;}
+.type-card:active{opacity:0.85;}
 .type-card .emoji{font-size:1.6rem;display:block;margin-bottom:6px;}
 .type-card .type-name{font-size:0.88rem;font-weight:700;color:var(--text-dark);display:block;}
 .type-card .type-desc{font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:3px;line-height:1.4;display:block;}
@@ -112,27 +115,27 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <div class="section">
     <p class="section-title">What are you offering?</p>
     <div class="type-grid" id="typeGrid">
-      <div class="type-card" data-type="shelter" onclick="selectType('shelter',this)">
+      <div class="type-card" data-type="shelter" onclick="selectType('shelter',this)" ontouchstart="">
         <span class="emoji">🏠</span>
         <span class="type-name">Shelter</span>
         <span class="type-desc">Housing displaced people</span>
       </div>
-      <div class="type-card" data-type="supply_station" onclick="selectType('supply_station',this)">
+      <div class="type-card" data-type="supply_station" onclick="selectType('supply_station',this)" ontouchstart="">
         <span class="emoji">🛖</span>
         <span class="type-name">Supply Station</span>
         <span class="type-desc">Distributing food, water & supplies</span>
       </div>
-      <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff',this)">
+      <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff',this)" ontouchstart="">
         <span class="emoji">📦</span>
         <span class="type-name">Donation Drop-off</span>
         <span class="type-desc">Collecting community donations</span>
       </div>
-      <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event',this)">
+      <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event',this)" ontouchstart="">
         <span class="emoji">🙋</span>
         <span class="type-name">Volunteer Event</span>
         <span class="type-desc">Cleanup day or community drive</span>
       </div>
-      <div class="type-card type-full" data-type="skills_labor" onclick="selectType('skills_labor',this)">
+      <div class="type-card type-full" data-type="skills_labor" onclick="selectType('skills_labor',this)" ontouchstart="">
         <span class="emoji">🔧</span>
         <span class="type-name">Skills & Labor</span>
         <span class="type-desc">Offering skills, equipment or labor</span>
@@ -403,11 +406,50 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 <div class="toast" id="toast"></div>
 
 <script>
+// Runs immediately — no Supabase needed
+const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b'};
+const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4'};
+
+function selectType(type, el) {
+  document.getElementById('editType').value = type;
+  document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor='#ddd'; c.style.background='white'; });
+  el.style.borderColor = TYPE_COLORS[type] || '#3a7d5c';
+  el.style.background = bgMap[type] || '#edf7f1';
+  document.getElementById('shelterExtras').style.display = type==='shelter' ? 'block' : 'none';
+  document.getElementById('eventExtras').style.display = type==='volunteer_event' ? 'block' : 'none';
+  document.getElementById('skillsExtras').style.display = type==='skills_labor' ? 'block' : 'none';
+  document.getElementById('itemsSection').style.display = type==='skills_labor' ? 'none' : 'block';
+  const isSupply = type==='supply_station';
+  document.getElementById('givingItemsToggle').style.display = isSupply ? 'block' : 'none';
+  document.getElementById('supplyAcceptingToggle').style.display = isSupply ? 'block' : 'none';
+  document.getElementById('defaultItemsSection').style.display = isSupply ? 'none' : 'block';
+}
+
+function toggleAcceptingItems(cb) {
+  document.getElementById('acceptingItemsSection').style.display = cb.checked ? 'block' : 'none';
+}
+
+document.addEventListener('change', function(e) {
+  if (['item-check','skill-check','giving-item','accepting-item'].some(c => e.target.classList.contains(c))) {
+    e.target.closest('label').classList.toggle('checked', e.target.checked);
+  }
+  if (e.target.classList.contains('day-check')) {
+    e.target.closest('label').classList.toggle('checked', e.target.checked);
+    if (e.target.value === 'Daily' && e.target.checked) {
+      document.querySelectorAll('.day-check:not([value="Daily"])').forEach(d => { d.checked=false; d.closest('label').classList.remove('checked'); });
+    } else if (e.target.value !== 'Daily') {
+      const daily = document.querySelector('.day-check[value="Daily"]');
+      if (daily) { daily.checked=false; daily.closest('label').classList.remove('checked'); }
+    }
+  }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SURL, SKEY);
-
-const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b'};
 
 let currentUser = null;
 
@@ -417,60 +459,6 @@ async function init() {
   currentUser = session.user;
 }
 
-function selectType(type, el) {
-  document.getElementById('editType').value = type;
-  // Reset all cards
-  document.querySelectorAll('.type-card').forEach(c => {
-    c.style.borderColor = '#ddd';
-    c.style.background = 'white';
-  });
-  // Highlight selected
-  const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4'};
-  el.style.borderColor = TYPE_COLORS[type] || '#3a7d5c';
-  el.style.background = bgMap[type] || '#edf7f1';
-  // Show/hide extras
-  document.getElementById('shelterExtras').style.display = type === 'shelter' ? 'block' : 'none';
-  document.getElementById('eventExtras').style.display = type === 'volunteer_event' ? 'block' : 'none';
-  document.getElementById('skillsExtras').style.display = type === 'skills_labor' ? 'block' : 'none';
-  document.getElementById('itemsSection').style.display = type === 'skills_labor' ? 'none' : 'block';
-  // Supply station dual list vs default single list
-  const isSupply = type === 'supply_station';
-  document.getElementById('givingItemsToggle').style.display = isSupply ? 'block' : 'none';
-  document.getElementById('supplyAcceptingToggle').style.display = isSupply ? 'block' : 'none';
-  document.getElementById('defaultItemsSection').style.display = isSupply ? 'none' : 'block';
-}
-
-// Checkbox visual feedback
-document.addEventListener('change', function(e) {
-  if (e.target.classList.contains('item-check') || e.target.classList.contains('skill-check')) {
-    const label = e.target.closest('label');
-    label.classList.toggle('checked', e.target.checked);
-  }
-  if (e.target.classList.contains('day-check')) {
-    const label = e.target.closest('label');
-    label.classList.toggle('checked', e.target.checked);
-    if (e.target.value === 'Daily' && e.target.checked) {
-      document.querySelectorAll('.day-check:not([value="Daily"])').forEach(d => {
-        d.checked = false; d.closest('label').classList.remove('checked');
-      });
-    } else if (e.target.value !== 'Daily') {
-      const daily = document.querySelector('.day-check[value="Daily"]');
-      if (daily) { daily.checked = false; daily.closest('label').classList.remove('checked'); }
-    }
-  }
-});
-
-function toggleGivingItems() {
-  const section = document.getElementById('givingItemsSection');
-  const btn = document.getElementById('givingItemsBtn');
-  const shown = section.style.display !== 'none';
-  section.style.display = shown ? 'none' : 'block';
-  btn.textContent = shown ? '+ Select what we're giving out' : '− Hide giving list';
-}
-
-function toggleAcceptingItems(cb) {
-  document.getElementById('acceptingItemsSection').style.display = cb.checked ? 'block' : 'none';
-}
 
 async function geocodeAddress(address) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaiʻi')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
