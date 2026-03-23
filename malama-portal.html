@@ -1,8 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Mālama Map — My Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -17,84 +21,84 @@
 }
 body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dark); min-height:100vh; }
 
-.topbar { background:var(--sage-deep); padding:0.7rem 2rem; display:flex; align-items:center; justify-content:space-between; }
-.topbar-logo { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:800; color:white; text-decoration:none; }
-.topbar-logo span { font-family:'Nunito',sans-serif; font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage-light); margin-left:10px; vertical-align:middle; }
+.topbar { background:var(–sage-deep); padding:0.7rem 2rem; display:flex; align-items:center; justify-content:space-between; }
+.topbar-logo { font-family:‘Playfair Display’,serif; font-size:1.2rem; font-weight:800; color:white; text-decoration:none; }
+.topbar-logo span { font-family:‘Nunito’,sans-serif; font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(–sage-light); margin-left:10px; vertical-align:middle; }
 .topbar-right { display:flex; align-items:center; gap:1rem; }
 .topbar-user { font-size:0.8rem; font-weight:600; color:rgba(255,255,255,0.7); }
 .topbar-btn { font-size:0.72rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:0.4rem 0.9rem; border-radius:100px; border:1.5px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.85); background:transparent; cursor:pointer; text-decoration:none; transition:all 0.2s; }
 .topbar-btn:hover { background:rgba(255,255,255,0.1); }
 
 .layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 48px); }
-.sidebar { background:white; border-right:1px solid var(--border); padding:1.5rem 0; }
+.sidebar { background:white; border-right:1px solid var(–border); padding:1.5rem 0; }
 .sidebar-section { padding:0 1rem 1rem; }
-.sidebar-label { font-size:0.6rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-muted); padding:0 0.5rem; margin-bottom:0.4rem; }
-.sidebar-link { display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.75rem; border-radius:8px; font-size:0.84rem; font-weight:600; color:var(--text-mid); text-decoration:none; transition:all 0.15s; cursor:pointer; margin-bottom:2px; }
-.sidebar-link:hover,.sidebar-link.active { background:var(--sage-pale); color:var(--sage-deep); }
-.sidebar-divider { border:none; border-top:1px solid var(--border); margin:0.5rem 1rem 1rem; }
+.sidebar-label { font-size:0.6rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(–text-muted); padding:0 0.5rem; margin-bottom:0.4rem; }
+.sidebar-link { display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.75rem; border-radius:8px; font-size:0.84rem; font-weight:600; color:var(–text-mid); text-decoration:none; transition:all 0.15s; cursor:pointer; margin-bottom:2px; }
+.sidebar-link:hover,.sidebar-link.active { background:var(–sage-pale); color:var(–sage-deep); }
+.sidebar-divider { border:none; border-top:1px solid var(–border); margin:0.5rem 1rem 1rem; }
 
 .main { padding:2rem 2.5rem; overflow-y:auto; }
 .page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; flex-wrap:wrap; gap:1rem; }
-.page-title { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:800; color:var(--sage-deep); }
-.page-subtitle { font-size:0.85rem; font-weight:500; color:var(--text-muted); margin-top:4px; }
+.page-title { font-family:‘Playfair Display’,serif; font-size:1.6rem; font-weight:800; color:var(–sage-deep); }
+.page-subtitle { font-size:0.85rem; font-weight:500; color:var(–text-muted); margin-top:4px; }
 
-.btn { font-size:0.78rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:0.55rem 1.2rem; border-radius:100px; border:2px solid currentColor; cursor:pointer; transition:all 0.2s; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; white-space:nowrap; font-family:'Nunito',sans-serif; }
-.btn-primary { color:white; background:var(--sage); border-color:var(--sage); }
-.btn-primary:hover { background:var(--sage-deep); border-color:var(--sage-deep); }
-.btn-outline { color:var(--sage); background:transparent; border-color:var(--sage); }
-.btn-outline:hover { background:var(--sage); color:white; }
-.btn-danger { color:var(--red); background:transparent; border-color:var(--red); }
-.btn-danger:hover { background:var(--red); color:white; }
+.btn { font-size:0.78rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:0.55rem 1.2rem; border-radius:100px; border:2px solid currentColor; cursor:pointer; transition:all 0.2s; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; white-space:nowrap; font-family:‘Nunito’,sans-serif; }
+.btn-primary { color:white; background:var(–sage); border-color:var(–sage); }
+.btn-primary:hover { background:var(–sage-deep); border-color:var(–sage-deep); }
+.btn-outline { color:var(–sage); background:transparent; border-color:var(–sage); }
+.btn-outline:hover { background:var(–sage); color:white; }
+.btn-danger { color:var(–red); background:transparent; border-color:var(–red); }
+.btn-danger:hover { background:var(–red); color:white; }
 .btn-sm { font-size:0.7rem; padding:0.38rem 0.85rem; }
 
-.status-card { background:white; border-radius:14px; border:1.5px solid var(--border); padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
+.status-card { background:white; border-radius:14px; border:1.5px solid var(–border); padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
 .status-left { display:flex; align-items:center; gap:1rem; }
-.status-dot { width:14px; height:14px; border-radius:50%; background:var(--sage-light); flex-shrink:0; animation:pulse 2s ease-in-out infinite; }
+.status-dot { width:14px; height:14px; border-radius:50%; background:var(–sage-light); flex-shrink:0; animation:pulse 2s ease-in-out infinite; }
 .status-dot.closed { background:#ccc; animation:none; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
 .status-label { font-size:1rem; font-weight:700; }
-.status-sub { font-size:0.78rem; font-weight:500; color:var(--text-muted); }
+.status-sub { font-size:0.78rem; font-weight:500; color:var(–text-muted); }
 .toggle-wrap { display:flex; align-items:center; gap:0.75rem; }
-.toggle-text { font-size:0.82rem; font-weight:700; color:var(--text-mid); }
+.toggle-text { font-size:0.82rem; font-weight:700; color:var(–text-mid); }
 .toggle { position:relative; width:52px; height:28px; cursor:pointer; }
 .toggle input { opacity:0; width:0; height:0; }
 .toggle-slider { position:absolute; inset:0; border-radius:100px; background:#ddd; transition:background 0.25s; }
-.toggle-slider::before { content:''; position:absolute; width:22px; height:22px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.25s; box-shadow:0 1px 4px rgba(0,0,0,0.15); }
-.toggle input:checked + .toggle-slider { background:var(--sage-light); }
+.toggle-slider::before { content:’’; position:absolute; width:22px; height:22px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.25s; box-shadow:0 1px 4px rgba(0,0,0,0.15); }
+.toggle input:checked + .toggle-slider { background:var(–sage-light); }
 .toggle input:checked + .toggle-slider::before { transform:translateX(24px); }
 
-.card { background:white; border-radius:14px; border:1.5px solid var(--border); margin-bottom:1.25rem; overflow:hidden; }
-.card-header { padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:0.75rem; }
+.card { background:white; border-radius:14px; border:1.5px solid var(–border); margin-bottom:1.25rem; overflow:hidden; }
+.card-header { padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(–border); flex-wrap:wrap; gap:0.75rem; }
 .card-title-wrap { display:flex; align-items:center; gap:0.6rem; }
 .card-title { font-size:1rem; font-weight:700; }
-.verified-badge { display:inline-flex; align-items:center; gap:4px; background:var(--blue-pale); color:var(--blue-deep); font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 8px; border-radius:100px; }
+.verified-badge { display:inline-flex; align-items:center; gap:4px; background:var(–blue-pale); color:var(–blue-deep); font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 8px; border-radius:100px; }
 .open-pill { font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:100px; }
-.open-pill.open { background:var(--sage-pale); color:var(--sage-deep); }
+.open-pill.open { background:var(–sage-pale); color:var(–sage-deep); }
 .open-pill.closed { background:#f0f0f0; color:#888; }
 .card-body { padding:1.25rem 1.4rem; }
 .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.5rem; margin-bottom:1.25rem; }
-.field-label { font-size:0.67rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
-.field-value { font-size:0.88rem; font-weight:600; color:var(--text-dark); line-height:1.5; }
-.field-value.muted { color:var(--text-mid); font-weight:500; }
+.field-label { font-size:0.67rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(–text-muted); margin-bottom:4px; }
+.field-value { font-size:0.88rem; font-weight:600; color:var(–text-dark); line-height:1.5; }
+.field-value.muted { color:var(–text-mid); font-weight:500; }
 .items-wrap { display:flex; flex-wrap:wrap; gap:6px; }
-.item-tag { font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:100px; background:var(--sage-pale); color:var(--sage-deep); }
-.field-link { font-size:0.88rem; font-weight:600; color:var(--blue); text-decoration:none; }
+.item-tag { font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:100px; background:var(–sage-pale); color:var(–sage-deep); }
+.field-link { font-size:0.88rem; font-weight:600; color:var(–blue); text-decoration:none; }
 .field-link:hover { text-decoration:underline; }
-.giving-link { background:var(--gold-pale); color:var(--gold); padding:4px 10px; border-radius:8px; border:1px solid rgba(201,152,58,0.2); font-size:0.82rem; }
-.card-footer { padding:0.9rem 1.4rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; background:#fafafa; }
-.expiry-note { font-size:0.78rem; font-weight:600; color:var(--gold); display:flex; align-items:center; gap:5px; }
+.giving-link { background:var(–gold-pale); color:var(–gold); padding:4px 10px; border-radius:8px; border:1px solid rgba(201,152,58,0.2); font-size:0.82rem; }
+.card-footer { padding:0.9rem 1.4rem; border-top:1px solid var(–border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; background:#fafafa; }
+.expiry-note { font-size:0.78rem; font-weight:600; color:var(–gold); display:flex; align-items:center; gap:5px; }
 .card-actions { display:flex; gap:0.5rem; flex-wrap:wrap; }
-.report-btn { font-size:0.7rem; font-weight:700; color:var(--text-muted); background:none; border:1.5px solid #ddd; border-radius:100px; padding:0.35rem 0.8rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all 0.2s; }
-.report-btn:hover { border-color:var(--red); color:var(--red); background:var(--red-pale); }
+.report-btn { font-size:0.7rem; font-weight:700; color:var(–text-muted); background:none; border:1.5px solid #ddd; border-radius:100px; padding:0.35rem 0.8rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all 0.2s; }
+.report-btn:hover { border-color:var(–red); color:var(–red); background:var(–red-pale); }
 
-.expiry-banner { background:var(--gold-pale); border:1.5px solid rgba(201,152,58,0.25); border-radius:12px; padding:1rem 1.4rem; display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+.expiry-banner { background:var(–gold-pale); border:1.5px solid rgba(201,152,58,0.25); border-radius:12px; padding:1rem 1.4rem; display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
 .expiry-text { flex:1; font-size:0.85rem; font-weight:600; color:#7a5c1a; line-height:1.5; }
 
 .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.75rem; }
-.stat-card { background:white; border-radius:12px; border:1.5px solid var(--border); padding:1rem 1.2rem; }
-.stat-label { font-size:0.68rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
-.stat-val { font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:800; color:var(--sage-deep); line-height:1; }
-.stat-sub { font-size:0.72rem; font-weight:500; color:var(--text-muted); margin-top:4px; }
+.stat-card { background:white; border-radius:12px; border:1.5px solid var(–border); padding:1rem 1.2rem; }
+.stat-label { font-size:0.68rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(–text-muted); margin-bottom:6px; }
+.stat-val { font-family:‘Playfair Display’,serif; font-size:1.9rem; font-weight:800; color:var(–sage-deep); line-height:1; }
+.stat-sub { font-size:0.72rem; font-weight:500; color:var(–text-muted); margin-top:4px; }
 
 .draft-banner { background:#fffbf0; border:2px solid rgba(201,152,58,0.35); border-radius:14px; padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1rem; flex-wrap:wrap; }
 .draft-left { display:flex; align-items:center; gap:0.85rem; }
@@ -102,52 +106,53 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .draft-sub { font-size:0.76rem; font-weight:500; color:#a07830; margin-top:2px; }
 .draft-actions { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
 
-.empty-state { text-align:center; padding:3rem 1rem; color:var(--text-muted); }
-.empty-state h3 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--sage-deep); margin-bottom:0.5rem; }
+.empty-state { text-align:center; padding:3rem 1rem; color:var(–text-muted); }
+.empty-state h3 { font-family:‘Playfair Display’,serif; font-size:1.3rem; color:var(–sage-deep); margin-bottom:0.5rem; }
 .empty-state p { font-size:0.88rem; font-weight:500; margin-bottom:1.5rem; }
 
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:500; align-items:center; justify-content:center; padding:1.5rem; }
 .modal-overlay.open { display:flex; }
 .modal { background:white; border-radius:18px; padding:2rem; max-width:560px; width:100%; max-height:90vh; overflow-y:auto; animation:modalIn 0.2s ease; }
 @keyframes modalIn { from{opacity:0;transform:translateY(12px) scale(0.98)} to{opacity:1;transform:translateY(0) scale(1)} }
-.modal-title { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:800; color:var(--text-dark); margin-bottom:0.35rem; }
-.modal-sub { font-size:0.83rem; font-weight:500; color:var(--text-muted); margin-bottom:1.4rem; line-height:1.5; }
-.modal-label { font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; margin-top:0.85rem; }
-.modal-input { width:100%; padding:0.6rem 0.85rem; border:1.5px solid #ddd; border-radius:8px; font-size:0.88rem; font-family:'Nunito',sans-serif; font-weight:500; color:var(--text-dark); margin-bottom:0.75rem; transition:border-color 0.2s; background:white; }
-.modal-input:focus { outline:none; border-color:var(--sage); }
+.modal-title { font-family:‘Playfair Display’,serif; font-size:1.3rem; font-weight:800; color:var(–text-dark); margin-bottom:0.35rem; }
+.modal-sub { font-size:0.83rem; font-weight:500; color:var(–text-muted); margin-bottom:1.4rem; line-height:1.5; }
+.modal-label { font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(–text-muted); margin-bottom:4px; margin-top:0.85rem; }
+.modal-input { width:100%; padding:0.6rem 0.85rem; border:1.5px solid #ddd; border-radius:8px; font-size:0.88rem; font-family:‘Nunito’,sans-serif; font-weight:500; color:var(–text-dark); margin-bottom:0.75rem; transition:border-color 0.2s; background:white; }
+.modal-input:focus { outline:none; border-color:var(–sage); }
 .modal-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
-.modal-section { font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage); margin:1.25rem 0 0.5rem; padding-top:1rem; border-top:1px solid #eee; }
+.modal-section { font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(–sage); margin:1.25rem 0 0.5rem; padding-top:1rem; border-top:1px solid #eee; }
 .modal-actions { display:flex; gap:0.65rem; justify-content:flex-end; margin-top:1rem; }
-.btn-cancel { font-size:0.78rem; font-weight:700; padding:0.52rem 1rem; border-radius:100px; border:1.5px solid #ddd; background:white; color:var(--text-mid); cursor:pointer; transition:all 0.15s; font-family:'Nunito',sans-serif; }
+.btn-cancel { font-size:0.78rem; font-weight:700; padding:0.52rem 1rem; border-radius:100px; border:1.5px solid #ddd; background:white; color:var(–text-mid); cursor:pointer; transition:all 0.15s; font-family:‘Nunito’,sans-serif; }
 .btn-cancel:hover { background:#f5f5f5; }
 .giving-opt { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; }
-.giving-opt input[type="checkbox"] { accent-color:var(--sage); width:16px; height:16px; }
+.giving-opt input[type=“checkbox”] { accent-color:var(–sage); width:16px; height:16px; }
 .giving-opt label { font-size:0.85rem; font-weight:600; cursor:pointer; }
-.link-hint { font-size:0.72rem; font-weight:500; color:var(--text-muted); margin-top:3px; margin-bottom:0.75rem; }
+.link-hint { font-size:0.72rem; font-weight:500; color:var(–text-muted); margin-top:3px; margin-bottom:0.75rem; }
 
 .reason-list { display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.4rem; }
 .reason-opt { display:flex; align-items:flex-start; gap:0.75rem; padding:0.85rem 1rem; border-radius:10px; border:1.5px solid #eee; cursor:pointer; transition:all 0.15s; }
-.reason-opt:hover,.reason-opt.selected { border-color:var(--sage); background:var(--sage-pale); }
-.reason-opt input[type="radio"] { margin-top:2px; accent-color:var(--sage); flex-shrink:0; }
+.reason-opt:hover,.reason-opt.selected { border-color:var(–sage); background:var(–sage-pale); }
+.reason-opt input[type=“radio”] { margin-top:2px; accent-color:var(–sage); flex-shrink:0; }
 .reason-label { font-size:0.88rem; font-weight:700; }
-.reason-desc { font-size:0.76rem; font-weight:500; color:var(--text-muted); margin-top:2px; line-height:1.4; }
-.modal-note { font-size:0.74rem; font-weight:500; color:var(--text-muted); margin-bottom:1.2rem; line-height:1.5; }
-.btn-submit { font-size:0.78rem; font-weight:700; padding:0.55rem 1.2rem; border-radius:100px; border:none; background:var(--red); color:white; cursor:pointer; transition:all 0.2s; }
+.reason-desc { font-size:0.76rem; font-weight:500; color:var(–text-muted); margin-top:2px; line-height:1.4; }
+.modal-note { font-size:0.74rem; font-weight:500; color:var(–text-muted); margin-bottom:1.2rem; line-height:1.5; }
+.btn-submit { font-size:0.78rem; font-weight:700; padding:0.55rem 1.2rem; border-radius:100px; border:none; background:var(–red); color:white; cursor:pointer; transition:all 0.2s; }
 .btn-submit:hover { background:#a93226; }
 .modal-success { text-align:center; padding:1rem 0; }
-.modal-success-icon { width:52px; height:52px; border-radius:50%; background:var(--sage-pale); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; }
+.modal-success-icon { width:52px; height:52px; border-radius:50%; background:var(–sage-pale); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; }
 
-.toast { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--sage-deep); color:white; padding:0.75rem 1.5rem; border-radius:100px; font-size:0.85rem; font-weight:700; z-index:900; box-shadow:0 4px 20px rgba(0,0,0,0.15); white-space:nowrap; }
+.toast { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(–sage-deep); color:white; padding:0.75rem 1.5rem; border-radius:100px; font-size:0.85rem; font-weight:700; z-index:900; box-shadow:0 4px 20px rgba(0,0,0,0.15); white-space:nowrap; }
 
 @media (max-width:800px) {
-  .layout { grid-template-columns:1fr; }
-  .sidebar { display:none; }
-  .main { padding:1.5rem; }
-  .field-grid { grid-template-columns:1fr; }
-  .stats-row { grid-template-columns:repeat(2,1fr); }
-  .modal-row { grid-template-columns:1fr; }
+.layout { grid-template-columns:1fr; }
+.sidebar { display:none; }
+.main { padding:1.5rem; }
+.field-grid { grid-template-columns:1fr; }
+.stats-row { grid-template-columns:repeat(2,1fr); }
+.modal-row { grid-template-columns:1fr; }
 }
 </style>
+
 </head>
 <body>
 
@@ -182,253 +187,258 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 </div>
 
 <!-- Edit/Create Modal -->
+
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <h2 class="modal-title" id="modalTitle">Add a new listing</h2>
     <p class="modal-sub">Fill in your details below. Changes save as a draft — preview before publishing.</p>
     <input type="hidden" id="editId">
 
-    <p class="modal-label">Listing name</p>
-    <input type="text" class="modal-input" id="editName" placeholder="e.g. Kaimana Church — Nuuanu Drop-off">
-    <p class="link-hint">If you have multiple locations, give each one a specific name so people can tell them apart.</p>
+```
+<p class="modal-label">Listing name</p>
+<input type="text" class="modal-input" id="editName" placeholder="e.g. Kaimana Church — Nuuanu Drop-off">
+<p class="link-hint">If you have multiple locations, give each one a specific name so people can tell them apart.</p>
 
-    <p class="modal-label">What are you offering? <span style="font-weight:400;text-transform:none;letter-spacing:0;">Choose one</span></p>
-    <div id="typeCards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
-      <div class="type-card" data-type="shelter" onclick="selectType('shelter')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
-        <div style="font-size:1.4rem;margin-bottom:4px;">🏠</div>
-        <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Shelter</p>
-        <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">I have space to house displaced people</p>
-      </div>
-      <div class="type-card" data-type="supply_station" onclick="selectType('supply_station')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
-        <div style="font-size:1.4rem;margin-bottom:4px;">🛖</div>
-        <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Supply Station</p>
-        <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">I'm distributing food, water & supplies</p>
-      </div>
-      <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
-        <div style="font-size:1.4rem;margin-bottom:4px;">📦</div>
-        <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Donation Drop-off</p>
-        <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">I'm collecting donations from the community</p>
-      </div>
-      <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
-        <div style="font-size:1.4rem;margin-bottom:4px;">🙋</div>
-        <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Volunteer Event</p>
-        <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">Cleanup day, drive or community effort</p>
-      </div>
-    </div>
-    <input type="hidden" id="editType" value="">
+<p class="modal-label">What are you offering? <span style="font-weight:400;text-transform:none;letter-spacing:0;">Choose one</span></p>
+<div id="typeCards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+  <div class="type-card" data-type="shelter" onclick="selectType('shelter')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
+    <div style="font-size:1.4rem;margin-bottom:4px;">🏠</div>
+    <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Shelter</p>
+    <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">I have space to house displaced people</p>
+  </div>
+  <div class="type-card" data-type="supply_station" onclick="selectType('supply_station')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
+    <div style="font-size:1.4rem;margin-bottom:4px;">🛖</div>
+    <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Supply Station</p>
+    <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">I'm distributing food, water & supplies</p>
+  </div>
+  <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
+    <div style="font-size:1.4rem;margin-bottom:4px;">📦</div>
+    <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Donation Drop-off</p>
+    <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">I'm collecting donations from the community</p>
+  </div>
+  <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;transition:all 0.18s;text-align:center;">
+    <div style="font-size:1.4rem;margin-bottom:4px;">🙋</div>
+    <p style="font-size:0.82rem;font-weight:700;color:#1c1a18;margin-bottom:2px;">Volunteer Event</p>
+    <p style="font-size:0.7rem;font-weight:500;color:#8a827a;line-height:1.4;">Cleanup day, drive or community effort</p>
+  </div>
+</div>
+<input type="hidden" id="editType" value="">
 
-    <!-- Volunteer event extras -->
-    <div id="eventExtras" style="display:none;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
-        <div><p class="modal-label">Event date</p><input type="date" class="modal-input" id="editEventDate"></div>
-        <div><p class="modal-label">Start time</p><select class="modal-input" id="editEventTime"><option value="">Select time</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option></select></div>
-      </div>
-      <p class="modal-label">What kind of volunteers are needed?</p>
-      <input type="text" class="modal-input" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing, general labor">
-    </div>
+<!-- Volunteer event extras -->
+<div id="eventExtras" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div><p class="modal-label">Event date</p><input type="date" class="modal-input" id="editEventDate"></div>
+    <div><p class="modal-label">Start time</p><select class="modal-input" id="editEventTime"><option value="">Select time</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option></select></div>
+  </div>
+  <p class="modal-label">What kind of volunteers are needed?</p>
+  <input type="text" class="modal-input" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing, general labor">
+</div>
 
-    <!-- Shelter extras -->
-    <div id="shelterExtras" style="display:none;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
-        <div><p class="modal-label">Capacity (people)</p><input type="number" class="modal-input" id="editCapacity" placeholder="e.g. 50"></div>
-        <div><p class="modal-label">Pet friendly?</p><select class="modal-input" id="editPetFriendly"><option value="false">No pets</option><option value="true">Yes, pets welcome</option></select></div>
-      </div>
-    </div>
+<!-- Shelter extras -->
+<div id="shelterExtras" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div><p class="modal-label">Capacity (people)</p><input type="number" class="modal-input" id="editCapacity" placeholder="e.g. 50"></div>
+    <div><p class="modal-label">Pet friendly?</p><select class="modal-input" id="editPetFriendly"><option value="false">No pets</option><option value="true">Yes, pets welcome</option></select></div>
+  </div>
+</div>
 
-    <!-- Supply station drop-off toggle -->
-    <div id="dropoffToggle" style="display:none;margin-bottom:0.75rem;">
-      <div class="giving-opt">
-        <input type="checkbox" id="acceptingDropoffs">
-        <label for="acceptingDropoffs">We are also accepting donation drop-offs at this location</label>
-      </div>
-    </div>
+<!-- Supply station drop-off toggle -->
+<div id="dropoffToggle" style="display:none;margin-bottom:0.75rem;">
+  <div class="giving-opt">
+    <input type="checkbox" id="acceptingDropoffs">
+    <label for="acceptingDropoffs">We are also accepting donation drop-offs at this location</label>
+  </div>
+</div>
 
-    <div>
-      <p class="modal-label">Status</p>
-      <select class="modal-input" id="editStatus">
-        <option value="true">Open</option>
-        <option value="false">Closed</option>
-      </select>
-    </div>
+<div>
+  <p class="modal-label">Status</p>
+  <select class="modal-input" id="editStatus">
+    <option value="true">Open</option>
+    <option value="false">Closed</option>
+  </select>
+</div>
 
-    <p class="modal-section">Location & hours</p>
-    <p class="modal-label">Full address</p>
-    <input type="text" class="modal-input" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
-    <div class="modal-row">
-      <div>
-        <p class="modal-label">Opens at</p>
-        <select class="modal-input" id="editHoursOpen">
-          <option value="">Select time</option>
-          <option>5:00 AM</option>
-          <option>5:30 AM</option>
-          <option>6:00 AM</option>
-          <option>6:30 AM</option>
-          <option>7:00 AM</option>
-          <option>7:30 AM</option>
-          <option>8:00 AM</option>
-          <option>8:30 AM</option>
-          <option>9:00 AM</option>
-          <option>9:30 AM</option>
-          <option>10:00 AM</option>
-          <option>10:30 AM</option>
-          <option>11:00 AM</option>
-          <option>11:30 AM</option>
-          <option>12:00 PM</option>
-          <option>12:30 PM</option>
-          <option>1:00 PM</option>
-          <option>1:30 PM</option>
-          <option>2:00 PM</option>
-          <option>2:30 PM</option>
-          <option>3:00 PM</option>
-          <option>3:30 PM</option>
-          <option>4:00 PM</option>
-          <option>4:30 PM</option>
-          <option>5:00 PM</option>
-          <option>5:30 PM</option>
-          <option>6:00 PM</option>
-          <option>6:30 PM</option>
-          <option>7:00 PM</option>
-          <option>7:30 PM</option>
-          <option>8:00 PM</option>
-          <option>8:30 PM</option>
-          <option>9:00 PM</option>
-          <option>9:30 PM</option>
-          <option>10:00 PM</option>
-          <option>10:30 PM</option>
-          <option>11:00 PM</option>
-          <option>11:30 PM</option>
-          <option>Open 24 hours</option>
-          <option>Sunrise – Sunset</option>
-        </select>
-      </div>
-      <div>
-        <p class="modal-label">Closes at</p>
-        <select class="modal-input" id="editHoursClose">
-          <option value="">Select time</option>
-          <option>4:00 AM</option>
-          <option>4:30 AM</option>
-          <option>5:00 AM</option>
-          <option>5:30 AM</option>
-          <option>6:00 AM</option>
-          <option>6:30 AM</option>
-          <option>7:00 AM</option>
-          <option>7:30 AM</option>
-          <option>8:00 AM</option>
-          <option>8:30 AM</option>
-          <option>9:00 AM</option>
-          <option>9:30 AM</option>
-          <option>10:00 AM</option>
-          <option>10:30 AM</option>
-          <option>11:00 AM</option>
-          <option>11:30 AM</option>
-          <option>12:00 PM</option>
-          <option>12:30 PM</option>
-          <option>1:00 PM</option>
-          <option>1:30 PM</option>
-          <option>2:00 PM</option>
-          <option>2:30 PM</option>
-          <option>3:00 PM</option>
-          <option>3:30 PM</option>
-          <option>4:00 PM</option>
-          <option>4:30 PM</option>
-          <option>5:00 PM</option>
-          <option>5:30 PM</option>
-          <option>6:00 PM</option>
-          <option>6:30 PM</option>
-          <option>7:00 PM</option>
-          <option>7:30 PM</option>
-          <option>8:00 PM</option>
-          <option>8:30 PM</option>
-          <option>9:00 PM</option>
-          <option>9:30 PM</option>
-          <option>10:00 PM</option>
-          <option>10:30 PM</option>
-          <option>11:00 PM</option>
-          <option>11:30 PM</option>
-          <option>Midnight</option>
-        </select>
-      </div>
-    </div>
-    <div>
-      <p class="modal-label">Contact phone</p>
-      <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
-    </div>
+<p class="modal-section">Location & hours</p>
+<p class="modal-label">Full address</p>
+<input type="text" class="modal-input" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
+<div class="modal-row">
+  <div>
+    <p class="modal-label">Opens at</p>
+    <select class="modal-input" id="editHoursOpen">
+      <option value="">Select time</option>
+      <option>5:00 AM</option>
+      <option>5:30 AM</option>
+      <option>6:00 AM</option>
+      <option>6:30 AM</option>
+      <option>7:00 AM</option>
+      <option>7:30 AM</option>
+      <option>8:00 AM</option>
+      <option>8:30 AM</option>
+      <option>9:00 AM</option>
+      <option>9:30 AM</option>
+      <option>10:00 AM</option>
+      <option>10:30 AM</option>
+      <option>11:00 AM</option>
+      <option>11:30 AM</option>
+      <option>12:00 PM</option>
+      <option>12:30 PM</option>
+      <option>1:00 PM</option>
+      <option>1:30 PM</option>
+      <option>2:00 PM</option>
+      <option>2:30 PM</option>
+      <option>3:00 PM</option>
+      <option>3:30 PM</option>
+      <option>4:00 PM</option>
+      <option>4:30 PM</option>
+      <option>5:00 PM</option>
+      <option>5:30 PM</option>
+      <option>6:00 PM</option>
+      <option>6:30 PM</option>
+      <option>7:00 PM</option>
+      <option>7:30 PM</option>
+      <option>8:00 PM</option>
+      <option>8:30 PM</option>
+      <option>9:00 PM</option>
+      <option>9:30 PM</option>
+      <option>10:00 PM</option>
+      <option>10:30 PM</option>
+      <option>11:00 PM</option>
+      <option>11:30 PM</option>
+      <option>Open 24 hours</option>
+      <option>Sunrise – Sunset</option>
+    </select>
+  </div>
+  <div>
+    <p class="modal-label">Closes at</p>
+    <select class="modal-input" id="editHoursClose">
+      <option value="">Select time</option>
+      <option>4:00 AM</option>
+      <option>4:30 AM</option>
+      <option>5:00 AM</option>
+      <option>5:30 AM</option>
+      <option>6:00 AM</option>
+      <option>6:30 AM</option>
+      <option>7:00 AM</option>
+      <option>7:30 AM</option>
+      <option>8:00 AM</option>
+      <option>8:30 AM</option>
+      <option>9:00 AM</option>
+      <option>9:30 AM</option>
+      <option>10:00 AM</option>
+      <option>10:30 AM</option>
+      <option>11:00 AM</option>
+      <option>11:30 AM</option>
+      <option>12:00 PM</option>
+      <option>12:30 PM</option>
+      <option>1:00 PM</option>
+      <option>1:30 PM</option>
+      <option>2:00 PM</option>
+      <option>2:30 PM</option>
+      <option>3:00 PM</option>
+      <option>3:30 PM</option>
+      <option>4:00 PM</option>
+      <option>4:30 PM</option>
+      <option>5:00 PM</option>
+      <option>5:30 PM</option>
+      <option>6:00 PM</option>
+      <option>6:30 PM</option>
+      <option>7:00 PM</option>
+      <option>7:30 PM</option>
+      <option>8:00 PM</option>
+      <option>8:30 PM</option>
+      <option>9:00 PM</option>
+      <option>9:30 PM</option>
+      <option>10:00 PM</option>
+      <option>10:30 PM</option>
+      <option>11:00 PM</option>
+      <option>11:30 PM</option>
+      <option>Midnight</option>
+    </select>
+  </div>
+</div>
+<div>
+  <p class="modal-label">Contact phone</p>
+  <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
+</div>
 
-    <p class="modal-section">What you're offering or accepting</p>
-    <p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.75rem;">Select everything that applies to your listing.</p>
+<p class="modal-section">What you're offering or accepting</p>
+<p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.75rem;">Select everything that applies to your listing.</p>
 
-    <p class="modal-label" style="margin-top:0.75rem;">🍱 Food & water</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Water" style="accent-color:var(--sage);width:15px;height:15px;"> Water</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Canned food" style="accent-color:var(--sage);width:15px;height:15px;"> Canned food</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Packaged snacks" style="accent-color:var(--sage);width:15px;height:15px;"> Packaged snacks</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Rice" style="accent-color:var(--sage);width:15px;height:15px;"> Rice</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Non-perishable foods" style="accent-color:var(--sage);width:15px;height:15px;"> Non-perishable foods</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hot meals" style="accent-color:var(--sage);width:15px;height:15px;"> Hot meals</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Baby formula" style="accent-color:var(--sage);width:15px;height:15px;"> Baby formula</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Diapers" style="accent-color:var(--sage);width:15px;height:15px;"> Diapers</label>
-    </div>
-    <p class="modal-label" style="margin-top:0.75rem;">👕 Clothing & shelter</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Clothing" style="accent-color:var(--sage);width:15px;height:15px;"> Clothing</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Shoes" style="accent-color:var(--sage);width:15px;height:15px;"> Shoes</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Blankets" style="accent-color:var(--sage);width:15px;height:15px;"> Blankets</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Bedding" style="accent-color:var(--sage);width:15px;height:15px;"> Bedding</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Tent / sleeping bags" style="accent-color:var(--sage);width:15px;height:15px;"> Tent / sleeping bags</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Emergency shelter" style="accent-color:var(--sage);width:15px;height:15px;"> Emergency shelter</label>
-    </div>
-    <p class="modal-label" style="margin-top:0.75rem;">🔦 Supplies & equipment</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Gasoline" style="accent-color:var(--sage);width:15px;height:15px;"> Gasoline</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Propane" style="accent-color:var(--sage);width:15px;height:15px;"> Propane</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hot plates" style="accent-color:var(--sage);width:15px;height:15px;"> Hot plates</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Generators" style="accent-color:var(--sage);width:15px;height:15px;"> Generators</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Flashlights" style="accent-color:var(--sage);width:15px;height:15px;"> Flashlights</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Batteries" style="accent-color:var(--sage);width:15px;height:15px;"> Batteries</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Radio" style="accent-color:var(--sage);width:15px;height:15px;"> Radio</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="First aid supplies" style="accent-color:var(--sage);width:15px;height:15px;"> First aid supplies</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Medications" style="accent-color:var(--sage);width:15px;height:15px;"> Medications</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hygiene kits" style="accent-color:var(--sage);width:15px;height:15px;"> Hygiene kits</label>
-    </div>
-    <p class="modal-label" style="margin-top:0.75rem;">🧹 Cleanup & other</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Cleanup supplies" style="accent-color:var(--sage);width:15px;height:15px;"> Cleanup supplies</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Pet food & supplies" style="accent-color:var(--sage);width:15px;height:15px;"> Pet food & supplies</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Volunteer support" style="accent-color:var(--sage);width:15px;height:15px;"> Volunteer support</label>
-    </div>
+<p class="modal-label" style="margin-top:0.75rem;">🍱 Food & water</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Water" style="accent-color:var(--sage);width:15px;height:15px;"> Water</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Canned food" style="accent-color:var(--sage);width:15px;height:15px;"> Canned food</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Packaged snacks" style="accent-color:var(--sage);width:15px;height:15px;"> Packaged snacks</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Rice" style="accent-color:var(--sage);width:15px;height:15px;"> Rice</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Non-perishable foods" style="accent-color:var(--sage);width:15px;height:15px;"> Non-perishable foods</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hot meals" style="accent-color:var(--sage);width:15px;height:15px;"> Hot meals</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Baby formula" style="accent-color:var(--sage);width:15px;height:15px;"> Baby formula</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Diapers" style="accent-color:var(--sage);width:15px;height:15px;"> Diapers</label>
+</div>
+<p class="modal-label" style="margin-top:0.75rem;">👕 Clothing & shelter</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Clothing" style="accent-color:var(--sage);width:15px;height:15px;"> Clothing</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Shoes" style="accent-color:var(--sage);width:15px;height:15px;"> Shoes</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Blankets" style="accent-color:var(--sage);width:15px;height:15px;"> Blankets</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Bedding" style="accent-color:var(--sage);width:15px;height:15px;"> Bedding</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Tent / sleeping bags" style="accent-color:var(--sage);width:15px;height:15px;"> Tent / sleeping bags</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Emergency shelter" style="accent-color:var(--sage);width:15px;height:15px;"> Emergency shelter</label>
+</div>
+<p class="modal-label" style="margin-top:0.75rem;">🔦 Supplies & equipment</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Gasoline" style="accent-color:var(--sage);width:15px;height:15px;"> Gasoline</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Propane" style="accent-color:var(--sage);width:15px;height:15px;"> Propane</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hot plates" style="accent-color:var(--sage);width:15px;height:15px;"> Hot plates</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Generators" style="accent-color:var(--sage);width:15px;height:15px;"> Generators</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Flashlights" style="accent-color:var(--sage);width:15px;height:15px;"> Flashlights</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Batteries" style="accent-color:var(--sage);width:15px;height:15px;"> Batteries</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Radio" style="accent-color:var(--sage);width:15px;height:15px;"> Radio</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="First aid supplies" style="accent-color:var(--sage);width:15px;height:15px;"> First aid supplies</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Medications" style="accent-color:var(--sage);width:15px;height:15px;"> Medications</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Hygiene kits" style="accent-color:var(--sage);width:15px;height:15px;"> Hygiene kits</label>
+</div>
+<p class="modal-label" style="margin-top:0.75rem;">🧹 Cleanup & other</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;" class="item-section">
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Cleanup supplies" style="accent-color:var(--sage);width:15px;height:15px;"> Cleanup supplies</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Pet food & supplies" style="accent-color:var(--sage);width:15px;height:15px;"> Pet food & supplies</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;transition:all 0.15s;" class="item-check-label"><input type="checkbox" value="Volunteer support" style="accent-color:var(--sage);width:15px;height:15px;"> Volunteer support</label>
+</div>
 
-    <p class="modal-label" style="margin-top:0.75rem;">Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></p>
-    <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+<p class="modal-label" style="margin-top:0.75rem;">Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(separate with commas)</span></p>
+<input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
 
-        <p class="modal-label">Notes for visitors</p>
-    <textarea class="modal-input" id="editNotes" rows="2" placeholder="Drive-through available, cash donations accepted, etc."></textarea>
+    <p class="modal-label">Notes for visitors</p>
+<textarea class="modal-input" id="editNotes" rows="2" placeholder="Drive-through available, cash donations accepted, etc."></textarea>
 
-    <p class="modal-section">Links</p>
-    <p class="modal-label">Your website (optional)</p>
-    <input type="url" class="modal-input" id="editWebsite" placeholder="https://yourchurch.org">
-    <p class="link-hint">Shown as a clickable link on your public listing.</p>
+<p class="modal-section">Links</p>
+<p class="modal-label">Your website (optional)</p>
+<input type="url" class="modal-input" id="editWebsite" placeholder="https://yourchurch.org">
+<p class="link-hint">Shown as a clickable link on your public listing.</p>
 
-    <div class="giving-opt">
-      <input type="checkbox" id="givingCheck" onchange="toggleGivingUrl(this)">
-      <label for="givingCheck">We accept online financial donations</label>
-    </div>
-    <div id="givingUrlWrap" style="display:none;">
-      <p class="modal-label">Online giving link</p>
-      <input type="url" class="modal-input" id="editGivingUrl" placeholder="https://yourchurch.org/give">
-      <p class="link-hint">A "Donate online" button will appear on your listing.</p>
-    </div>
+<div class="giving-opt">
+  <input type="checkbox" id="givingCheck" onchange="toggleGivingUrl(this)">
+  <label for="givingCheck">We accept online financial donations</label>
+</div>
+<div id="givingUrlWrap" style="display:none;">
+  <p class="modal-label">Online giving link</p>
+  <input type="url" class="modal-input" id="editGivingUrl" placeholder="https://yourchurch.org/give">
+  <p class="link-hint">A "Donate online" button will appear on your listing.</p>
+</div>
 
-    <div style="display:flex;gap:0.65rem;justify-content:flex-end;margin-top:1rem;">
-      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveListing()">
-        <svg viewBox="0 0 13 13" fill="none" style="width:12px;height:12px;"><path d="M6.5 2v7M3 6l3.5-3.5L10 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Save & publish
-      </button>
-    </div>
+<div style="display:flex;gap:0.65rem;justify-content:flex-end;margin-top:1rem;">
+  <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+  <button class="btn btn-primary btn-sm" onclick="saveListing()">
+    <svg viewBox="0 0 13 13" fill="none" style="width:12px;height:12px;"><path d="M6.5 2v7M3 6l3.5-3.5L10 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Save & publish
+  </button>
+</div>
+```
+
   </div>
 </div>
 
 <!-- Report Modal -->
+
 <div class="modal-overlay" id="reportModal">
   <div class="modal">
     <div id="stepReason">
@@ -846,5 +856,6 @@ document.getElementById('reportModal').addEventListener('click', e => { if(e.tar
 
 init();
 </script>
+
 </body>
 </html>
