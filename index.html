@@ -114,7 +114,8 @@
     transition: top 0.3s ease;
   }
 
-  .logo { display: flex; flex-direction: column; gap: 2px; }
+  .logo { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+  .logo-text { display: flex; flex-direction: column; gap: 2px; }
   .logo-name {
     font-family: 'Playfair Display', serif;
     font-size: 1.55rem;
@@ -511,9 +512,9 @@
 
 <!-- Header -->
 <header id="hdr">
-  <div class="logo" style="display:flex;align-items:center;gap:10px;">
-    <img src="logo.png" alt="Mālama Map" style="height:42px;width:auto;">
-    <div>
+  <div class="logo">
+    <img src="logo.png" alt="Mālama Map" style="height:42px;width:auto;flex-shrink:0;">
+    <div class="logo-text">
       <span class="logo-name">Mālama Map</span>
       <span class="logo-tagline">Hawaiʻi helping Hawaiʻi</span>
     </div>
