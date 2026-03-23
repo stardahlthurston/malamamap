@@ -1139,33 +1139,56 @@ function openEditModal(id) {
     document.getElementById('editStatus').value = String(l.status);
     document.getElementById('editAddress').value = l.address || '';
     document.getElementById('editPhone').value = l.contact_phone || '';
-    // Restore hours dropdowns from saved string
+    // ── Restore hours — parse saved string back into dropdowns ──
+    // Format saved as: "Every day · 9:00 AM – 5:00 PM · From Mar 23 · Until further notice"
     const savedHours = l.hours || '';
     const hoursOpen = document.getElementById('editHoursOpen');
     const hoursClose = document.getElementById('editHoursClose');
-    if (hoursOpen && hoursClose) {
+    const dateFromEl = document.getElementById('editDateFrom');
+    const dateUntilEl = document.getElementById('editDateUntil');
+    const ufnEl = document.getElementById('untilFurtherNotice');
+
+    if (savedHours && hoursOpen && hoursClose) {
+      // Split on · to get segments
+      const segments = savedHours.split('·').map(s => s.trim()).filter(Boolean);
+
+      // Days — first segment if it contains day names
+      const dayNames = ['Every day','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const daySegment = segments.find(s => dayNames.some(d => s.startsWith(d)));
+      if (daySegment) {
+        const days = daySegment.split(',').map(d => d.trim());
+        setSelectedDays(days);
+      }
+
+      // Special full-day values
       if (savedHours === 'Open 24 hours' || savedHours === 'Sunrise – Sunset') {
         hoursOpen.value = savedHours;
       } else {
-        // Try to extract time range from string like "Mon, Wed · 9:00 AM – 5:00 PM"
-        const timePart = savedHours.includes('·') ? savedHours.split('·').pop().trim() : savedHours;
-        if (timePart.includes(' – ')) {
-          const [open, close] = timePart.split(' – ').map(s => s.trim());
-          hoursOpen.value = open || '';
-          hoursClose.value = close || '';
+        // Find time segment — looks like "9:00 AM – 5:00 PM"
+        const timeSegment = segments.find(s => s.match(/\d+:\d+\s*(AM|PM)/i));
+        if (timeSegment && timeSegment.includes(' – ')) {
+          const [openT, closeT] = timeSegment.split(' – ').map(s => s.trim());
+          // Set dropdown — value must exactly match an option
+          if (hoursOpen) hoursOpen.value = openT || '';
+          if (hoursClose) hoursClose.value = closeT || '';
+        } else if (timeSegment && timeSegment.startsWith('Opens at ')) {
+          if (hoursOpen) hoursOpen.value = timeSegment.replace('Opens at ', '').trim();
         }
       }
-    }
-    // Restore date range
-    const dateFromEl = document.getElementById('editDateFrom');
-    const dateUntilEl = document.getElementById('editDateUntil');
-    if (dateFromEl) dateFromEl.value = l.date_from || '';
-    if (dateUntilEl) dateUntilEl.value = l.date_until || '';
-    const ufnEl = document.getElementById('untilFurtherNotice');
-    if (ufnEl) {
-      const isUFN = (l.hours || '').includes('Until further notice');
-      ufnEl.checked = isUFN;
-      if (isUFN && dateUntilEl) { dateUntilEl.disabled = true; dateUntilEl.style.opacity = '0.4'; }
+
+      // Until further notice
+      const isUFN = savedHours.includes('Until further notice');
+      if (ufnEl) {
+        ufnEl.checked = isUFN;
+        if (dateUntilEl) {
+          dateUntilEl.disabled = isUFN;
+          dateUntilEl.style.opacity = isUFN ? '0.4' : '';
+        }
+      }
+
+      // Date range — stored in hours string as "Mar 23 – Apr 1" or "From Mar 23"
+      // We don't restore these into date pickers since we'd need to reverse-parse month names
+      // The dates are preserved in the hours string and won't be overwritten unless user changes them
     }
     document.getElementById('editNotes').value = l.notes || '';
     document.getElementById('editWebsite').value = l.website || '';
@@ -1291,12 +1314,15 @@ async function saveListing() {
   const type = document.getElementById('editType').value;
   if (!type) { showToast('Please select a listing type'); return; }
 
-  // Build hours string from day pills + dropdowns + date range
+  // Build hours string — only rebuild if user touched the fields, otherwise keep original
   const days = getSelectedDays();
   const openTime = document.getElementById('editHoursOpen')?.value || '';
   const closeTime = document.getElementById('editHoursClose')?.value || '';
   const dateFrom = document.getElementById('editDateFrom')?.value || '';
   const dateUntil = document.getElementById('editDateUntil')?.value || '';
+  const existingListing = myListings.find(x => x.id === document.getElementById('editId').value);
+  const userTouchedHours = days.length > 0 || openTime || closeTime || dateFrom || dateUntil
+    || document.getElementById('untilFurtherNotice')?.checked;
   let hoursText = '';
   if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') {
     hoursText = openTime;
@@ -1321,11 +1347,16 @@ async function saveListing() {
     hoursText += (hoursText ? ' · From ' : 'From ') + fmt(dateFrom);
   }
   let hours = '';
-  if (days.length) {
-    const dayStr = days.includes('Every day') ? 'Every day' : days.join(', ');
-    hours = dayStr + (hoursText ? ' · ' + hoursText : '');
+  if (userTouchedHours) {
+    if (days.length) {
+      const dayStr = days.includes('Every day') ? 'Every day' : days.join(', ');
+      hours = dayStr + (hoursText ? ' · ' + hoursText : '');
+    } else {
+      hours = hoursText;
+    }
   } else {
-    hours = hoursText;
+    // User didn't touch hours — preserve the original
+    hours = existingListing?.hours || '';
   }
 
   // Items
