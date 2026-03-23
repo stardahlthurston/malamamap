@@ -446,7 +446,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Download image
     </button>
-    <p style="font-size:0.73rem;font-weight:500;color:var(--text-muted);text-align:center;margin-top:0.6rem;line-height:1.5;">Saves as a PNG — perfect for Instagram, text, or Facebook</p>
+    <p style="font-size:0.73rem;font-weight:500;color:var(--text-muted);text-align:center;margin-top:0.6rem;line-height:1.5;">Sized for Instagram Stories (1080×1920) — tap to share or save</p>
 
     <div class="modal-actions" style="margin-top:0.85rem;">
       <button class="btn-cancel" onclick="closeShareModal()">Close</button>
@@ -1335,21 +1335,126 @@ async function downloadShareCard() {
   btn.textContent = 'Generating…';
 
   try {
-    const canvas = await drawShareCardCanvas(l);
-    const link = document.createElement('a');
+    // Draw the card, then wrap it in an Instagram Story canvas (1080x1920)
+    const cardCanvas = await drawShareCardCanvas(l);
+    const storyCanvas = await wrapInStoryCanvas(cardCanvas, l);
+
     const safeName = l.name.replace(/[^a-z0-9]/gi,'-').toLowerCase();
-    link.download = 'malama-map-' + safeName + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    btn.disabled = false;
-    btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
-    showToast('🌺 Image downloaded!');
+    const filename = 'malama-map-' + safeName + '.png';
+
+    storyCanvas.toBlob(async (blob) => {
+      // Try Web Share API first (triggers iOS native share sheet)
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+        try {
+          await navigator.share({
+            files: [new File([blob], filename, { type: 'image/png' })],
+            title: 'Mālama Map — ' + l.name,
+            text: 'Find us on Mālama Map · malamamap.org'
+          });
+          btn.disabled = false;
+          btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
+          return;
+        } catch(shareErr) {
+          if (shareErr.name === 'AbortError') {
+            btn.disabled = false;
+            btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
+            return;
+          }
+          // Fall through to download
+        }
+      }
+      // Fallback: direct download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = url;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
+      showToast('🌺 Image saved!');
+    }, 'image/png');
+
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Download image';
     showToast('Could not generate image — try again');
     console.error(e);
   }
+}
+
+// ── Wrap card in 1080x1920 Instagram Story canvas ──
+async function wrapInStoryCanvas(cardCanvas, l) {
+  const SW = 1080, SH = 1920;
+  const story = document.createElement('canvas');
+  story.width = SW; story.height = SH;
+  const ctx = story.getContext('2d');
+
+  // Background: solid color matching header, subtle texture via gradient
+  const bg = shareCardColor;
+  const bgLight = lightenHex(shareCardColor, 52);
+  const grad = ctx.createLinearGradient(0, 0, 0, SH);
+  grad.addColorStop(0, bgLight);
+  grad.addColorStop(1, bg);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, SW, SH);
+
+  // Subtle dot pattern overlay
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  for (let x = 0; x < SW; x += 48) {
+    for (let y = 0; y < SH; y += 48) {
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  // Top branding
+  ctx.font = 'bold 36px Nunito, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.textAlign = 'center';
+  ctx.fillText('MĀLAMA MAP', SW/2, 130);
+  ctx.font = '500 22px Nunito, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText('Hawaiʻi helping Hawaiʻi', SW/2, 172);
+
+  // Card — scale to fit width with padding, center vertically
+  const cardPad = 60;
+  const cardDisplayW = SW - cardPad * 2;
+  const cardScale = cardDisplayW / cardCanvas.width;
+  const cardDisplayH = cardCanvas.height * cardScale;
+  const cardX = cardPad;
+  const cardY = Math.round((SH - cardDisplayH) / 2) + 30; // slightly above center
+
+  // Card shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = 60;
+  ctx.shadowOffsetY = 20;
+  ctx.fillStyle = '#fff';
+  // Draw rounded rect for shadow
+  const r = 32;
+  ctx.beginPath();
+  ctx.moveTo(cardX+r, cardY);
+  ctx.lineTo(cardX+cardDisplayW-r, cardY); ctx.arcTo(cardX+cardDisplayW, cardY, cardX+cardDisplayW, cardY+r, r);
+  ctx.lineTo(cardX+cardDisplayW, cardY+cardDisplayH-r); ctx.arcTo(cardX+cardDisplayW, cardY+cardDisplayH, cardX+cardDisplayW-r, cardY+cardDisplayH, r);
+  ctx.lineTo(cardX+r, cardY+cardDisplayH); ctx.arcTo(cardX, cardY+cardDisplayH, cardX, cardY+cardDisplayH-r, r);
+  ctx.lineTo(cardX, cardY+r); ctx.arcTo(cardX, cardY, cardX+r, cardY, r);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+  // Draw card scaled onto story
+  ctx.drawImage(cardCanvas, cardX, cardY, cardDisplayW, cardDisplayH);
+
+  // Bottom CTA
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 28px Nunito, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillText('Find more resources at', SW/2, cardY + cardDisplayH + 80);
+  ctx.font = 'bold 34px Nunito, sans-serif';
+  ctx.fillStyle = 'white';
+  ctx.fillText('malamamap.org', SW/2, cardY + cardDisplayH + 124);
+
+  ctx.textAlign = 'left';
+  return story;
 }
 
 // ── Canvas-based card renderer — reliable cross-browser PNG generation ──
