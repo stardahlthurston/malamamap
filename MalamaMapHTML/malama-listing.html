@@ -315,7 +315,7 @@ function renderListing(l) {
     <div class="listing-header">
       <p class="listing-brand">Mālama Map</p>
       <h1 class="listing-name">${l.name}</h1>
-      ${city ? `<p style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:0.5rem;letter-spacing:0.05em;">📍 ${city}, Hawaiʻi</p>` : ''}
+      ${l.location ? `<p style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.65);margin-bottom:0.5rem;letter-spacing:0.04em;">📍 ${l.location}, Hawaiʻi</p>` : city ? `<p style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.6);margin-bottom:0.5rem;">📍 ${city}, Hawaiʻi</p>` : ''}
       <div class="listing-meta-row">
         <span class="status-pill ${l.status ? 'open' : 'closed'}">
           ${l.status ? '<div class="status-dot"></div> Open now' : 'Closed'}
