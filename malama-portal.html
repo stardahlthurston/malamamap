@@ -279,9 +279,6 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <p class="modal-sub" id="modalSub">Fill in your details below. Nothing changes until you hit Save.</p>
     <input type="hidden" id="editId">
 
-    <p class="modal-label">Listing name</p>
-    <input type="text" class="modal-input" id="editName" placeholder="e.g. Kaimana Church — Nuuanu Drop-off">
-
     <p class="modal-label">What are you offering? <span style="font-weight:400;text-transform:none;letter-spacing:0;">Choose one</span></p>
     <div id="typeCards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
       <div class="type-card" data-type="shelter" onclick="selectType('shelter')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🏠</div><p style="font-size:0.82rem;font-weight:700;">Shelter</p></div>
@@ -320,6 +317,10 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
     <p class="modal-label">Full address</p>
     <input type="text" class="modal-input" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
+
+    <p class="modal-label">Listing name</p>
+    <input type="text" class="modal-input" id="editName" placeholder="Select a type and address first">
+    <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:-8px;margin-bottom:0.75rem;">Auto-fills as <em>Your Name — Listing Type</em>. Edit freely.</p>
 
     <p class="modal-label">Contact phone</p>
     <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
@@ -512,6 +513,25 @@ function selectType(type) {
   document.getElementById('skillsExtras').style.display = type === 'skills_labor' ? 'block' : 'none';
   const itemsSection = document.getElementById('itemsSection');
   if (itemsSection) itemsSection.style.display = (type === 'skills_labor' || type === 'medical_assistance') ? 'none' : 'block';
+  // Auto-fill name if not user-edited
+  autoFillModalName(type);
+}
+
+const MODAL_TYPE_LABELS = {
+  shelter:'Shelter', supply_station:'Supply Station', donation_dropoff:'Donation Drop-off',
+  volunteer_event:'Volunteer Event', skills_labor:'Skills & Labor', medical_assistance:'Medical Aid Station'
+};
+
+function autoFillModalName(type) {
+  const nameField = document.getElementById('editName');
+  if (!nameField || nameField.dataset.userEdited === 'true') return;
+  const typeLabel = MODAL_TYPE_LABELS[type] || '';
+  const meta = currentUser?.user_metadata || {};
+  const displayName = meta.display_name || meta.org_name || meta.first_name || '';
+  if (displayName && typeLabel) {
+    nameField.value = displayName + ' — ' + typeLabel;
+    nameField.dataset.autoFilled = 'true';
+  }
 }
 
 // ══════════════════════════════════════
@@ -1015,7 +1035,10 @@ function openEditModal(id) {
     document.getElementById('editId').value = id;
 
     // Basic fields — pre-filled, nothing cleared
-    document.getElementById('editName').value = l.name || '';
+    const nameFieldEdit = document.getElementById('editName');
+    nameFieldEdit.value = l.name || '';
+    nameFieldEdit.dataset.userEdited = 'true';
+    nameFieldEdit.dataset.autoFilled = 'false';
     document.getElementById('editStatus').value = String(l.status);
     document.getElementById('editAddress').value = l.address || '';
     document.getElementById('editPhone').value = l.contact_phone || '';
@@ -1075,7 +1098,11 @@ function openEditModal(id) {
     document.getElementById('discardBtn').textContent = 'Cancel';
     document.getElementById('shareFromEditBtn').style.display = 'none';
     document.getElementById('editId').value = '';
-    document.getElementById('editName').value = '';
+    const nameFieldReset = document.getElementById('editName');
+    nameFieldReset.value = '';
+    nameFieldReset.dataset.userEdited = 'false';
+    nameFieldReset.dataset.autoFilled = 'false';
+    nameFieldReset.placeholder = 'Auto-fills after selecting type & address';
     document.getElementById('editType').value = '';
     document.getElementById('editStatus').value = 'true';
     document.getElementById('editAddress').value = '';
@@ -1201,6 +1228,20 @@ function showToast(msg) {
 
 // Close modals on overlay click
 document.getElementById('editModal').addEventListener('click', e => { if (e.target === document.getElementById('editModal')) closeEditModal(); });
+
+// Track manual edits to listing name so auto-fill doesn't override
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'editName') {
+    if (e.target.value === '') {
+      e.target.dataset.userEdited = 'false';
+      e.target.dataset.autoFilled = 'false';
+    } else if (e.target.dataset.autoFilled !== 'true') {
+      e.target.dataset.userEdited = 'true';
+    } else {
+      e.target.dataset.autoFilled = 'false';
+    }
+  }
+});
 document.getElementById('reportModal').addEventListener('click', e => { if (e.target === document.getElementById('reportModal')) closeReport(); });
 
 
