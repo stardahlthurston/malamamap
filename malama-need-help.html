@@ -248,6 +248,7 @@ function renderList() {
           <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(l.address)}" target="_blank" class="lc-btn btn-dir">📍 Directions</a>
           ${l.website ? `<a href="${l.website}" target="_blank" class="lc-btn" style="color:var(--blue);background:var(--blue-pale);border-color:var(--blue-light);">Website</a>` : ''}
           <button class="lc-btn btn-report" onclick="event.stopPropagation()">Report</button>
+          <button class="lc-btn" onclick="event.stopPropagation();openClaim('${l.id}')" style="color:#275c42;background:#edf7f1;border-color:#6ab98a;font-size:0.65rem;">🌺 Claim listing</button>
         </div>
       </div>
     </div>`;
