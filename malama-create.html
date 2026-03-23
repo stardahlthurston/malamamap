@@ -577,6 +577,22 @@ async function init() {
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
   initAddressAutocomplete();
+  // Watch address field for pasted addresses with zip codes
+  const addrField = document.getElementById('editAddress');
+  if (addrField) {
+    const extractAndFillZip = function() {
+      const zipMatch = this.value.match(/96\d{3}/);
+      if (zipMatch) {
+        const zipEl = document.getElementById('editZip');
+        if (zipEl && zipEl.value !== zipMatch[0]) {
+          zipEl.value = zipMatch[0];
+          onZipInput(zipMatch[0]);
+        }
+      }
+    };
+    addrField.addEventListener('input', extractAndFillZip);
+    addrField.addEventListener('change', extractAndFillZip);
+  }
   const meta = currentUser.user_metadata || {};
 
   // Build display name for auto-title
