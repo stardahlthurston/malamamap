@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sage:        #3a7d5c;
+    --sage-deep:   #275c42;
+    --sage-light:  #6ab98a;
+    --sage-pale:   #edf7f1;
+    --blue:        #2a6496;
+    --blue-deep:   #1a4a72;
+    --blue-light:  #5a9fd4;
+    --blue-pale:   #eaf3fb;
+    --cream:       #fdf8f2;
+    --warm-white:  #fffcf8;
+    --text-dark:   #1c1a18;
+    --text-mid:    #4a453f;
+    --text-muted:  #8a827a;
+    --gold:        #c9983a;
+    --banner-bg:   #1a3a2a;
+    --banner-note: rgba(255,255,255,0.6);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    overflow-x: hidden;
+  }
+
+  /* ── BANNER (two lines) ── */
+  .banner {
+    background: var(--banner-bg);
+    color: white;
+    text-align: center;
+    padding: 0.6rem 3rem 0.65rem;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 300;
+    animation: slideDown 0.5s ease 0.2s both;
+  }
+  .banner-line1 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+    color: white;
+  }
+  .banner-line1 .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #6ab98a;
+    margin-right: 7px;
+    vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.8); }
+  }
+  .banner-line2 {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--banner-note);
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+  .banner-line2 svg {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    width: 12px; height: 12px;
+    opacity: 0.7;
+  }
+  .banner-close {
+    position: absolute;
+    right: 1.25rem; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .banner-close:hover { color: white; }
+  @keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: fixed;
+    top: 56px; left: 0; right: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 2.5rem;
+    background: rgba(253,248,242,0.96);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(58,125,92,0.1);
+    transition: top 0.3s ease;
+  }
+
+  .logo { display: flex; flex-direction: column; gap: 2px; }
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--sage-deep);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .logo-tagline {
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .header-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    text-decoration: none;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .header-link:hover { color: var(--sage); background: var(--sage-pale); }
+
+  .header-btn {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.48rem 1rem;
+    border-radius: 100px;
+    border: 2px solid currentColor;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-add {
+    color: var(--sage);
+    background: transparent;
+  }
+  .btn-add:hover { background: var(--sage); color: white; border-color: var(--sage); }
+  .btn-login {
+    color: var(--blue-deep);
+    background: var(--blue-pale);
+    border-color: var(--blue-light);
+  }
+  .btn-login:hover { background: var(--blue); color: white; border-color: var(--blue); }
+
+  /* ── HERO SPLIT ── */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+    padding-top: 106px;
+  }
+
+  .panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5rem 3.5rem;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    min-height: calc(100vh - 106px);
+    transition: background 0.3s ease;
+  }
+
+  .panel-need { background: var(--sage-pale); }
+  .panel-help { background: var(--blue-pale); }
+
+  .panel-need:hover { background: #e0f2e9; }
+  .panel-help:hover { background: #ddeef8; }
+
+  .panel:hover .panel-icon-wrap { transform: scale(1.07) translateY(-4px); }
+  .panel:hover .panel-cta-need  { background: var(--sage); color: white; border-color: var(--sage); }
+  .panel:hover .panel-cta-help  { background: var(--blue); color: white; border-color: var(--blue); }
+
+  /* top accent stripe */
+  .panel-stripe {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+  }
+  .panel-need .panel-stripe { background: var(--sage); }
+  .panel-help .panel-stripe { background: var(--blue); }
+
+  /* vertical divider */
+  .panel-help { border-left: 1px solid rgba(42,100,150,0.1); }
+
+  .panel-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 390px;
+    animation: fadeUp 0.7s ease forwards;
+    opacity: 0;
+  }
+  .panel-need .panel-inner { animation-delay: 0.15s; }
+  .panel-help .panel-inner { animation-delay: 0.28s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-icon-wrap {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.6rem;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .panel-need .panel-icon-wrap {
+    background: rgba(58,125,92,0.1);
+    border: 2px solid rgba(58,125,92,0.22);
+  }
+  .panel-help .panel-icon-wrap {
+    background: rgba(42,100,150,0.08);
+    border: 2px solid rgba(42,100,150,0.18);
+  }
+  .panel-icon-wrap svg { width: 42px; height: 42px; }
+
+  .panel-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 0.55rem;
+  }
+  .panel-need .panel-eyebrow { color: var(--sage); }
+  .panel-help .panel-eyebrow { color: var(--blue); }
+
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.6rem, 4vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 1rem;
+  }
+  .panel-need .panel-title { color: var(--sage-deep); }
+  .panel-help .panel-title { color: var(--blue-deep); }
+  .panel-title em { font-style: italic; display: block; }
+
+  .panel-desc {
+    font-size: 0.97rem;
+    font-weight: 500;
+    color: var(--text-mid);
+    line-height: 1.72;
+    max-width: 340px;
+    margin: 0 auto 1.4rem;
+  }
+
+  .panel-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 1.75rem;
+  }
+  .tag {
+    font-size: 0.71rem;
+    font-weight: 700;
+    padding: 4px 11px;
+    border-radius: 100px;
+    letter-spacing: 0.04em;
+  }
+  .panel-need .tag { background: rgba(58,125,92,0.1); color: var(--sage-deep); }
+  .panel-help .tag { background: rgba(42,100,150,0.1); color: var(--blue-deep); }
+
+  .panel-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.9rem;
+    border-radius: 100px;
+    border: 2px solid currentColor;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.22s ease;
+  }
+  .panel-cta svg { width: 15px; height: 15px; transition: transform 0.18s; }
+  .panel-cta:hover svg { transform: translateX(4px); }
+  .panel-cta-need { color: var(--sage); background: white; border-color: var(--sage); }
+  .panel-cta-help { color: var(--blue); background: white; border-color: var(--blue); }
+
+  /* ── CENTER PIN ── */
+  .center-mark {
+    position: fixed;
+    top: calc(50% + 14px);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    pointer-events: none;
+  }
+  .center-circle {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--cream);
+    border: 1.5px solid rgba(58,125,92,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 18px rgba(58,125,92,0.12);
+  }
+  .center-circle svg { width: 24px; height: 24px; }
+
+  /* ── HOW IT WORKS ── */
+  .below-fold {
+    background: var(--warm-white);
+    padding: 5rem 2.5rem 4rem;
+    border-top: 1px solid rgba(58,125,92,0.08);
+  }
+  .below-fold-inner { max-width: 780px; margin: 0 auto; text-align: center; }
+
+  .section-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 0.7rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.85rem, 3vw, 2.7rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--sage-deep);
+    margin-bottom: 1rem;
+  }
+  .section-body {
+    font-size: 0.98rem;
+    font-weight: 500;
+    color: var(--text-mid);
+    line-height: 1.8;
+    margin-bottom: 3rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 1.4rem;
+    margin-bottom: 2.5rem;
+    text-align: left;
+  }
+  .how-card {
+    padding: 1.6rem 1.4rem;
+    border-radius: 14px;
+    border: 1.5px solid transparent;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .how-card:nth-child(1) { background: var(--sage-pale); }
+  .how-card:nth-child(2) { background: var(--blue-pale); }
+  .how-card:nth-child(3) { background: #fdf7e8; }
+  .how-card:hover { transform: translateY(-3px); }
+  .how-card:nth-child(1):hover { border-color: var(--sage-light); }
+  .how-card:nth-child(2):hover { border-color: var(--blue-light); }
+  .how-card:nth-child(3):hover { border-color: var(--gold); }
+
+  .how-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.7rem;
+  }
+  .how-card:nth-child(1) .how-number { color: var(--sage); }
+  .how-card:nth-child(2) .how-number { color: var(--blue); }
+  .how-card:nth-child(3) .how-number { color: var(--gold); }
+  .how-title { font-size: 0.93rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.45rem; }
+  .how-desc  { font-size: 0.83rem; font-weight: 500; color: var(--text-mid); line-height: 1.68; }
+
+  .verified-strip {
+    background: var(--sage-pale);
+    border: 1.5px solid rgba(58,125,92,0.15);
+    border-radius: 14px;
+    padding: 1.4rem 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    text-align: left;
+  }
+  .verified-icon {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--sage);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .verified-icon svg { width: 22px; height: 22px; }
+  .verified-text { font-size: 0.88rem; font-weight: 500; color: var(--text-mid); line-height: 1.65; }
+  .verified-text strong { font-weight: 700; color: var(--sage-deep); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--sage-deep);
+    padding: 3rem 2.5rem 2rem;
+    text-align: center;
+  }
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.25rem;
+  }
+  .footer-tagline {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sage-light);
+    margin-bottom: 0.55rem;
+  }
+  .footer-credit {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 1.75rem;
+  }
+  .footer-links {
+    display: flex;
+    gap: 1.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .footer-links a {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--sage-light); }
+  .footer-copy { font-size: 0.7rem; color: rgba(255,255,255,0.22); }
+
+  /* ── MOBILE ── */
+  @media (max-width: 720px) {
+    .banner { padding: 0.6rem 2.5rem; }
+    .hero { grid-template-columns: 1fr; padding-top: 112px; }
+    .panel { min-height: 55vh; padding: 3.5rem 2rem; }
+    .panel-help { border-left: none; border-top: 1px solid rgba(42,100,150,0.12); }
+    .center-mark { display: none; }
+    header { padding: 0.85rem 1.2rem; top: 56px; }
+    .header-link { display: none; }
+    .btn-add { display: none; }
+    .how-grid { grid-template-columns: 1fr; }
+    .below-fold { padding: 3rem 1.5rem; }
+    .verified-strip { flex-direction: column; text-align: center; }
+    .footer-links { gap: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Two-line banner -->
+<div class="banner" id="banner">
+  <p class="banner-line1">
+    <span class="dot"></span>
+    <strong>Hawaii flooding relief is active.</strong> Resources are being updated in real time.
+  </p>
+  <p class="banner-line2">
+    <svg viewBox="0 0 12 12" fill="none"><path d="M2 10 Q3 2 6 2 Q9 2 10 10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="6" y1="6" x2="6" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    Cell service is disrupted across parts of the island — some listings may not reflect the most current status. Call ahead when possible.
+  </p>
+  <button class="banner-close" onclick="this.closest('.banner').remove(); document.getElementById('hdr').style.top='0'">×</button>
+</div>
+
+<!-- Header -->
+<header id="hdr">
+  <div class="logo">
+    <span class="logo-name">Mālama Map</span>
+    <span class="logo-tagline">Hawaii helping Hawaii</span>
+  </div>
+  <div class="header-right">
+    <a href="#how" class="header-link">How it works</a>
+    <a href="#" class="header-link">About</a>
+    <a href="malama-auth.html" class="header-btn btn-add">+ Add your location</a>
+    <a href="malama-auth.html" class="header-btn btn-login">Log in / Edit listing</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+
+    <!-- I Need Help -->
+    <div class="panel panel-need" role="button" tabindex="0" onclick="window.location.href='#need'">
+      <div class="panel-stripe"></div>
+      <div class="panel-inner">
+        <div class="panel-icon-wrap">
+          <svg viewBox="0 0 42 42" fill="none">
+            <circle cx="21" cy="21" r="16" stroke="#3a7d5c" stroke-width="1.8"/>
+            <path d="M21 12v10l5.5 3.5" stroke="#3a7d5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="21" cy="21" r="2.2" fill="#3a7d5c"/>
+          </svg>
+        </div>
+        <p class="panel-eyebrow">Find resources near you</p>
+        <h1 class="panel-title">I need<em>help</em></h1>
+        <p class="panel-desc">Find food, water, shelter, gas, clothing, and supplies available right now — shared by real people in your community.</p>
+        <div class="panel-tags">
+          <span class="tag">Food &amp; Water</span>
+          <span class="tag">Shelter</span>
+          <span class="tag">Gas</span>
+          <span class="tag">Clothing</span>
+          <span class="tag">Baby supplies</span>
+        </div>
+        <a href="#" class="panel-cta panel-cta-need">
+          See what's available
+          <svg viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- I Want to Help -->
+    <div class="panel panel-help" role="button" tabindex="0" onclick="window.location.href='#help'">
+      <div class="panel-stripe"></div>
+      <div class="panel-inner">
+        <div class="panel-icon-wrap">
+          <svg viewBox="0 0 42 42" fill="none">
+            <path d="M21 7c-3.3 0-6.5 2.6-6.5 6.5 0 5.2 6.5 12.5 6.5 12.5s6.5-7.3 6.5-12.5C27.5 9.6 24.3 7 21 7z" stroke="#2a6496" stroke-width="1.8" fill="rgba(42,100,150,0.07)"/>
+            <circle cx="21" cy="13.5" r="2.2" fill="#2a6496"/>
+            <path d="M11 36c0-3.8 4.5-6 10-6s10 2.2 10 6" stroke="#2a6496" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="panel-eyebrow">Donate or volunteer</p>
+        <h1 class="panel-title">I want<em>to help</em></h1>
+        <p class="panel-desc">See where donations are being accepted right now — what's needed, when, and where to bring it. Add your church, org, or drop-off point.</p>
+        <div class="panel-tags">
+          <span class="tag">Donations accepted</span>
+          <span class="tag">Volunteer</span>
+          <span class="tag">Drop-off sites</span>
+          <span class="tag">Cash drives</span>
+        </div>
+        <a href="#" class="panel-cta panel-cta-help">
+          See where to give
+          <svg viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- center pin -->
+  <div class="center-mark">
+    <div class="center-circle">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2.5C8.96 2.5 6.5 4.96 6.5 8c0 4.8 5.5 12 5.5 12s5.5-7.2 5.5-12c0-3.04-2.46-5.5-5.5-5.5z" fill="rgba(58,125,92,0.12)" stroke="#3a7d5c" stroke-width="1.4"/>
+        <circle cx="12" cy="8" r="2" fill="#3a7d5c"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <section class="below-fold" id="how">
+    <div class="below-fold-inner">
+      <p class="section-eyebrow fade-up">How it works</p>
+      <h2 class="section-title fade-up">Real-time resources,<br>from real people</h2>
+      <p class="section-body fade-up">Mālama Map is community-powered. Churches, organizations, businesses, and individuals post and update their own listings — so you always know what's available, where it is, and whether it's still open.</p>
+
+      <div class="how-grid">
+        <div class="how-card fade-up">
+          <div class="how-number">01</div>
+          <p class="how-title">Your community posts a listing</p>
+          <p class="how-desc">A church, org, or individual creates a free account, adds their address, what they're offering or accepting, and their hours. Takes 2 minutes.</p>
+        </div>
+        <div class="how-card fade-up" style="transition-delay: 0.1s;">
+          <div class="how-number">02</div>
+          <p class="how-title">It shows up on the map instantly</p>
+          <p class="how-desc">Their pin goes live right away. Listings auto-expire after 72 hours with a renewal reminder — so the map always stays accurate and current.</p>
+        </div>
+        <div class="how-card fade-up" style="transition-delay: 0.2s;">
+          <div class="how-number">03</div>
+          <p class="how-title">Open / closed in real time</p>
+          <p class="how-desc">Every location has a simple Open/Closed toggle. People know before they make the drive — no wasted trips, no confusion.</p>
+        </div>
+      </div>
+
+      <div class="verified-strip fade-up">
+        <div class="verified-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 2L14.5 4.5H18V8L20.5 10.5L18 13V16.5H14.5L12 19L9.5 16.5H6V13L3.5 10.5L6 8V4.5H9.5L12 2Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="verified-text"><strong>Verified organizations</strong> earn a blue badge by confirming their EIN. All listings require email and phone verification. Duplicate locations at the same address require admin approval — keeping the map clean and trustworthy.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer>
+  <p class="footer-logo">Mālama Map</p>
+  <p class="footer-tagline">Hawaii helping Hawaii</p>
+  <p class="footer-credit">Founded by Star Dahl-Thurston &nbsp;·&nbsp; Honolulu, Hawaiʻi</p>
+  <div class="footer-links">
+    <a href="#">About</a>
+    <a href="#">Add your location</a>
+    <a href="#">Log in</a>
+    <a href="#">Contact</a>
+    <a href="#">Privacy</a>
+  </div>
+  <p class="footer-copy">© 2026 Mālama Map. Built for Hawaii, with aloha. 🌺</p>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    obs.observe(el);
+  });
+</script>
+</body>
+</html>
