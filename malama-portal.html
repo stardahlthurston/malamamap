@@ -22,10 +22,9 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
 .topbar { background:var(--sage-deep); padding:0.7rem 2rem; display:flex; align-items:center; justify-content:space-between; }
 .topbar-logo { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:800; color:white; text-decoration:none; }
-.topbar-logo span { font-family:'Nunito',sans-serif; font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage-light); margin-left:10px; vertical-align:middle; }
 .topbar-right { display:flex; align-items:center; gap:1rem; }
 .topbar-user { font-size:0.8rem; font-weight:600; color:rgba(255,255,255,0.7); }
-.topbar-btn { font-size:0.72rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:0.4rem 0.9rem; border-radius:100px; border:1.5px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.85); background:transparent; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+.topbar-btn { font-size:0.72rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:0.4rem 0.9rem; border-radius:100px; border:1.5px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.85); background:transparent; cursor:pointer; transition:all 0.2s; }
 .topbar-btn:hover { background:rgba(255,255,255,0.1); }
 
 .layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 48px); }
@@ -99,16 +98,39 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .stat-val { font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:800; color:var(--sage-deep); line-height:1; }
 .stat-sub { font-size:0.72rem; font-weight:500; color:var(--text-muted); margin-top:4px; }
 
-.draft-banner { background:#fffbf0; border:2px solid rgba(201,152,58,0.35); border-radius:14px; padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1rem; flex-wrap:wrap; }
-.draft-left { display:flex; align-items:center; gap:0.85rem; }
-.draft-title { font-size:0.9rem; font-weight:700; color:#7a5c1a; }
-.draft-sub { font-size:0.76rem; font-weight:500; color:#a07830; margin-top:2px; }
-.draft-actions { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
-
 .empty-state { text-align:center; padding:3rem 1rem; color:var(--text-muted); }
 .empty-state h3 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--sage-deep); margin-bottom:0.5rem; }
 .empty-state p { font-size:0.88rem; font-weight:500; margin-bottom:1.5rem; }
 
+/* ── PROFILE PAGE STYLES ── */
+.profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+.profile-card { background:white; border-radius:14px; border:1.5px solid var(--border); padding:1.5rem; }
+.profile-card-title { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:800; color:var(--sage-deep); margin-bottom:0.25rem; }
+.profile-card-sub { font-size:0.78rem; font-weight:500; color:var(--text-muted); margin-bottom:1.25rem; line-height:1.5; }
+.profile-field { margin-bottom:1rem; }
+.profile-field:last-child { margin-bottom:0; }
+.profile-label { font-size:0.67rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px; }
+.profile-input { width:100%; padding:0.58rem 0.85rem; border:1.5px solid #ddd; border-radius:8px; font-size:0.88rem; font-family:'Nunito',sans-serif; font-weight:500; color:var(--text-dark); transition:border-color 0.2s; background:white; }
+.profile-input:focus { outline:none; border-color:var(--sage); }
+.profile-input:disabled { background:#f8f8f8; color:var(--text-muted); cursor:not-allowed; }
+.profile-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+.collaborator-list { display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1rem; }
+.collaborator-item { display:flex; align-items:center; justify-content:space-between; padding:0.65rem 0.85rem; background:#f8f9f8; border-radius:10px; border:1.5px solid #eee; }
+.collaborator-info { display:flex; flex-direction:column; }
+.collaborator-name { font-size:0.85rem; font-weight:700; color:var(--text-dark); }
+.collaborator-email { font-size:0.75rem; font-weight:500; color:var(--text-muted); }
+.collaborator-remove { font-size:0.7rem; font-weight:700; color:var(--text-muted); background:none; border:1.5px solid #ddd; border-radius:100px; padding:0.28rem 0.7rem; cursor:pointer; transition:all 0.2s; }
+.collaborator-remove:hover { border-color:var(--red); color:var(--red); background:var(--red-pale); }
+.add-collaborator-row { display:flex; gap:0.5rem; align-items:flex-start; flex-wrap:wrap; }
+.add-collaborator-row .profile-input { flex:1; min-width:120px; margin-bottom:0; }
+.add-btn { font-size:0.75rem; font-weight:700; padding:0.58rem 1rem; border-radius:8px; border:none; background:var(--sage); color:white; cursor:pointer; white-space:nowrap; font-family:'Nunito',sans-serif; transition:background 0.2s; }
+.add-btn:hover { background:var(--sage-deep); }
+.profile-save-row { display:flex; justify-content:flex-end; margin-top:1.25rem; }
+.profile-save-btn { font-size:0.78rem; font-weight:700; padding:0.55rem 1.4rem; border-radius:100px; border:none; background:var(--sage); color:white; cursor:pointer; font-family:'Nunito',sans-serif; transition:background 0.2s; }
+.profile-save-btn:hover { background:var(--sage-deep); }
+.collab-hint { font-size:0.73rem; font-weight:500; color:var(--text-muted); line-height:1.5; margin-bottom:0.85rem; }
+
+/* ── MODAL ── */
 .modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:500; align-items:flex-end; justify-content:center; overflow:hidden; }
 .modal-overlay.open { display:flex; }
 .modal { background:white; border-radius:18px 18px 0 0; padding:1.5rem 1.25rem 2rem; width:100vw; max-width:560px; max-height:92vh; overflow-y:auto; overflow-x:hidden; animation:modalIn 0.2s ease; }
@@ -124,13 +146,31 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .modal-input:focus { outline:none; border-color:var(--sage); }
 .modal-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
 .modal-section { font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage); margin:1.25rem 0 0.5rem; padding-top:1rem; border-top:1px solid #eee; }
-.modal-actions { display:flex; gap:0.65rem; justify-content:flex-end; margin-top:1rem; }
+.modal-actions { display:flex; gap:0.65rem; justify-content:flex-end; margin-top:1.25rem; }
 .btn-cancel { font-size:0.78rem; font-weight:700; padding:0.52rem 1rem; border-radius:100px; border:1.5px solid #ddd; background:white; color:var(--text-mid); cursor:pointer; transition:all 0.15s; font-family:'Nunito',sans-serif; }
 .btn-cancel:hover { background:#f5f5f5; }
-.giving-opt { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; }
-.giving-opt input[type="checkbox"] { accent-color:var(--sage); width:16px; height:16px; }
-.giving-opt label { font-size:0.85rem; font-weight:600; cursor:pointer; }
-.link-hint { font-size:0.72rem; font-weight:500; color:var(--text-muted); margin-top:3px; margin-bottom:0.75rem; }
+.btn-submit { font-size:0.78rem; font-weight:700; padding:0.55rem 1.4rem; border-radius:100px; border:none; background:var(--sage); color:white; cursor:pointer; transition:all 0.2s; font-family:'Nunito',sans-serif; }
+.btn-submit:hover { background:var(--sage-deep); }
+.btn-report-submit { font-size:0.78rem; font-weight:700; padding:0.55rem 1.4rem; border-radius:100px; border:none; background:var(--red); color:white; cursor:pointer; transition:all 0.2s; font-family:'Nunito',sans-serif; }
+.btn-report-submit:hover { background:#a93226; }
+
+/* ── DAY PILL BUTTONS (fully filled when selected) ── */
+.day-pill {
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:0.42rem 0.85rem; border-radius:100px;
+  font-size:0.78rem; font-weight:700;
+  border:2px solid #ddd; background:white; color:var(--text-mid);
+  cursor:pointer; transition:all 0.18s; user-select:none;
+}
+.day-pill.selected {
+  background:var(--sage); border-color:var(--sage); color:white;
+}
+.day-pill-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:0.85rem; }
+
+/* ── ITEM CHECKBOXES ── */
+.item-check-label { display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer; padding:7px 9px; border:1.5px solid #ddd; border-radius:8px; transition:all 0.15s; }
+.item-check-label.checked { border-color:var(--sage); background:var(--sage-pale); color:var(--sage-deep); }
+.item-check-label input { accent-color:var(--sage); width:14px; height:14px; flex-shrink:0; }
 
 .reason-list { display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.4rem; }
 .reason-opt { display:flex; align-items:flex-start; gap:0.75rem; padding:0.85rem 1rem; border-radius:10px; border:1.5px solid #eee; cursor:pointer; transition:all 0.15s; }
@@ -139,8 +179,6 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .reason-label { font-size:0.88rem; font-weight:700; }
 .reason-desc { font-size:0.76rem; font-weight:500; color:var(--text-muted); margin-top:2px; line-height:1.4; }
 .modal-note { font-size:0.74rem; font-weight:500; color:var(--text-muted); margin-bottom:1.2rem; line-height:1.5; }
-.btn-submit { font-size:0.78rem; font-weight:700; padding:0.55rem 1.2rem; border-radius:100px; border:none; background:var(--red); color:white; cursor:pointer; transition:all 0.2s; }
-.btn-submit:hover { background:#a93226; }
 .modal-success { text-align:center; padding:1rem 0; }
 .modal-success-icon { width:52px; height:52px; border-radius:50%; background:var(--sage-pale); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; }
 
@@ -153,13 +191,13 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
   .field-grid { grid-template-columns:1fr; }
   .stats-row { grid-template-columns:repeat(2,1fr); }
   .modal-row { grid-template-columns:1fr; }
+  .profile-grid { grid-template-columns:1fr; }
+  .profile-row { grid-template-columns:1fr; }
   #typeCards { grid-template-columns:1fr 1fr !important; }
   .type-card { padding:0.75rem 0.5rem !important; }
-  .type-card p:last-child { display:none; }
   .status-card { flex-direction:column; align-items:flex-start; }
   .card-footer { flex-direction:column; align-items:flex-start; }
   .topbar { padding:0.6rem 1rem; }
-  .topbar-logo { font-size:1rem; }
   .topbar-user { display:none; }
   .topbar-btn { font-size:0.65rem; padding:0.35rem 0.7rem; }
   .page-title { font-size:1.3rem; }
@@ -181,32 +219,36 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
   <nav class="sidebar">
     <div class="sidebar-section">
       <p class="sidebar-label">My listings</p>
-      <a class="sidebar-link active" href="#">My listings</a>
-      <a class="sidebar-link" href="#" onclick="window.location.href='malama-create.html'">+ Add new listing</a>
+      <a class="sidebar-link active" id="navListings" href="#" onclick="showPage('listings')">My listings</a>
+      <a class="sidebar-link" href="#" onclick="openEditModal(null)">+ Add new listing</a>
     </div>
     <hr class="sidebar-divider">
     <div class="sidebar-section">
       <p class="sidebar-label">Account</p>
-      <a class="sidebar-link" href="#">Profile & contact</a>
+      <a class="sidebar-link" id="navProfile" href="#" onclick="showPage('profile')">Profile & contact</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
   </nav>
 
   <main class="main" id="mainContent">
     <div style="text-align:center;padding:3rem;color:var(--text-muted);">
-      <p style="font-size:1rem;font-weight:600;">Loading your listings…</p>
+      <p style="font-size:1rem;font-weight:600;">Loading…</p>
     </div>
   </main>
 </div>
 
-<!-- Edit/Create Modal -->
+<!-- ══════════════════════════════════════
+     EDIT / CREATE LISTING MODAL
+══════════════════════════════════════ -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
-    <h2 class="modal-title" id="modalTitle">Edit listing</h2>
-    <p class="modal-sub">Update your listing details below.</p>
+    <h2 class="modal-title" id="modalTitle">Add a new listing</h2>
+    <p class="modal-sub" id="modalSub">Fill in your details below. Nothing changes until you hit Save.</p>
     <input type="hidden" id="editId">
+
     <p class="modal-label">Listing name</p>
     <input type="text" class="modal-input" id="editName" placeholder="e.g. Kaimana Church — Nuuanu Drop-off">
+
     <p class="modal-label">What are you offering? <span style="font-weight:400;text-transform:none;letter-spacing:0;">Choose one</span></p>
     <div id="typeCards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
       <div class="type-card" data-type="shelter" onclick="selectType('shelter')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🏠</div><p style="font-size:0.82rem;font-weight:700;">Shelter</p></div>
@@ -217,8 +259,10 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <div class="type-card" data-type="medical_assistance" onclick="selectType('medical_assistance')" style="padding:0.9rem;border:2px solid #fcc;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🏥</div><p style="font-size:0.82rem;font-weight:700;">Medical Aid Station</p></div>
     </div>
     <input type="hidden" id="editType" value="">
+
     <div id="eventExtras" style="display:none;">
-      <p class="modal-label">Event date</p><input type="date" class="modal-input" id="editEventDate">
+      <p class="modal-label">Event date</p>
+      <input type="date" class="modal-input" id="editEventDate">
       <p class="modal-label">What kind of volunteers are needed?</p>
       <input type="text" class="modal-input" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing">
     </div>
@@ -229,58 +273,85 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       </div>
     </div>
     <div id="dropoffToggle" style="display:none;">
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;cursor:pointer;"><input type="checkbox" id="acceptingDropoffs" style="accent-color:var(--sage);width:15px;height:15px;"> Also accepting donation drop-offs</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;cursor:pointer;">
+        <input type="checkbox" id="acceptingDropoffs" style="accent-color:var(--sage);width:15px;height:15px;"> Also accepting donation drop-offs
+      </label>
     </div>
     <div id="skillsExtras" style="display:none;">
       <p class="modal-label">Contact email for requests</p>
       <input type="email" class="modal-input" id="editContactEmail" placeholder="you@email.com">
     </div>
+
     <p class="modal-label">Status</p>
     <select class="modal-input" id="editStatus"><option value="true">Open</option><option value="false">Closed</option></select>
+
     <p class="modal-label">Full address</p>
     <input type="text" class="modal-input" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817">
+
     <p class="modal-label">Contact phone</p>
     <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
+
+    <p class="modal-label">Days open</p>
+    <div class="day-pill-row" id="dayPillRow">
+      <span class="day-pill" data-day="Every day" onclick="toggleDay(this)">Every day</span>
+      <span class="day-pill" data-day="Mon" onclick="toggleDay(this)">Mon</span>
+      <span class="day-pill" data-day="Tue" onclick="toggleDay(this)">Tue</span>
+      <span class="day-pill" data-day="Wed" onclick="toggleDay(this)">Wed</span>
+      <span class="day-pill" data-day="Thu" onclick="toggleDay(this)">Thu</span>
+      <span class="day-pill" data-day="Fri" onclick="toggleDay(this)">Fri</span>
+      <span class="day-pill" data-day="Sat" onclick="toggleDay(this)">Sat</span>
+      <span class="day-pill" data-day="Sun" onclick="toggleDay(this)">Sun</span>
+    </div>
+
     <p class="modal-label">Hours</p>
-    <input type="text" class="modal-input" id="editHoursDisplay" placeholder="e.g. Mon–Fri · 9:00 AM – 5:00 PM">
-    <div id="itemsSection">
+    <input type="text" class="modal-input" id="editHoursDisplay" placeholder="e.g. 9:00 AM – 5:00 PM or Open 24 hours">
+
+    <div id="itemsSection" style="display:none;">
       <p class="modal-section">What you're offering</p>
       <p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.75rem;">Select everything that applies.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0.5rem;">
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Water" style="accent-color:var(--sage);width:14px;height:14px;"> Water</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Canned food" style="accent-color:var(--sage);width:14px;height:14px;"> Canned food</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Hot meals" style="accent-color:var(--sage);width:14px;height:14px;"> Hot meals</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Baby formula" style="accent-color:var(--sage);width:14px;height:14px;"> Baby formula</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Diapers" style="accent-color:var(--sage);width:14px;height:14px;"> Diapers</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Clothing" style="accent-color:var(--sage);width:14px;height:14px;"> Clothing</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Blankets" style="accent-color:var(--sage);width:14px;height:14px;"> Blankets</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Gasoline" style="accent-color:var(--sage);width:14px;height:14px;"> Gasoline</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Generators" style="accent-color:var(--sage);width:14px;height:14px;"> Generators</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="First aid supplies" style="accent-color:var(--sage);width:14px;height:14px;"> First aid</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Medications" style="accent-color:var(--sage);width:14px;height:14px;"> Medications</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;cursor:pointer;padding:7px 9px;border:1.5px solid #ddd;border-radius:8px;" class="item-check-label"><input type="checkbox" value="Cleanup supplies" style="accent-color:var(--sage);width:14px;height:14px;"> Cleanup supplies</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0.5rem;" id="itemCheckboxGrid">
+        <label class="item-check-label"><input type="checkbox" value="Water"> Water</label>
+        <label class="item-check-label"><input type="checkbox" value="Canned food"> Canned food</label>
+        <label class="item-check-label"><input type="checkbox" value="Hot meals"> Hot meals</label>
+        <label class="item-check-label"><input type="checkbox" value="Baby formula"> Baby formula</label>
+        <label class="item-check-label"><input type="checkbox" value="Diapers"> Diapers</label>
+        <label class="item-check-label"><input type="checkbox" value="Clothing"> Clothing</label>
+        <label class="item-check-label"><input type="checkbox" value="Blankets"> Blankets</label>
+        <label class="item-check-label"><input type="checkbox" value="Gasoline"> Gasoline</label>
+        <label class="item-check-label"><input type="checkbox" value="Generators"> Generators</label>
+        <label class="item-check-label"><input type="checkbox" value="First aid supplies"> First aid</label>
+        <label class="item-check-label"><input type="checkbox" value="Medications"> Medications</label>
+        <label class="item-check-label"><input type="checkbox" value="Cleanup supplies"> Cleanup supplies</label>
       </div>
       <p class="modal-label">Anything else?</p>
       <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
-    </div><!-- end itemsSection -->
+    </div>
+
     <p class="modal-label">Notes for visitors</p>
     <textarea class="modal-input" id="editNotes" rows="2" placeholder="Drive-through available, cash donations accepted, etc."></textarea>
+
     <p class="modal-section">Links</p>
     <p class="modal-label">Your website (optional)</p>
     <input type="url" class="modal-input" id="editWebsite" placeholder="https://yourchurch.org">
-    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin:0.75rem 0;cursor:pointer;"><input type="checkbox" id="givingCheck" style="accent-color:var(--sage);width:15px;height:15px;" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'"> We accept online donations</label>
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin:0.75rem 0;cursor:pointer;">
+      <input type="checkbox" id="givingCheck" style="accent-color:var(--sage);width:15px;height:15px;" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'">
+      We accept online donations
+    </label>
     <div id="givingUrlWrap" style="display:none;">
       <p class="modal-label">Online giving link</p>
       <input type="url" class="modal-input" id="editGivingUrl" placeholder="https://yourchurch.org/give">
     </div>
+
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-cancel" id="discardBtn" onclick="closeEditModal()">Discard edits</button>
       <button class="btn-submit" id="saveBtn" onclick="saveListing()">Save listing</button>
     </div>
   </div>
 </div>
 
-<!-- Report Modal -->
+<!-- ══════════════════════════════════════
+     REPORT MODAL
+══════════════════════════════════════ -->
 <div class="modal-overlay" id="reportModal">
   <div class="modal">
     <div id="stepReason">
@@ -297,12 +368,18 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <div id="stepContact" style="display:none;">
       <h2 class="modal-title">Your contact info</h2>
       <p class="modal-sub">Required to review reports. Your info stays private.</p>
-      <div class="modal-row"><div><p class="modal-label">First name</p><input type="text" class="modal-input" id="rFirst" placeholder="Kai"></div><div><p class="modal-label">Last name</p><input type="text" class="modal-input" id="rLast" placeholder="Akana"></div></div>
+      <div class="modal-row">
+        <div><p class="modal-label">First name</p><input type="text" class="modal-input" id="rFirst" placeholder="Kai"></div>
+        <div><p class="modal-label">Last name</p><input type="text" class="modal-input" id="rLast" placeholder="Akana"></div>
+      </div>
       <p class="modal-label">Email</p><input type="email" class="modal-input" id="rEmail" placeholder="kai@email.com">
       <p class="modal-label">Phone</p><input type="tel" class="modal-input" id="rPhone" placeholder="(808) 555-0000">
       <p class="modal-label">Additional details (optional)</p><textarea class="modal-input" id="rDetails" rows="2" placeholder="Any extra context…"></textarea>
       <p class="modal-note">By submitting you confirm this report is made in good faith.</p>
-      <div class="modal-actions"><button class="btn-cancel" onclick="showReasonStep()">← Back</button><button class="btn-submit" onclick="submitReport()">Submit report</button></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="showReasonStep()">← Back</button>
+        <button class="btn-report-submit" onclick="submitReport()">Submit report</button>
+      </div>
     </div>
     <div id="stepSuccess" style="display:none;">
       <div class="modal-success">
@@ -325,27 +402,39 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let myListings = [];
 let reportingListingId = null;
+let currentPage = 'listings';
+// In-memory collaborators list (saved to user_metadata)
+let collaborators = [];
 
-// Type colors and labels
-const TYPE_COLORS = {
-  shelter: '#2a6496',
-  supply_station: '#3a7d5c',
-  donation_dropoff: '#c9983a',
-  volunteer_event: '#7b5ea7',
-  skills_labor: '#d4580a',
-  giving: '#3a7d5c',
-  accepting: '#2a6496'
-};
 const TYPE_LABELS = {
   shelter: '🏠 Shelter',
   supply_station: '🛖 Supply Station',
   donation_dropoff: '📦 Drop-off',
   volunteer_event: '🙋 Volunteer Event',
   skills_labor: '🔧 Skills & Labor',
+  medical_assistance: '🏥 Medical Aid',
   giving: 'Giving',
   accepting: 'Accepting'
 };
 
+// ══════════════════════════════════════
+// PAGE SWITCHING
+// ══════════════════════════════════════
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  if (page === 'listings') {
+    document.getElementById('navListings').classList.add('active');
+    renderListingsPage();
+  } else if (page === 'profile') {
+    document.getElementById('navProfile').classList.add('active');
+    renderProfilePage();
+  }
+}
+
+// ══════════════════════════════════════
+// TYPE SELECTION
+// ══════════════════════════════════════
 function selectType(type) {
   document.getElementById('editType').value = type;
   const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#fff3ee',medical_assistance:'#fdf0ee'};
@@ -355,22 +444,69 @@ function selectType(type) {
     c.style.borderColor = sel ? (colorMap[type] || '#3a7d5c') : '#ddd';
     c.style.background = sel ? (bgMap[type] || 'white') : 'white';
   });
-  document.getElementById('eventExtras').style.display = type==='volunteer_event' ? 'block' : 'none';
-  document.getElementById('shelterExtras').style.display = type==='shelter' ? 'block' : 'none';
-  document.getElementById('dropoffToggle').style.display = type==='supply_station' ? 'block' : 'none';
-  document.getElementById('skillsExtras').style.display = type==='skills_labor' ? 'block' : 'none';
-  // Hide items section for types that don't need it
+  document.getElementById('eventExtras').style.display = type === 'volunteer_event' ? 'block' : 'none';
+  document.getElementById('shelterExtras').style.display = type === 'shelter' ? 'block' : 'none';
+  document.getElementById('dropoffToggle').style.display = type === 'supply_station' ? 'block' : 'none';
+  document.getElementById('skillsExtras').style.display = type === 'skills_labor' ? 'block' : 'none';
   const itemsSection = document.getElementById('itemsSection');
-  if (itemsSection) itemsSection.style.display = (type==='skills_labor'||type==='medical_assistance') ? 'none' : 'block';
+  if (itemsSection) itemsSection.style.display = (type === 'skills_labor' || type === 'medical_assistance') ? 'none' : 'block';
 }
 
-// Smart greeting — personal vs org
+// ══════════════════════════════════════
+// DAY PILLS — fully filled green when selected
+// ══════════════════════════════════════
+function toggleDay(pill) {
+  const day = pill.dataset.day;
+  const isEveryDay = day === 'Every day';
+  if (isEveryDay) {
+    // Select "Every day" and deselect all others
+    document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+  } else {
+    // Deselect "Every day" if a specific day is picked
+    const everyDay = document.querySelector('.day-pill[data-day="Every day"]');
+    if (everyDay) everyDay.classList.remove('selected');
+    pill.classList.toggle('selected');
+  }
+}
+
+function getSelectedDays() {
+  return [...document.querySelectorAll('.day-pill.selected')].map(p => p.dataset.day);
+}
+
+function setSelectedDays(daysArray) {
+  document.querySelectorAll('.day-pill').forEach(p => {
+    p.classList.toggle('selected', daysArray.includes(p.dataset.day));
+  });
+}
+
+function clearDayPills() {
+  document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('selected'));
+}
+
+// ══════════════════════════════════════
+// ITEM CHECKBOXES — green fill when checked
+// ══════════════════════════════════════
+function updateItemCheckStyle(cb) {
+  const lbl = cb.closest('label');
+  if (cb.checked) {
+    lbl.classList.add('checked');
+  } else {
+    lbl.classList.remove('checked');
+  }
+}
+
+document.getElementById('itemCheckboxGrid').addEventListener('change', function(e) {
+  if (e.target.type === 'checkbox') updateItemCheckStyle(e.target);
+});
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
 function getDisplayName(user) {
   const org = user.user_metadata?.org_name || '';
   const full = user.user_metadata?.full_name || '';
-  if (!org || org.toLowerCase() === 'personal' || org.toLowerCase() === 'individual') {
-    return full || user.email;
-  }
+  if (!org || org.toLowerCase() === 'personal' || org.toLowerCase() === 'individual') return full || user.email;
   return org;
 }
 
@@ -383,12 +519,15 @@ function getGreeting(user) {
   return 'Aloha, ' + name;
 }
 
-// ── INIT ──
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
   document.getElementById('userEmail').textContent = getGreeting(currentUser);
+  collaborators = currentUser.user_metadata?.collaborators || [];
   await loadListings();
 }
 
@@ -397,28 +536,32 @@ async function signOut() {
   window.location.href = 'index.html';
 }
 
-// ── LOAD LISTINGS ──
+// ══════════════════════════════════════
+// LOAD LISTINGS
+// ══════════════════════════════════════
 async function loadListings() {
   const { data, error } = await sb.from('listings').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
   if (error) { console.error(error); return; }
   myListings = data || [];
-  renderMain();
+  if (currentPage === 'listings') renderListingsPage();
 }
 
-// ── RENDER ──
-function renderMain() {
+// ══════════════════════════════════════
+// RENDER — LISTINGS PAGE
+// ══════════════════════════════════════
+function renderListingsPage() {
   const main = document.getElementById('mainContent');
   if (!myListings.length) {
     main.innerHTML = `
       <div class="page-header">
         <div><h1 class="page-title">My listings</h1><p class="page-subtitle">You don't have any listings yet</p></div>
-        <button class="btn btn-primary" onclick="window.location.href='malama-create.html'">+ Add your first listing</button>
+        <button class="btn btn-primary" onclick="openEditModal(null)">+ Add your first listing</button>
       </div>
       <div class="empty-state">
         <div style="font-size:2.5rem;margin-bottom:1rem;">🗺️</div>
         <h3>Add your first listing</h3>
         <p>Create a listing to appear on the Mālama Map so people know where to go.</p>
-        <button class="btn btn-primary" onclick="window.location.href='malama-create.html'">+ Add listing</button>
+        <button class="btn btn-primary" onclick="openEditModal(null)">+ Add listing</button>
       </div>`;
     return;
   }
@@ -430,12 +573,13 @@ function renderMain() {
 
   main.innerHTML = `
     <div class="page-header">
-      <div><h1 class="page-title">My listings</h1><p class="page-subtitle">${getDisplayName(currentUser)} · ${myListings.length} listing${myListings.length>1?'s':''} · ${myListings.filter(l=>l.status).length} open</p></div>
-      <button class="btn btn-primary" onclick="window.location.href='malama-create.html'">+ Add new listing</button>
+      <div><h1 class="page-title">My listings</h1>
+      <p class="page-subtitle">${getDisplayName(currentUser)} · ${myListings.length} listing${myListings.length > 1 ? 's' : ''} · ${myListings.filter(l => l.status).length} open</p></div>
+      <button class="btn btn-primary" onclick="openEditModal(null)">+ Add new listing</button>
     </div>
     ${expiringListing ? `<div class="expiry-banner"><div style="font-size:1.4rem;">⏳</div><p class="expiry-text"><strong>A listing expires soon.</strong> Renew it to keep your pin active on the map.</p></div>` : ''}
     <div class="stats-row">
-      <div class="stat-card"><p class="stat-label">Active listings</p><p class="stat-val">${myListings.filter(l=>l.status).length}</p><p class="stat-sub">Currently open</p></div>
+      <div class="stat-card"><p class="stat-label">Active listings</p><p class="stat-val">${myListings.filter(l => l.status).length}</p><p class="stat-sub">Currently open</p></div>
       <div class="stat-card"><p class="stat-label">Total listings</p><p class="stat-val">${myListings.length}</p><p class="stat-sub">All time</p></div>
       <div class="stat-card"><p class="stat-label">Account</p><p class="stat-val" style="font-size:1rem;color:var(--sage);padding-top:6px;text-transform:capitalize;">${getDisplayName(currentUser)}</p><p class="stat-sub">Organization</p></div>
       <div class="stat-card"><p class="stat-label">Verified</p><p class="stat-val" style="font-size:1rem;padding-top:6px;color:var(--text-muted);">Pending</p><p class="stat-sub">Submit EIN to verify</p></div>
@@ -459,7 +603,8 @@ function renderListingCard(l) {
         <div class="status-card" style="margin-bottom:1rem;">
           <div class="status-left">
             <div class="status-dot ${l.status ? '' : 'closed'}"></div>
-            <div><p class="status-label">${l.status ? 'Currently Open' : 'Currently Closed'}</p><p class="status-sub">${l.status ? 'Visible and active on the map' : 'Hidden from the map'}</p></div>
+            <div><p class="status-label">${l.status ? 'Currently Open' : 'Currently Closed'}</p>
+            <p class="status-sub">${l.status ? 'Visible and active on the map' : 'Hidden from the map'}</p></div>
           </div>
           <div class="toggle-wrap">
             <span class="toggle-text">${l.status ? 'Open' : 'Closed'}</span>
@@ -471,7 +616,7 @@ function renderListingCard(l) {
           <div><p class="field-label">Hours</p><p class="field-value">${l.hours || '—'}</p></div>
           <div><p class="field-label">Type</p><p class="field-value">${TYPE_LABELS[l.type] || l.type}</p></div>
           <div><p class="field-label">Contact</p><p class="field-value">${l.contact_phone || currentUser.email}</p></div>
-          ${items.length ? `<div style="grid-column:1/-1;"><p class="field-label">Items</p><div class="items-wrap" style="margin-top:6px;">${items.map(i=>`<span class="item-tag">${i}</span>`).join('')}</div></div>` : ''}
+          ${items.length ? `<div style="grid-column:1/-1;"><p class="field-label">Items</p><div class="items-wrap" style="margin-top:6px;">${items.map(i => `<span class="item-tag">${i}</span>`).join('')}</div></div>` : ''}
           ${l.notes ? `<div style="grid-column:1/-1;"><p class="field-label">Notes</p><p class="field-value muted">${l.notes}</p></div>` : ''}
           ${l.website ? `<div><p class="field-label">Website</p><a href="${l.website}" target="_blank" class="field-link">${l.website.replace('https://','')}</a></div>` : ''}
           ${l.giving_url ? `<div><p class="field-label">Giving link</p><a href="${l.giving_url}" target="_blank" class="field-link giving-link">Donate online</a></div>` : ''}
@@ -480,25 +625,174 @@ function renderListingCard(l) {
       <div class="card-footer">
         <p class="expiry-note">⏱ Expires in ${expHrs} hrs — renew to stay visible</p>
         <div class="card-actions">
-          <button class="report-btn" onclick="openReport('${l.id}')">⚠ Report this listing</button>
-          <button class="btn btn-outline btn-sm" onclick="window.location.href='malama-edit.html?id=${l.id}'">Edit</button>
+          <button class="report-btn" onclick="openReport('${l.id}')">⚠ Report</button>
+          <button class="btn btn-outline btn-sm" onclick="openEditModal('${l.id}')">Edit listing</button>
           <button class="btn btn-primary btn-sm" onclick="renewListing('${l.id}')">Renew</button>
         </div>
       </div>
     </div>`;
 }
 
-// ── TOGGLE STATUS ──
+// ══════════════════════════════════════
+// RENDER — PROFILE PAGE
+// ══════════════════════════════════════
+function renderProfilePage() {
+  const meta = currentUser.user_metadata || {};
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="page-header">
+      <div><h1 class="page-title">Profile & contact</h1>
+      <p class="page-subtitle">Your account info and listing access settings</p></div>
+    </div>
+
+    <div class="profile-grid">
+
+      <!-- LEFT: Contact info -->
+      <div class="profile-card">
+        <p class="profile-card-title">Contact info</p>
+        <p class="profile-card-sub">This is how people and our team can reach you. Your email is your login and can't be changed here.</p>
+
+        <div class="profile-row">
+          <div class="profile-field">
+            <p class="profile-label">First name <span style="color:var(--red);">*</span></p>
+            <input class="profile-input" id="profFirstName" type="text" placeholder="Kai" value="${escHtml(meta.first_name || '')}">
+          </div>
+          <div class="profile-field">
+            <p class="profile-label">Last name</p>
+            <input class="profile-input" id="profLastName" type="text" placeholder="Akana" value="${escHtml(meta.last_name || '')}">
+          </div>
+        </div>
+
+        <div class="profile-field">
+          <p class="profile-label">Organization / church name</p>
+          <input class="profile-input" id="profOrgName" type="text" placeholder="e.g. Kaimana Community Church" value="${escHtml(meta.org_name || '')}">
+        </div>
+
+        <div class="profile-field">
+          <p class="profile-label">Email (login)</p>
+          <input class="profile-input" type="email" value="${escHtml(currentUser.email || '')}" disabled>
+        </div>
+
+        <div class="profile-field">
+          <p class="profile-label">Contact phone</p>
+          <input class="profile-input" id="profPhone" type="tel" placeholder="(808) 555-0000" value="${escHtml(meta.contact_phone || '')}">
+        </div>
+
+        <div class="profile-field">
+          <p class="profile-label">Website (optional)</p>
+          <input class="profile-input" id="profWebsite" type="url" placeholder="https://yourchurch.org" value="${escHtml(meta.website || '')}">
+        </div>
+
+        <div class="profile-save-row">
+          <button class="profile-save-btn" onclick="saveProfile()">Save contact info</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Collaborators -->
+      <div class="profile-card">
+        <p class="profile-card-title">Listing access</p>
+        <p class="profile-card-sub">Give other people permission to edit your listings. They'll need their own Mālama Map account. First name is required.</p>
+
+        <p class="collab-hint">Anyone listed here can log in with their own account and edit any of your listings. Great for a team, staff member, or co-coordinator.</p>
+
+        <div class="collaborator-list" id="collabList">
+          ${renderCollaboratorList()}
+        </div>
+
+        <p class="modal-label" style="margin-top:0.5rem;">Add someone by email</p>
+        <div class="add-collaborator-row">
+          <input class="profile-input" id="collabFirstName" type="text" placeholder="First name *" style="max-width:130px;">
+          <input class="profile-input" id="collabLastName" type="text" placeholder="Last name" style="max-width:130px;">
+          <input class="profile-input" id="collabEmail" type="email" placeholder="their@email.com">
+          <button class="add-btn" onclick="addCollaborator()">+ Add</button>
+        </div>
+        <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:0.6rem;line-height:1.5;">They must already have a Mālama Map account for access to work.</p>
+
+        <div class="profile-save-row">
+          <button class="profile-save-btn" onclick="saveCollaborators()">Save access list</button>
+        </div>
+      </div>
+
+    </div>`;
+}
+
+function renderCollaboratorList() {
+  if (!collaborators.length) {
+    return `<p style="font-size:0.82rem;font-weight:500;color:var(--text-muted);padding:0.5rem 0;">No collaborators yet. Add someone below.</p>`;
+  }
+  return collaborators.map((c, i) => `
+    <div class="collaborator-item">
+      <div class="collaborator-info">
+        <span class="collaborator-name">${escHtml(c.first_name)}${c.last_name ? ' ' + escHtml(c.last_name) : ''}</span>
+        <span class="collaborator-email">${escHtml(c.email)}</span>
+      </div>
+      <button class="collaborator-remove" onclick="removeCollaborator(${i})">Remove</button>
+    </div>`).join('');
+}
+
+function addCollaborator() {
+  const first = document.getElementById('collabFirstName').value.trim();
+  const last = document.getElementById('collabLastName').value.trim();
+  const email = document.getElementById('collabEmail').value.trim().toLowerCase();
+  if (!first) { showToast('First name is required'); return; }
+  if (!email || !email.includes('@')) { showToast('Please enter a valid email'); return; }
+  if (collaborators.find(c => c.email === email)) { showToast('That email is already on your list'); return; }
+  collaborators.push({ first_name: first, last_name: last, email });
+  document.getElementById('collabFirstName').value = '';
+  document.getElementById('collabLastName').value = '';
+  document.getElementById('collabEmail').value = '';
+  document.getElementById('collabList').innerHTML = renderCollaboratorList();
+}
+
+function removeCollaborator(index) {
+  collaborators.splice(index, 1);
+  document.getElementById('collabList').innerHTML = renderCollaboratorList();
+}
+
+async function saveProfile() {
+  const first = document.getElementById('profFirstName').value.trim();
+  if (!first) { showToast('First name is required'); return; }
+  const updates = {
+    first_name: first,
+    last_name: document.getElementById('profLastName').value.trim(),
+    org_name: document.getElementById('profOrgName').value.trim(),
+    contact_phone: document.getElementById('profPhone').value.trim(),
+    website: document.getElementById('profWebsite').value.trim(),
+  };
+  const { error } = await sb.auth.updateUser({ data: updates });
+  if (error) { showToast('Error saving: ' + error.message); return; }
+  // Refresh user
+  const { data: { user } } = await sb.auth.getUser();
+  currentUser = user;
+  document.getElementById('userEmail').textContent = getGreeting(currentUser);
+  showToast('🌺 Profile saved!');
+}
+
+async function saveCollaborators() {
+  const { error } = await sb.auth.updateUser({ data: { collaborators } });
+  if (error) { showToast('Error saving: ' + error.message); return; }
+  showToast('🌺 Access list saved!');
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════
+// TOGGLE STATUS
+// ══════════════════════════════════════
 async function toggleStatus(id, val) {
   const { error } = await sb.from('listings').update({ status: val }).eq('id', id);
   if (error) { showToast('Error updating status'); return; }
   const l = myListings.find(x => x.id === id);
-  if (l) { l.status = val; }
+  if (l) l.status = val;
   showToast(val ? '🟢 Listing is now Open' : '🔴 Listing is now Closed');
   await loadListings();
 }
 
-// ── RENEW ──
+// ══════════════════════════════════════
+// RENEW
+// ══════════════════════════════════════
 async function renewListing(id) {
   const newExpiry = new Date(Date.now() + 72 * 3600000).toISOString();
   const { error } = await sb.from('listings').update({ expires_at: newExpiry }).eq('id', id);
@@ -507,76 +801,176 @@ async function renewListing(id) {
   await loadListings();
 }
 
-// ── GEOCODE ADDRESS ──
+// ══════════════════════════════════════
+// GEOCODE
+// ══════════════════════════════════════
 async function geocodeAddress(address) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaiʻi')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
   try {
     const r = await fetch(url);
     const d = await r.json();
-    if (d.results && d.results[0]) {
-      return { lat: d.results[0].geometry.location.lat, lng: d.results[0].geometry.location.lng };
-    }
+    if (d.results && d.results[0]) return { lat: d.results[0].geometry.location.lat, lng: d.results[0].geometry.location.lng };
   } catch(e) {}
-  return { lat: 21.3069, lng: -157.8583 }; // default Honolulu
+  return { lat: 21.3069, lng: -157.8583 };
 }
 
-// ── SAVE LISTING ──
+// ══════════════════════════════════════
+// EDIT MODAL — open with pre-population
+// ══════════════════════════════════════
+function openEditModal(id) {
+  const modal = document.getElementById('editModal');
+  document.body.style.overflow = 'hidden';
+
+  // Reset type cards
+  document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor = '#ddd'; c.style.background = 'white'; });
+  // Hide all extras
+  document.getElementById('eventExtras').style.display = 'none';
+  document.getElementById('shelterExtras').style.display = 'none';
+  document.getElementById('dropoffToggle').style.display = 'none';
+  document.getElementById('skillsExtras').style.display = 'none';
+  document.getElementById('itemsSection').style.display = 'none';
+  // Clear day pills
+  clearDayPills();
+  // Clear item checkboxes
+  document.querySelectorAll('#itemCheckboxGrid input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('label').classList.remove('checked');
+  });
+
+  if (id) {
+    // ── EDITING EXISTING LISTING ──
+    const l = myListings.find(x => x.id === id);
+    if (!l) return;
+
+    document.getElementById('modalTitle').textContent = 'Edit listing';
+    document.getElementById('modalSub').textContent = 'Update your details below. Nothing saves until you hit Save changes.';
+    document.getElementById('saveBtn').textContent = 'Save changes';
+    document.getElementById('discardBtn').textContent = 'Discard edits';
+    document.getElementById('editId').value = id;
+
+    // Basic fields — pre-filled, nothing cleared
+    document.getElementById('editName').value = l.name || '';
+    document.getElementById('editStatus').value = String(l.status);
+    document.getElementById('editAddress').value = l.address || '';
+    document.getElementById('editPhone').value = l.contact_phone || '';
+    document.getElementById('editHoursDisplay').value = l.hours || '';
+    document.getElementById('editNotes').value = l.notes || '';
+    document.getElementById('editWebsite').value = l.website || '';
+
+    // Type card
+    if (l.type) selectType(l.type);
+
+    // Day pills — parse from hours string e.g. "Mon, Wed · 9AM – 5PM"
+    if (l.hours) {
+      const dayNames = ['Every day','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const found = dayNames.filter(d => l.hours.includes(d));
+      if (found.length) setSelectedDays(found);
+    }
+
+    // Item checkboxes
+    const savedItems = Array.isArray(l.items) ? l.items : [];
+    const knownValues = [...document.querySelectorAll('#itemCheckboxGrid input')].map(cb => cb.value);
+    document.querySelectorAll('#itemCheckboxGrid input').forEach(cb => {
+      cb.checked = savedItems.includes(cb.value);
+      if (cb.checked) cb.closest('label').classList.add('checked');
+    });
+    const customItems = savedItems.filter(i => !knownValues.includes(i));
+    document.getElementById('editCustomItems').value = customItems.join(', ');
+
+    // Giving link
+    if (l.giving_url) {
+      document.getElementById('givingCheck').checked = true;
+      document.getElementById('givingUrlWrap').style.display = 'block';
+      document.getElementById('editGivingUrl').value = l.giving_url;
+    } else {
+      document.getElementById('givingCheck').checked = false;
+      document.getElementById('givingUrlWrap').style.display = 'none';
+      document.getElementById('editGivingUrl').value = '';
+    }
+
+    // Type-specific extras
+    if (l.type === 'volunteer_event') {
+      if (l.event_date) document.getElementById('editEventDate').value = l.event_date;
+      if (l.volunteer_needs) document.getElementById('editVolunteerNeeds').value = l.volunteer_needs;
+    }
+    if (l.type === 'shelter') {
+      if (l.capacity) document.getElementById('editCapacity').value = l.capacity;
+      document.getElementById('editPetFriendly').value = String(l.pet_friendly || false);
+    }
+    if (l.type === 'supply_station' && l.accepting_dropoffs) {
+      document.getElementById('acceptingDropoffs').checked = true;
+    }
+
+  } else {
+    // ── NEW LISTING ──
+    document.getElementById('modalTitle').textContent = 'Add a new listing';
+    document.getElementById('modalSub').textContent = 'Fill in your details below. Nothing saves until you hit Save listing.';
+    document.getElementById('saveBtn').textContent = 'Save listing';
+    document.getElementById('discardBtn').textContent = 'Cancel';
+    document.getElementById('editId').value = '';
+    document.getElementById('editName').value = '';
+    document.getElementById('editType').value = '';
+    document.getElementById('editStatus').value = 'true';
+    document.getElementById('editAddress').value = '';
+    document.getElementById('editPhone').value = '';
+    document.getElementById('editHoursDisplay').value = '';
+    document.getElementById('editNotes').value = '';
+    document.getElementById('editWebsite').value = '';
+    document.getElementById('editCustomItems').value = '';
+    document.getElementById('givingCheck').checked = false;
+    document.getElementById('givingUrlWrap').style.display = 'none';
+    document.getElementById('editGivingUrl').value = '';
+  }
+
+  modal.classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════
+// SAVE LISTING
+// ══════════════════════════════════════
 async function saveListing() {
   const id = document.getElementById('editId').value;
   const name = document.getElementById('editName').value.trim();
   const address = document.getElementById('editAddress').value.trim();
   if (!name || !address) { showToast('Please fill in name and address'); return; }
 
-  // Build hours from days + times + date range
-  const days = [...document.querySelectorAll('.day-check:checked')].map(d => d.value);
-  const openTime = document.getElementById('editHoursOpen').value;
-  const closeTime = document.getElementById('editHoursClose').value;
-  const dateFrom = document.getElementById('editDateFrom').value;
-  const dateUntil = document.getElementById('editDateUntil').value;
+  const type = document.getElementById('editType').value;
+  if (!type) { showToast('Please select a listing type'); return; }
 
+  // Build hours string from day pills + text input
+  const days = getSelectedDays();
+  const hoursText = document.getElementById('editHoursDisplay').value.trim();
   let hours = '';
-  if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') {
-    hours = openTime;
-  } else if (openTime && closeTime) {
-    hours = openTime + ' – ' + closeTime;
-  } else if (openTime) {
-    hours = 'Opens at ' + openTime;
-  }
   if (days.length) {
-    const dayStr = days.includes('Daily') ? 'Every day' : days.join(', ');
-    hours = dayStr + (hours ? ' · ' + hours : '');
-  }
-  if (dateFrom && dateUntil) {
-    const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    hours += (hours ? ' · ' : '') + fmt(dateFrom) + ' – ' + fmt(dateUntil);
-  } else if (dateFrom) {
-    const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    hours += (hours ? ' · From ' : 'From ') + fmt(dateFrom);
+    const dayStr = days.includes('Every day') ? 'Every day' : days.join(', ');
+    hours = dayStr + (hoursText ? ' · ' + hoursText : '');
+  } else {
+    hours = hoursText;
   }
 
-  // Build items from checkboxes + custom
-  const checked = [...document.querySelectorAll('.item-section input:checked')].map(cb => cb.value);
-  const custom = document.getElementById('editCustomItems').value.split(',').map(i=>i.trim()).filter(Boolean);
+  // Items
+  const checked = [...document.querySelectorAll('#itemCheckboxGrid input:checked')].map(cb => cb.value);
+  const custom = document.getElementById('editCustomItems').value.split(',').map(i => i.trim()).filter(Boolean);
   const items = [...checked, ...custom];
 
   const coords = await geocodeAddress(address);
 
-  const type = document.getElementById('editType').value;
-  if (!type) { showToast('Please select a listing type'); return; }
-
   const payload = {
-    name,
-    type,
+    name, type,
     status: document.getElementById('editStatus').value === 'true',
     address,
-    lat: coords.lat,
-    lng: coords.lng,
+    lat: coords.lat, lng: coords.lng,
     hours,
     contact_phone: document.getElementById('editPhone').value.trim(),
     items,
     notes: document.getElementById('editNotes').value.trim(),
     website: document.getElementById('editWebsite').value.trim(),
-    giving_url: document.getElementById('givingCheck')?.checked ? document.getElementById('editGivingUrl')?.value.trim() : null,
+    giving_url: document.getElementById('givingCheck').checked ? document.getElementById('editGivingUrl').value.trim() : null,
     accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked || false,
     capacity: document.getElementById('editCapacity')?.value || null,
     pet_friendly: document.getElementById('editPetFriendly')?.value === 'true',
@@ -595,186 +989,64 @@ async function saveListing() {
 
   if (error) { showToast('Error saving: ' + error.message); return; }
   closeEditModal();
-  // Remind unverified users to confirm email
-  if (!currentUser.email_confirmed_at) {
-    showToast('🌺 Listing live! Check your email to verify your account.');
-  } else {
-    showToast('🌺 Listing published and live on the map!');
-  }
+  showToast(id ? '🌺 Listing updated!' : '🌺 Listing published and live on the map!');
   await loadListings();
 }
 
-// ── EDIT — redirect to create page ──
-function openEditModal(id) {
-  if (!id) { window.location.href = 'malama-create.html'; return; }
-  window.location.href = 'malama-create.html?edit=' + id;
-  return;
-  // legacy modal code below kept for reference
-  document.body.style.overflow = 'hidden';
-  // Always hide items section until type is selected
-  const itemsSection = document.getElementById('itemsSection');
-  if (itemsSection) itemsSection.style.display = 'none';
-  if (id) {
-    const l = myListings.find(x => x.id === id);
-    if (!l) return;
-    document.getElementById('modalTitle').textContent = 'Edit listing';
-    document.getElementById('editId').value = id;
-    document.getElementById('editName').value = l.name;
-    if (l.type) selectType(l.type); // this will show/hide items correctly
-    document.getElementById('editStatus').value = String(l.status);
-    document.getElementById('editAddress').value = l.address;
-    // Restore hours dropdowns
-    if (l.hours) {
-      if (l.hours === 'Open 24 hours' || l.hours === 'Sunrise – Sunset') {
-        document.getElementById('editHoursOpen').value = l.hours;
-      } else if (l.hours.includes('–')) {
-        const parts = l.hours.split('–').map(s=>s.trim());
-        document.getElementById('editHoursOpen').value = parts[0] || '';
-        document.getElementById('editHoursClose').value = parts[1] || '';
-      }
-    }
-    document.getElementById('editPhone').value = l.contact_phone || '';
-    // Restore checkboxes
-    const knownItems = [...document.querySelectorAll('.item-section input')].map(cb=>cb.value);
-    const savedItems = l.items || [];
-    document.querySelectorAll('.item-section input').forEach(cb => {
-      cb.checked = savedItems.includes(cb.value);
-      cb.closest('label').style.borderColor = cb.checked ? 'var(--sage)' : '#ddd';
-      cb.closest('label').style.background = cb.checked ? 'var(--sage-pale)' : '';
-    });
-    const customItems = savedItems.filter(i => !knownItems.includes(i));
-    document.getElementById('editCustomItems').value = customItems.join(', ');
-    document.getElementById('editNotes').value = l.notes || '';
-    document.getElementById('editWebsite').value = l.website || '';
-    if (l.giving_url) {
-      if(document.getElementById('givingCheck')) document.getElementById('givingCheck').checked = true;
-      document.getElementById('givingUrlWrap').style.display = 'block';
-      document.getElementById('editGivingUrl').value = l.giving_url;
-    }
-  } else {
-    document.getElementById('modalTitle').textContent = 'Add a new listing';
-    document.getElementById('editId').value = '';
-    document.getElementById('editName').value = '';
-    document.getElementById('editType').value = '';
-    document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor='#ddd'; c.style.background='white'; });
-    document.getElementById('eventExtras').style.display = 'none';
-    document.getElementById('shelterExtras').style.display = 'none';
-    document.getElementById('dropoffToggle').style.display = 'none';
-    document.getElementById('skillsExtras').style.display = 'none';
-    if (itemsSection) itemsSection.style.display = 'none';
-    document.getElementById('editStatus').value = 'true';
-    document.querySelectorAll('.day-check').forEach(d => { d.checked = false; });
-    document.getElementById('editHoursOpen').value = '';
-    document.getElementById('editHoursClose').value = '';
-    document.getElementById('editDateFrom').value = '';
-    document.getElementById('editDateUntil').value = '';
-    document.getElementById('editHoursOpen').value = '';
-    document.getElementById('editHoursClose').value = '';
-    document.getElementById('editPhone').value = '';
-    document.querySelectorAll('.item-section input').forEach(cb => {
-      cb.checked = false;
-      cb.closest('label').style.borderColor = '#ddd';
-      cb.closest('label').style.background = '';
-    });
-    document.getElementById('editCustomItems').value = '';
-    document.getElementById('editNotes').value = '';
-    document.getElementById('editWebsite').value = '';
-    if(document.getElementById('givingCheck')) document.getElementById('givingCheck').checked = false;
-    document.getElementById('givingUrlWrap').style.display = 'none';
-    document.getElementById('editGivingUrl').value = '';
-  }
-}
-function closeEditModal() { 
-  document.getElementById('editModal').classList.remove('open'); 
-  document.body.style.overflow = '';
-}
-function toggleGivingUrl(cb) { document.getElementById('givingUrlWrap').style.display = cb.checked ? 'block' : 'none'; }
-
-// ── REPORT MODAL ──
+// ══════════════════════════════════════
+// REPORT MODAL
+// ══════════════════════════════════════
 function openReport(id) { reportingListingId = id; document.getElementById('reportModal').classList.add('open'); }
 function closeReport() {
   document.getElementById('reportModal').classList.remove('open');
   showReasonStep();
-  document.querySelectorAll('.reason-opt').forEach(o=>o.classList.remove('selected'));
-  document.querySelectorAll('input[name="reason"]').forEach(r=>r.checked=false);
+  document.querySelectorAll('.reason-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('input[name="reason"]').forEach(r => r.checked = false);
 }
-function selectReason(el) { document.querySelectorAll('.reason-opt').forEach(o=>o.classList.remove('selected')); el.classList.add('selected'); }
-function showContactStep() { document.getElementById('stepReason').style.display='none'; document.getElementById('stepContact').style.display='block'; }
-function showReasonStep() { document.getElementById('stepContact').style.display='none'; document.getElementById('stepReason').style.display='block'; document.getElementById('stepSuccess').style.display='none'; }
+function selectReason(el) { document.querySelectorAll('.reason-opt').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); }
+function showContactStep() { document.getElementById('stepReason').style.display = 'none'; document.getElementById('stepContact').style.display = 'block'; }
+function showReasonStep() { document.getElementById('stepContact').style.display = 'none'; document.getElementById('stepReason').style.display = 'block'; document.getElementById('stepSuccess').style.display = 'none'; }
 async function submitReport() {
   const reason = document.querySelector('input[name="reason"]:checked')?.value;
   const name = document.getElementById('rFirst').value + ' ' + document.getElementById('rLast').value;
   const email = document.getElementById('rEmail').value;
   if (!reason || !email) { showToast('Please fill in required fields'); return; }
   const { error } = await sb.from('reports').insert({
-    listing_id: reportingListingId,
-    reason,
-    reporter_name: name.trim(),
-    reporter_email: email,
+    listing_id: reportingListingId, reason,
+    reporter_name: name.trim(), reporter_email: email,
     reporter_phone: document.getElementById('rPhone').value,
     details: document.getElementById('rDetails').value
   });
   if (error) { showToast('Error submitting report'); return; }
-  document.getElementById('stepContact').style.display='none';
-  document.getElementById('stepSuccess').style.display='block';
+  document.getElementById('stepContact').style.display = 'none';
+  document.getElementById('stepSuccess').style.display = 'block';
 }
 
-// ── TOAST ──
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.style.display = 'block';
-  setTimeout(() => t.style.display='none', 3500);
+  setTimeout(() => t.style.display = 'none', 3500);
 }
 
-// Day checkbox visual feedback
-document.addEventListener('change', function(e) {
-  if (e.target.classList.contains('day-check')) {
-    const label = e.target.closest('label');
-    if (e.target.value === 'Daily') {
-      // If "Every day" selected, uncheck others
-      if (e.target.checked) {
-        document.querySelectorAll('.day-check:not([value="Daily"])').forEach(d => {
-          d.checked = false;
-          d.closest('label').style.borderColor = '#ddd';
-          d.closest('label').style.background = '';
-          d.closest('label').style.color = '';
-        });
-      }
-    } else {
-      // Uncheck "Every day" if specific day selected
-      const daily = document.querySelector('.day-check[value="Daily"]');
-      if (daily) {
-        daily.checked = false;
-        daily.closest('label').style.borderColor = 'var(--sage)';
-        daily.closest('label').style.background = 'var(--sage-pale)';
-        daily.closest('label').style.color = 'var(--sage-deep)';
-      }
-    }
-    label.style.borderColor = e.target.checked ? 'var(--sage)' : '#ddd';
-    label.style.background = e.target.checked ? 'var(--sage-pale)' : '';
-    label.style.color = e.target.checked ? 'var(--sage-deep)' : '';
-  }
-  if (e.target.type === 'checkbox' && e.target.closest('.item-section')) {
-    const label = e.target.closest('label');
-    label.style.borderColor = e.target.checked ? 'var(--sage)' : '#ddd';
-    label.style.background = e.target.checked ? 'var(--sage-pale)' : '';
-  }
-});
-
-// Close on overlay click
-const editModalEl = document.getElementById('editModal');
-if (editModalEl) editModalEl.addEventListener('click', e => { if(e.target===editModalEl) closeEditModal(); });
-const reportModalEl = document.getElementById('reportModal');
-if (reportModalEl) reportModalEl.addEventListener('click', e => { if(e.target===reportModalEl) closeReport(); });
+// Close modals on overlay click
+document.getElementById('editModal').addEventListener('click', e => { if (e.target === document.getElementById('editModal')) closeEditModal(); });
+document.getElementById('reportModal').addEventListener('click', e => { if (e.target === document.getElementById('reportModal')) closeReport(); });
 
 try { init(); } catch(e) { console.error('Init error:', e); }
 </script>
 
-<!-- Footer -->
 <footer style="background:var(--sage-deep);padding:1.25rem 1.5rem;text-align:center;margin-top:auto;">
   <p style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);">
     Mālama Map · Founded by Star Dahl-Thurston · Honolulu, Hawaiʻi
   </p>
   <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">
-    Questions or concerns? <a href="/cdn-cgi/l/email-protection#c9aaa6a7bda8aabd89a4a8a5a8a4a8a4a8b9e7a6bbae" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;"><span class="__
+    Questions or concerns? <a href="mailto:contact@malamamap.org" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;">contact@malamamap.org</a>
+  </p>
+</footer>
+
+</body>
+</html>
