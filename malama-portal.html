@@ -702,6 +702,17 @@ function renderListingCard(l) {
 function renderProfilePage() {
   const meta = currentUser.user_metadata || {};
   const main = document.getElementById('mainContent');
+
+  // Build profile pic HTML outside template literal to avoid nesting issues
+  const hasPic = !!meta.profile_pic;
+  const picCircleHtml = hasPic
+    ? `<img src="${meta.profile_pic}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--sage-light);display:block;">`
+    : `<div style="width:72px;height:72px;border-radius:50%;background:var(--sage-pale);border:2.5px dashed var(--sage-light);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="document.getElementById('profPicFileInput').click()"><svg viewBox='0 0 24 24' fill='none' style='width:26px;height:26px;pointer-events:none;'><circle cx='12' cy='8.5' r='4' stroke='#3a7d5c' stroke-width='1.6'/><path d='M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8' stroke='#3a7d5c' stroke-width='1.6' stroke-linecap='round'/></svg></div>`;
+  const uploadBtnText = hasPic ? 'Change photo' : 'Upload photo';
+  const removeBtnHtml = hasPic
+    ? `<button onclick="removeProfilePic()" style="font-size:0.73rem;font-weight:700;color:var(--red);background:none;border:1.5px solid var(--red);border-radius:100px;padding:0.33rem 0.75rem;cursor:pointer;font-family:'Nunito',sans-serif;margin-left:6px;">Remove</button>`
+    : '';
+
   main.innerHTML = `
     <div class="page-header">
       <div><h1 class="page-title">Profile & contact</h1>
@@ -715,24 +726,24 @@ function renderProfilePage() {
         <p class="profile-card-title">Contact info</p>
         <p class="profile-card-sub">This is how people and our team can reach you. Your email is your login and can't be changed here.</p>
 
-        <!-- Profile photo upload -->
-        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
-          <div style="flex-shrink:0;">
-            ${meta.profile_pic
-              ? `<img src="${meta.profile_pic}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2.5px solid var(--sage-light);">`
-              : `<div style="width:60px;height:60px;border-radius:50%;background:var(--sage-pale);border:2px dashed var(--sage-light);display:flex;align-items:center;justify-content:center;"><svg viewBox='0 0 24 24' fill='none' style='width:22px;height:22px;'><circle cx='12' cy='8' r='4' stroke='#6ab98a' stroke-width='1.5'/><path d='M4 20c0-4 3.6-7 8-7s8 3 8 7' stroke='#6ab98a' stroke-width='1.5' stroke-linecap='round'/></svg></div>`
-            }
+        <!-- Profile photo — at the top, always visible -->
+        <div style="display:flex;align-items:center;gap:1.1rem;padding:1rem;background:var(--sage-pale);border-radius:12px;margin-bottom:1.25rem;">
+          <div style="flex-shrink:0;position:relative;">
+            ${picCircleHtml}
+            <div onclick="document.getElementById('profPicFileInput').click()" style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:var(--sage);border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+              <svg viewBox="0 0 12 12" fill="none" style="width:9px;height:9px;pointer-events:none;"><path d="M6 1v7M2.5 4.5L6 1l3.5 3.5M1 10h10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
           </div>
           <div>
-            <p style="font-size:0.8rem;font-weight:700;color:var(--text-dark);margin-bottom:3px;">Profile photo</p>
-            <p style="font-size:0.73rem;font-weight:500;color:var(--text-muted);margin-bottom:8px;line-height:1.4;">Shows on your share cards next to your name. Optional.</p>
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <label style="display:inline-flex;align-items:center;gap:5px;font-size:0.73rem;font-weight:700;color:var(--sage);cursor:pointer;padding:0.33rem 0.85rem;border:1.5px solid var(--sage);border-radius:100px;transition:background 0.15s;" onmouseover="this.style.background='var(--sage-pale)'" onmouseout="this.style.background=''">
-                <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;"><path d="M8 2v8M4.5 5.5L8 2l3.5 3.5M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                ${meta.profile_pic ? 'Change photo' : 'Upload photo'}
-                <input type="file" accept="image/*" style="display:none;" onchange="handleProfilePicUpload(this)">
+            <p style="font-size:0.85rem;font-weight:700;color:var(--sage-deep);margin-bottom:3px;">Profile photo</p>
+            <p style="font-size:0.73rem;font-weight:500;color:var(--text-mid);margin-bottom:8px;line-height:1.4;">Optional — shows on your share cards next to your name.</p>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+              <label style="display:inline-flex;align-items:center;gap:5px;font-size:0.73rem;font-weight:700;color:var(--sage);cursor:pointer;padding:0.33rem 0.85rem;border:1.5px solid var(--sage);border-radius:100px;background:white;transition:background 0.15s;">
+                <svg viewBox="0 0 16 16" fill="none" style="width:11px;height:11px;"><path d="M8 2v8M4.5 5.5L8 2l3.5 3.5M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                ${uploadBtnText}
+                <input type="file" id="profPicFileInput" accept="image/*" style="display:none;" onchange="handleProfilePicUpload(this)">
               </label>
-              ${meta.profile_pic ? `<button onclick="removeProfilePic()" style="font-size:0.73rem;font-weight:700;color:var(--red);background:none;border:1.5px solid var(--red);border-radius:100px;padding:0.33rem 0.75rem;cursor:pointer;font-family:'Nunito',sans-serif;">Remove</button>` : ''}
+              ${removeBtnHtml}
             </div>
           </div>
         </div>
