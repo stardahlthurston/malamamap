@@ -295,6 +295,33 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
 
 <script>
 // ── LISTINGS DATA with real Oahu lat/long coordinates ──
+// Supabase config
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_czTQoNIGcZeH8uW47U5Plw_jRBD7wVD';
+
+async function loadListingsFromDB() {
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data, error } = await sb.from('listings').select('*').eq('status', true);
+  if (error || !data) return [];
+  return data.map(l => ({
+    id: l.id,
+    name: l.name,
+    type: l.type,
+    open: l.status,
+    verified: l.verified,
+    address: l.address,
+    distance: '',
+    hours: l.hours || 'See listing',
+    categories: l.categories || [],
+    items: l.items || [],
+    notes: l.notes || '',
+    website: l.website || '',
+    givingUrl: l.giving_url || '',
+    lat: l.lat,
+    lng: l.lng
+  }));
+}
+
 const listings = [
   {
     id:1, name:"Kaimana Community Church", type:"accepting", open:true, verified:true,
@@ -621,6 +648,7 @@ function switchView(v, el) {
 }
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src='https://maps.'+c+'apis.com/maps/api/js?'+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
 ({key:"AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU",v:"weekly"});
@@ -651,6 +679,15 @@ async function initMap() {
     streetViewControl:false,
     fullscreenControl:false
   });
+  // Try loading from Supabase, fall back to sample data
+  try {
+    const dbListings = await loadListingsFromDB();
+    if (dbListings.length > 0) {
+      listings.length = 0;
+      dbListings.forEach(l => listings.push(l));
+      visibleListings = [...listings];
+    }
+  } catch(e) { console.log('Using sample data'); }
   renderMarkers();
   renderCards();
 }

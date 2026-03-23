@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --sage: #3a7d5c; --sage-deep: #275c42; --sage-light: #6ab98a; --sage-pale: #edf7f1;
+  --blue: #2a6496; --blue-pale: #eaf3fb; --cream: #fdf8f2;
+  --text-dark: #1c1a18; --text-mid: #4a453f; --text-muted: #8a827a;
+  --border: rgba(0,0,0,0.08); --red: #c0392b; --red-pale: #fdf0ee;
+}
+body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--text-dark); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+.card { background: white; border-radius: 20px; border: 1px solid var(--border); padding: 2.5rem 2rem; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+.logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 800; color: var(--sage-deep); text-align: center; margin-bottom: 0.25rem; }
+.logo-sub { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); text-align: center; margin-bottom: 1.75rem; }
+.tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #eee; }
+.tab { flex: 1; padding: 0.6rem; font-size: 0.82rem; font-weight: 700; text-align: center; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+.tab.active { color: var(--sage-deep); border-bottom-color: var(--sage); }
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; }
+.field input { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid #ddd; border-radius: 10px; font-size: 0.9rem; font-family: 'Nunito', sans-serif; font-weight: 500; color: var(--text-dark); transition: border-color 0.2s; background: white; }
+.field input:focus { outline: none; border-color: var(--sage); }
+.btn-primary { width: 100%; padding: 0.8rem; background: var(--sage); color: white; border: none; border-radius: 100px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; font-family: 'Nunito', sans-serif; }
+.btn-primary:hover { background: var(--sage-deep); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.msg { font-size: 0.8rem; font-weight: 600; text-align: center; padding: 0.65rem 1rem; border-radius: 8px; margin-top: 1rem; display: none; }
+.msg.error { background: var(--red-pale); color: var(--red); display: block; }
+.msg.success { background: var(--sage-pale); color: var(--sage-deep); display: block; }
+.back-link { display: block; text-align: center; margin-top: 1.25rem; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-decoration: none; }
+.back-link:hover { color: var(--sage); }
+.divider { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin: 1rem 0; }
+#signupExtra { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="logo">Mālama Map</p>
+  <p class="logo-sub">Hawaii helping Hawaii</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('login')">Log in</div>
+    <div class="tab" onclick="switchTab('signup')">Create account</div>
+  </div>
+
+  <div class="field">
+    <label>Email</label>
+    <input type="email" id="email" placeholder="you@email.com">
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••">
+  </div>
+
+  <div id="signupExtra">
+    <div class="field">
+      <label>Full name</label>
+      <input type="text" id="fullName" placeholder="Kai Akana">
+    </div>
+    <div class="field">
+      <label>Phone number</label>
+      <input type="tel" id="phone" placeholder="(808) 555-0000">
+    </div>
+    <div class="field">
+      <label>Organization or your name</label>
+      <input type="text" id="orgName" placeholder="Kaimana Church / Personal">
+    </div>
+  </div>
+
+  <button class="btn-primary" id="authBtn" onclick="handleAuth()">Log in</button>
+  <div class="msg" id="msg"></div>
+  <a href="index.html" class="back-link">← Back to Mālama Map</a>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_czTQoNIGcZeH8uW47U5Plw_jRBD7wVD';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let mode = 'login';
+
+function switchTab(m) {
+  mode = m;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&m==='login')||(i===1&&m==='signup')));
+  document.getElementById('signupExtra').style.display = m === 'signup' ? 'block' : 'none';
+  document.getElementById('authBtn').textContent = m === 'login' ? 'Log in' : 'Create account';
+  document.getElementById('msg').className = 'msg';
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + type;
+}
+
+async function handleAuth() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('authBtn');
+  btn.disabled = true;
+  btn.textContent = 'Please wait…';
+
+  if (mode === 'login') {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { showMsg(error.message, 'error'); btn.disabled=false; btn.textContent='Log in'; return; }
+    showMsg('Welcome back! Redirecting…', 'success');
+    setTimeout(() => window.location.href = 'malama-portal.html', 1000);
+  } else {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const orgName = document.getElementById('orgName').value.trim();
+    const { data, error } = await supabase.auth.signUp({
+      email, password,
+      options: { data: { full_name: fullName, phone, org_name: orgName } }
+    });
+    if (error) { showMsg(error.message, 'error'); btn.disabled=false; btn.textContent='Create account'; return; }
+    showMsg('Account created! Check your email to confirm, then log in.', 'success');
+    btn.disabled=false; btn.textContent='Create account';
+  }
+}
+
+// Check if already logged in
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session) window.location.href = 'malama-portal.html';
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
+</script>
+</body>
+</html>
