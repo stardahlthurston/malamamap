@@ -109,7 +109,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <div class="hero-bar">
   <h1 class="hero-title">Ways to help your community</h1>
-  <p class="hero-sub">Find donation drop-offs and volunteer events — or post your skills, labor, or equipment to offer your community.</p>
+  <p class="hero-sub">Find donation drop-offs and volunteer events — or <a href="malama-skills.html" style="color:white;font-weight:700;text-decoration:underline;">add your skills, labor, or equipment</a> to offer your community.</p>
   <a href="malama-requests.html?view=helper" style="display:inline-block;margin-top:0.75rem;font-size:0.78rem;font-weight:700;color:white;background:rgba(255,255,255,0.2);padding:0.45rem 1rem;border-radius:100px;text-decoration:none;border:1.5px solid rgba(255,255,255,0.4);">See what the community needs →</a>
 </div>
 
@@ -118,7 +118,6 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <div class="chip-divider"></div>
   <button class="chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Donation Drop-offs</button>
   <button class="chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteer Events</button>
-  <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔧 Skills & Labor</button>
   <div class="chip-divider"></div>
   <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Open right now</label>
   <div class="chip-divider"></div>
@@ -160,7 +159,7 @@ let map, markers = [], mapReady = false;
 async function init() {
   const { data } = await sb.from('listings')
     .select('*')
-    .in('type', ['donation_dropoff','volunteer_event','skills_labor'])
+    .in('type', ['donation_dropoff','volunteer_event'])
     .order('created_at', { ascending: false });
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
