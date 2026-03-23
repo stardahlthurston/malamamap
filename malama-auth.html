@@ -138,7 +138,14 @@ async function handleAuth() {
     var org = document.getElementById('orgName').value.trim();
     var r = await sb.auth.signUp({ email: email, password: password, options: { data: { full_name: full, phone: phone, org_name: org } } });
     if (r.error) { showMsg(r.error.message, 'error'); btn.disabled=false; btn.textContent='Create account'; return; }
-    showMsg('Account created! Check your email to confirm, then log in.', 'success');
+    // If email confirmation is off, session exists immediately
+    if (r.data && r.data.session) {
+      showMsg('Welcome to Mālama Map! Redirecting…', 'success');
+      setTimeout(function(){ window.location.href = 'malama-portal.html'; }, 1000);
+    } else {
+      showMsg('Account created! You can log in now.', 'success');
+      setTimeout(function(){ show('login'); }, 1500);
+    }
     btn.disabled=false; btn.textContent='Create account';
   }
 }
