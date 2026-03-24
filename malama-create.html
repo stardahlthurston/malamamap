@@ -619,7 +619,15 @@ async function init() {
   // Check for edit mode
   const params = new URLSearchParams(window.location.search);
   const editId = params.get('edit');
-  if (editId) loadEditListing(editId);
+  if (editId) {
+    loadEditListing(editId);
+  } else {
+    restoreFormDraft();
+  }
+
+  // Auto-save form on every input/change
+  document.addEventListener('input', saveDraft);
+  document.addEventListener('change', saveDraft);
 }
 
 async function loadEditListing(id) {
@@ -743,8 +751,77 @@ async function saveListing() {
     ({ error } = await sb.from('listings').insert(payload));
   }
   if (error) { showToast('Error: '+error.message); btn.disabled=false; btn.textContent=editId?'Save changes →':'Publish listing →'; return; }
+  clearDraft();
   showToast('🌺 Listing is live on the map!');
   setTimeout(() => window.location.href='malama-portal.html', 1500);
+}
+
+// ── DRAFT AUTO-SAVE / RESTORE ──
+const DRAFT_KEY = 'malama_create_draft';
+const DRAFT_FIELDS = ['editType','editName','editAddress','editLocation','editPhone','editNotes','editWebsite',
+  'editHoursOpen','editHoursClose','editDateFrom','editDateUntil','editCapacity','editPetFriendly',
+  'editEventDate','editEventTime','editVolunteerNeeds','editContactEmail','editCustomItems',
+  'givingCustomItems','acceptingCustomItems','editGivingUrl'];
+
+function saveDraft() {
+  const draft = {};
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) draft[id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  // Save checked checkboxes
+  draft._givingItems = [...document.querySelectorAll('.giving-item:checked')].map(c => c.value);
+  draft._acceptingItems = [...document.querySelectorAll('.accepting-item:checked')].map(c => c.value);
+  draft._defaultItems = [...document.querySelectorAll('.item-check:checked')].map(c => c.value);
+  draft._skillItems = [...document.querySelectorAll('.skill-check:checked')].map(c => c.value);
+  draft._medicalItems = [...document.querySelectorAll('.medical-check:checked')].map(c => c.value);
+  draft._dayChecks = [...document.querySelectorAll('.day-check:checked')].map(c => c.value);
+  draft._selectedTypes = [...selectedTypes];
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch(e) {}
+}
+
+function restoreFormDraft() {
+  let draft;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch(e) {}
+  if (!draft) return;
+
+  // Restore text/select fields
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || draft[id] === undefined) return;
+    if (el.type === 'checkbox') el.checked = draft[id];
+    else el.value = draft[id];
+  });
+
+  // Restore type selections
+  if (draft._selectedTypes && draft._selectedTypes.length) {
+    draft._selectedTypes.forEach(type => {
+      const card = document.querySelector(`.type-card[data-type="${type}"]`);
+      if (card) toggleType(type, card);
+    });
+  }
+
+  // Restore checkboxes
+  function restoreChecks(selector, values) {
+    if (!values || !values.length) return;
+    document.querySelectorAll(selector).forEach(cb => {
+      if (values.includes(cb.value)) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+    });
+  }
+  restoreChecks('.giving-item', draft._givingItems);
+  restoreChecks('.accepting-item', draft._acceptingItems);
+  restoreChecks('.item-check', draft._defaultItems);
+  restoreChecks('.skill-check', draft._skillItems);
+  restoreChecks('.medical-check', draft._medicalItems);
+  restoreChecks('.day-check', draft._dayChecks);
+
+  // Mark name as user-edited if it has a value
+  const nameEl = document.getElementById('editName');
+  if (nameEl && nameEl.value) nameEl.dataset.userEdited = 'true';
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
 }
 
 function showToast(msg) {
