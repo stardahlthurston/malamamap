@@ -107,6 +107,20 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .loading p{font-size:1rem;font-weight:600;}
 
 /* TOAST */
+.vol-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center;}
+.vol-modal-overlay.open{display:flex;}
+.vol-modal{background:white;border-radius:20px 20px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:600px;max-height:85vh;overflow-y:auto;}
+.vol-modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:var(--text-dark);margin-bottom:0.3rem;}
+.vol-modal-sub{font-size:0.82rem;font-weight:500;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.5;}
+.vol-skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:1rem;}
+.vol-skill-chip{padding:8px 12px;border-radius:100px;border:2px solid #ddd;background:white;font-size:0.8rem;font-weight:700;color:var(--text-mid);cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.15s;text-align:left;}
+.vol-skill-chip.selected{background:var(--blue);border-color:var(--blue);color:white;}
+.vol-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:0.9rem;background:var(--blue);color:white;border-radius:100px;font-size:0.9rem;font-weight:700;font-family:'Nunito',sans-serif;border:none;cursor:pointer;margin-bottom:0.75rem;}
+.vol-btn:hover{background:var(--blue-deep);}
+.vol-needed-banner{background:var(--blue-pale);border:1.5px solid rgba(42,100,150,0.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;}
+.vol-needed-title{font-size:0.88rem;font-weight:700;color:var(--blue-deep);margin-bottom:4px;}
+.vol-skill-tag{display:inline-block;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--blue-pale);color:var(--blue-deep);margin:2px;}
+
 .toast{display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--sage-deep);color:white;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.85rem;font-weight:700;z-index:900;box-shadow:0 4px 20px rgba(0,0,0,0.15);white-space:nowrap;}
 
 @media(max-width:500px){
@@ -168,6 +182,7 @@ async function init() {
   if (error || !data) { showError('Listing not found or has expired.'); return; }
   listing = data;
   renderListing(listing);
+  loadVolunteerSection(listing);
 }
 
 function showError(msg) {
@@ -349,6 +364,9 @@ function renderListing(l) {
     <!-- ITEMS -->
     ${itemsHtml}
 
+    <!-- VOLUNTEER SECTION — loaded dynamically -->
+    <div id="volunteerSection"></div>
+
     <!-- NOTES -->
     ${notesHtml}
 
@@ -437,8 +455,148 @@ function showToast(msg) {
   setTimeout(() => t.style.display = 'none', 3500);
 }
 
+
+let selectedShiftId = null;
+
+async function loadVolunteerSection(l) {
+  const section = document.getElementById('volunteerSection');
+  if (!l.needs_volunteers || !section) return;
+
+  if (l.volunteer_type === 'external' && l.volunteer_signup_url) {
+    section.innerHTML = `
+      <div class="vol-needed-banner">
+        <p class="vol-needed-title">🙋 Volunteers needed!</p>
+        <p style="font-size:0.82rem;color:var(--blue-deep);margin-top:4px;margin-bottom:0.85rem;">Sign up using the organizer's form below.</p>
+        <a href="${l.volunteer_signup_url}" target="_blank" class="vol-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:0;">
+          Sign up to volunteer →
+        </a>
+      </div>`;
+    return;
+  }
+
+  // Load shifts from Supabase
+  const { data: shifts } = await sb.from('shifts').select('*').eq('listing_id', l.id).order('date');
+
+  if (!shifts?.length) {
+    section.innerHTML = `
+      <div class="vol-needed-banner">
+        <p class="vol-needed-title">🙋 Volunteers needed!</p>
+        <button class="vol-btn" onclick="openVolModal(null)" style="margin-top:0.75rem;margin-bottom:0;">I want to volunteer →</button>
+      </div>`;
+    return;
+  }
+
+  const shiftCards = shifts.map(s => {
+    const dateStr = s.date ? new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'}) : '';
+    return `
+      <div onclick="selectShift('${s.id}', this)" data-shift-id="${s.id}"
+        style="padding:0.75rem 1rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;margin-bottom:8px;transition:all 0.15s;background:white;">
+        <p style="font-size:0.88rem;font-weight:700;color:var(--text-dark);">${dateStr}</p>
+        <p style="font-size:0.78rem;font-weight:600;color:var(--blue-deep);">⏰ ${s.start_time}</p>
+        ${s.role ? `<p style="font-size:0.75rem;font-weight:600;color:var(--text-muted);margin-top:2px;">${s.role}</p>` : ''}
+      </div>`;
+  }).join('');
+
+  section.innerHTML = `
+    <div class="vol-needed-banner">
+      <p class="vol-needed-title">🙋 Volunteers needed!</p>
+      <p style="font-size:0.8rem;font-weight:600;color:var(--blue-deep);margin:6px 0 0.85rem;">Pick a shift that works for you:</p>
+      <div id="shiftCards">${shiftCards}</div>
+      <button class="vol-btn" onclick="openVolModal(selectedShiftId)" id="volSignupBtn" style="margin-top:0.75rem;margin-bottom:0;opacity:0.5;pointer-events:none;">
+        Select a shift to sign up
+      </button>
+    </div>`;
+}
+
+function selectShift(id, el) {
+  selectedShiftId = id;
+  document.querySelectorAll('[data-shift-id]').forEach(c => {
+    c.style.border = '2px solid #ddd';
+    c.style.background = 'white';
+  });
+  el.style.border = '2px solid var(--blue)';
+  el.style.background = 'var(--blue-pale)';
+  const btn = document.getElementById('volSignupBtn');
+  if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; btn.textContent = 'Sign up for this shift →'; }
+}
+
+function openVolModal(shiftId) {
+  selectedShiftId = shiftId;
+  document.getElementById('volModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeVolModal() {
+  document.getElementById('volModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitVolunteer() {
+  const first = document.getElementById('vFirst').value.trim();
+  const email = document.getElementById('vEmail').value.trim();
+  const phone = document.getElementById('vPhone').value.trim();
+  if (!first || !email || !phone) { showToast('Please fill in name, email and phone'); return; }
+  const btn = document.getElementById('volSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const volData = {
+    listing_id: listing.id,
+    listing_name: listing.name,
+    shift_id: selectedShiftId || null,
+    first_name: first,
+    last_name: document.getElementById('vLast').value.trim(),
+    email, phone,
+    neighborhood: document.getElementById('vNeighborhood').value.trim(),
+    status: 'interested',
+    created_at: new Date().toISOString()
+  };
+  const { error } = await sb.from('volunteer_signups').insert(volData);
+  if (error) console.warn('Signup error:', error.message);
+  document.getElementById('volFormInner').style.display = 'none';
+  document.getElementById('volSuccess').style.display = 'block';
+  btn.disabled = false;
+}
+
 init();
 </script>
+
+<!-- VOLUNTEER MODAL -->
+<div class="vol-modal-overlay" id="volModalOverlay" onclick="if(event.target===this)closeVolModal()">
+  <div class="vol-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <p class="vol-modal-title">Volunteer for this listing</p>
+      <button onclick="closeVolModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);">×</button>
+    </div>
+    <p class="vol-modal-sub">We'll pass your info along to the listing organizer. Mahalo for stepping up! 🌺</p>
+    <div id="volFormInner">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+        <div><label class="form-label">First name *</label><input class="form-input" id="vFirst" placeholder="Kai"></div>
+        <div><label class="form-label">Last name</label><input class="form-input" id="vLast" placeholder="Akana"></div>
+      </div>
+      <div style="margin-bottom:0.75rem;"><label class="form-label">Email *</label><input class="form-input" id="vEmail" type="email" placeholder="kai@email.com"></div>
+      <div style="margin-bottom:0.75rem;"><label class="form-label">Phone *</label><input class="form-input" id="vPhone" type="tel" placeholder="(808) 555-0000"></div>
+      <div style="margin-bottom:0.75rem;"><label class="form-label">Your neighborhood</label><input class="form-input" id="vNeighborhood" placeholder="e.g. Kailua, Mānoa, Hawaiʻi Kai"></div>
+      <p class="form-label" style="margin-bottom:8px;">Skills you can offer</p>
+      <div class="vol-skill-grid" id="volSkillGrid">
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Physical labor</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Sorting & organizing</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Cooking & meals</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Childcare</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Medical / first aid</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Transportation</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Cleanup & debris</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Construction & repairs</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Chainsaw & tree work</button>
+        <button type="button" class="vol-skill-chip" onclick="this.classList.toggle('selected')">Translation</button>
+      </div>
+      <button class="form-submit" id="volSubmitBtn" onclick="submitVolunteer()" style="margin-top:0.5rem;">Send volunteer info</button>
+    </div>
+    <div id="volSuccess" style="display:none;text-align:center;padding:1.5rem 0;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🌺</div>
+      <p style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;">Mahalo!</p>
+      <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.5;">Your info has been passed to the organizer. They'll reach out to coordinate.</p>
+      <button onclick="closeVolModal()" style="margin-top:1rem;color:var(--sage);background:none;border:none;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Close</button>
+    </div>
+  </div>
+</div>
 
 <footer style="background:var(--sage-deep);padding:1.25rem 1.5rem;text-align:center;margin-top:2rem;">
   <p style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);">
