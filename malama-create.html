@@ -586,6 +586,13 @@ function clearAreaSuggestion() {
   document.querySelectorAll('.area-bubble').forEach(b => b.classList.remove('selected'));
 }
 
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'malama-auth.html'; return; }
+  currentUser = session.user;
+
+  initAddressAutocomplete();
+
   const meta = currentUser.user_metadata || {};
 
   // Build display name for auto-title
