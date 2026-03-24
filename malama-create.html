@@ -495,6 +495,14 @@ document.addEventListener('change', function(e) {
     }
   }
 });
+
+function autoFillModalName(type) {
+  autoFillListingName(type);
+}
+function smartSplit(str) {
+  if (!str) return [];
+  return str.split(',').map(s => s.trim()).filter(Boolean);
+}
 </script>
 
 <script>
@@ -575,7 +583,7 @@ function selectArea(area) {
     btn.classList.toggle('selected', isThis);
   });
   const type = document.getElementById('editType')?.value;
-  if (type) autoFillModalName && autoFillModalName(type);
+  if (type) autoFillListingName(type);
 }
 
 function clearAreaSuggestion() {
