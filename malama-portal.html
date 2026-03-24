@@ -252,7 +252,28 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .ai-high { background:#edf7f1; color:var(--sage-deep); }
 .ai-low { background:#fdf4e3; color:#7a5c1a; }
 
-.toast { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--sage-deep); color:white; padding:0.75rem 1.5rem; border-radius:100px; font-size:0.85rem; font-weight:700; z-index:900; box-shadow:0 4px 20px rgba(0,0,0,0.15); white-space:nowrap; }
+.admin-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+.admin-table th { text-align:left; padding:8px 12px; font-size:0.65rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); border-bottom:2px solid var(--border); white-space:nowrap; }
+.admin-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.admin-table tr:hover td { background:#fafaf8; }
+.admin-table tr.expiring-soon td { background:#fdf4e3; }
+.admin-table tr.expired td { background:#fdf0ee; opacity:0.7; }
+.status-dot-open { width:8px; height:8px; border-radius:50%; background:var(--sage); display:inline-block; margin-right:5px; }
+.status-dot-closed { width:8px; height:8px; border-radius:50%; background:#ccc; display:inline-block; margin-right:5px; }
+.admin-action-btn { font-size:0.68rem; font-weight:700; padding:3px 10px; border-radius:100px; border:1.5px solid; cursor:pointer; font-family:'Nunito',sans-serif; background:white; transition:all 0.15s; white-space:nowrap; }
+.admin-tag { font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:100px; white-space:nowrap; }
+.tag-expiring { background:var(--gold-pale); color:#7a5c1a; }
+.tag-expired { background:var(--red-pale); color:var(--red); }
+.tag-unclaimed { background:var(--blue-pale); color:var(--blue-deep); }
+.tag-claimed { background:var(--sage-pale); color:var(--sage-deep); }
+.contact-log-input { font-size:0.78rem; padding:4px 8px; border:1px solid #ddd; border-radius:6px; font-family:'Nunito',sans-serif; width:100%; min-width:160px; }
+.contact-log-input:focus { outline:none; border-color:var(--sage); }
+.admin-section-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:800; color:var(--sage-deep); margin:1.5rem 0 0.75rem; }
+.admin-stat-card { background:white; border:1.5px solid var(--border); border-radius:12px; padding:1rem 1.25rem; text-align:center; }
+.admin-stat-num { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:800; color:var(--sage-deep); }
+.admin-stat-label { font-size:0.72rem; font-weight:700; color:var(--text-muted); margin-top:2px; }
+
+.toast { display:none; position:fixed;.toast { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--sage-deep); color:white; padding:0.75rem 1.5rem; border-radius:100px; font-size:0.85rem; font-weight:700; z-index:900; box-shadow:0 4px 20px rgba(0,0,0,0.15); white-space:nowrap; }
 
 @media (max-width:800px) {
   .layout { grid-template-columns:1fr; }
@@ -298,6 +319,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <p class="sidebar-label">Account</p>
       <a class="sidebar-link" id="navVolunteers" href="#" onclick="event.preventDefault();showPage('volunteers')">🙋 Volunteers</a>
       <a class="sidebar-link" id="navProfile" href="#" onclick="event.preventDefault();showPage('profile')">Profile & Contact</a>
+      <a class="sidebar-link" id="navAdmin" href="#" onclick="event.preventDefault();showPage('admin')" style="display:none;color:var(--gold);">⭐ Admin Dashboard</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
   </nav>
@@ -687,6 +709,11 @@ function showPage(page) {
     loadVolunteerDashboard();
     return;
   }
+  if (page === 'admin') {
+    document.getElementById('navAdmin').classList.add('active');
+    renderAdminPage();
+    return;
+  }
   if (page === 'listings') {
     document.getElementById('navListings').classList.add('active');
     renderListingsPage();
@@ -829,6 +856,11 @@ async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
+  // Show admin tab for admin user
+  if (currentUser.id === ADMIN_USER_ID || currentUser.email === 'stardahlthurston@gmail.com') {
+    const adminNav = document.getElementById('navAdmin');
+    if (adminNav) adminNav.style.display = 'flex';
+  }
   document.getElementById('userEmail').textContent = getGreeting(currentUser);
   collaborators = currentUser.user_metadata?.collaborators || [];
   await loadListings();
@@ -2839,6 +2871,243 @@ function applyAIToForm() {
 
     showToast('✨ Form pre-filled from screenshot — review and save!');
   }, 400);
+}
+
+
+// ══════════════════════════════════════
+// ── ADMIN DASHBOARD ──
+// ══════════════════════════════════════
+const ADMIN_EMAIL = 'stardahlthurston@gmail.com';
+
+async function renderAdminPage() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `<div style="padding:1.5rem 0;"><p style="color:var(--text-muted);">Loading all listings…</p></div>`;
+
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Load ALL listings (not just this user's)
+  const { data: allListings, error } = await sb2.from('listings').select('*').order('created_at', { ascending: false });
+  if (error) { main.innerHTML = `<p style="color:var(--red);">Error loading listings: ${error.message}</p>`; return; }
+
+  // Load claim requests
+  const { data: claims } = await sb2.from('claim_requests').select('*').eq('status','pending').order('submitted_at', { ascending: false });
+
+  const now = new Date();
+  const soon = new Date(now.getTime() + 24*60*60*1000); // 24hrs from now
+
+  // Categorize listings
+  const active = allListings.filter(l => l.status);
+  const inactive = allListings.filter(l => !l.status);
+  const expiringSoon = allListings.filter(l => {
+    if (!l.expires_at) return false;
+    const exp = new Date(l.expires_at);
+    return exp > now && exp < soon;
+  });
+  const expired = allListings.filter(l => l.expires_at && new Date(l.expires_at) < now);
+  const unclaimed = allListings.filter(l => l.user_id === ADMIN_USER_ID);
+
+  main.innerHTML = `
+    <div class="page-header">
+      <h1 class="page-title">⭐ Admin Dashboard</h1>
+    </div>
+
+    <!-- STATS ROW -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.5rem;">
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:var(--sage);">${active.length}</p>
+        <p class="admin-stat-label">Active listings</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:var(--gold);">${expiringSoon.length}</p>
+        <p class="admin-stat-label">Expiring soon</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:var(--red);">${expired.length}</p>
+        <p class="admin-stat-label">Expired</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:var(--blue);">${unclaimed.length}</p>
+        <p class="admin-stat-label">Admin-owned</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:#7b5ea7;">${claims?.length || 0}</p>
+        <p class="admin-stat-label">Pending claims</p>
+      </div>
+    </div>
+
+    <!-- PENDING CLAIM REQUESTS -->
+    ${claims?.length ? `
+    <p class="admin-section-title">🌺 Pending claim requests</p>
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;">
+      <table class="admin-table">
+        <thead><tr>
+          <th>Listing</th><th>Requester</th><th>Phone</th><th>Email</th><th>Role</th><th>Submitted</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${claims.map(c => `
+          <tr>
+            <td style="font-weight:700;">${c.listing_name || c.listing_id?.slice(0,8)}</td>
+            <td>${c.requester_first} ${c.requester_last||''}</td>
+            <td><a href="tel:${c.requester_phone}" style="color:var(--blue);text-decoration:none;">${c.requester_phone}</a></td>
+            <td><a href="mailto:${c.requester_email}" style="color:var(--blue);text-decoration:none;font-size:0.75rem;">${c.requester_email}</a></td>
+            <td style="color:var(--text-muted);">${c.requester_role||'—'}</td>
+            <td style="color:var(--text-muted);font-size:0.75rem;">${new Date(c.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td>
+            <td>
+              <button class="admin-action-btn" style="color:var(--sage);border-color:var(--sage);" onclick="approveClaim('${c.id}','${c.listing_id}')">Approve</button>
+              <button class="admin-action-btn" style="color:var(--text-muted);border-color:#ddd;margin-left:4px;" onclick="declineClaim('${c.id}')">Decline</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : ''}
+
+    <!-- ALL LISTINGS TABLE -->
+    <p class="admin-section-title">📋 All listings</p>
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.85rem;flex-wrap:wrap;">
+      <input type="text" id="adminSearch" placeholder="Search name or area…" oninput="filterAdminTable()"
+        style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;width:220px;">
+      <select id="adminAreaFilter" onchange="filterAdminTable()"
+        style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">
+        <option value="">All areas</option>
+        ${[...new Set(allListings.map(l=>l.location).filter(Boolean))].sort().map(a=>`<option>${a}</option>`).join('')}
+      </select>
+      <select id="adminStatusFilter" onchange="filterAdminTable()"
+        style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">
+        <option value="">All statuses</option>
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+        <option value="expiring">Expiring soon</option>
+        <option value="unclaimed">Admin-owned</option>
+      </select>
+    </div>
+
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;overflow:auto;margin-bottom:2rem;">
+      <table class="admin-table" id="adminListingsTable">
+        <thead><tr>
+          <th>Status</th><th>Listing name</th><th>Area</th><th>Type</th>
+          <th>Owner</th><th>Last updated</th><th>Expires</th><th>Contact log</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="adminTableBody">
+          ${renderAdminRows(allListings, claims)}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // Store listings globally for filtering
+  window._adminAllListings = allListings;
+  window._adminClaims = claims;
+}
+
+function renderAdminRows(listings, claims) {
+  const now = new Date();
+  const TYPE_SHORT = {
+    shelter:'Shelter', supply_station:'Supply', donation_dropoff:'Drop-Off',
+    volunteer_event:'Volunteer', medical_assistance:'Medical', skills_labor:'Skills'
+  };
+  return listings.map(l => {
+    const isExpiring = l.expires_at && new Date(l.expires_at) > now && new Date(l.expires_at) < new Date(now.getTime()+24*60*60*1000);
+    const isExpired = l.expires_at && new Date(l.expires_at) < now;
+    const isUnclaimed = l.user_id === ADMIN_USER_ID;
+    const rowClass = isExpired ? 'expired' : isExpiring ? 'expiring-soon' : '';
+    const expiresStr = l.expires_at ? new Date(l.expires_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    const updatedStr = l.updated_at ? new Date(l.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    const hasClaim = claims?.some(c => c.listing_id === l.id);
+
+    return `<tr class="${rowClass}" data-id="${l.id}" data-name="${(l.name||'').toLowerCase()}" data-area="${(l.location||'').toLowerCase()}" data-status="${l.status?'open':'closed'}" data-unclaimed="${isUnclaimed}" data-expiring="${isExpiring}">
+      <td>
+        <span class="${l.status ? 'status-dot-open' : 'status-dot-closed'}"></span>
+        <button class="admin-action-btn" style="font-size:0.62rem;color:${l.status?'var(--sage)':'var(--text-muted)'};border-color:${l.status?'var(--sage)':'#ccc'};" onclick="toggleAdminStatus('${l.id}',${l.status},this)">
+          ${l.status ? 'Open' : 'Closed'}
+        </button>
+      </td>
+      <td>
+        <a href="malama-listing.html?id=${l.id}" target="_blank" style="font-weight:700;color:var(--sage-deep);text-decoration:none;">${l.name||'Untitled'}</a>
+        ${isExpiring ? '<span class="admin-tag tag-expiring" style="margin-left:5px;">Expiring</span>' : ''}
+        ${isExpired ? '<span class="admin-tag tag-expired" style="margin-left:5px;">Expired</span>' : ''}
+        ${hasClaim ? '<span class="admin-tag" style="background:#f3eeff;color:#7b5ea7;margin-left:5px;">Claim pending</span>' : ''}
+      </td>
+      <td style="color:var(--sage);font-weight:600;">${l.location || '—'}</td>
+      <td style="color:var(--text-muted);font-size:0.75rem;">${TYPE_SHORT[l.type]||l.type||'—'}</td>
+      <td style="font-size:0.75rem;color:${isUnclaimed?'var(--gold)':'var(--text-muted)'};">
+        ${isUnclaimed ? '<span class="admin-tag tag-unclaimed">Admin</span>' : '👤 Owner'}
+      </td>
+      <td style="color:var(--text-muted);font-size:0.75rem;">${updatedStr}</td>
+      <td style="font-size:0.75rem;color:${isExpiring?'#c9983a':isExpired?'var(--red)':'var(--text-muted)'};">${expiresStr}</td>
+      <td>
+        <input class="contact-log-input" placeholder="Add note…" value="${(l.admin_notes||'')}"
+          onblur="saveAdminNote('${l.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+      </td>
+      <td style="white-space:nowrap;">
+        <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);" onclick="openEditModal('${l.id}')">Edit</button>
+        <button class="admin-action-btn" style="color:var(--gold);border-color:var(--gold);margin-left:3px;" onclick="extendListing('${l.id}')">+7d</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterAdminTable() {
+  const q = (document.getElementById('adminSearch')?.value || '').toLowerCase();
+  const area = (document.getElementById('adminAreaFilter')?.value || '').toLowerCase();
+  const status = document.getElementById('adminStatusFilter')?.value || '';
+  document.querySelectorAll('#adminTableBody tr').forEach(row => {
+    const name = row.dataset.name || '';
+    const rowArea = row.dataset.area || '';
+    const rowStatus = row.dataset.status;
+    const isUnclaimed = row.dataset.unclaimed === 'true';
+    const isExpiring = row.dataset.expiring === 'true';
+    let show = true;
+    if (q && !name.includes(q) && !rowArea.includes(q)) show = false;
+    if (area && !rowArea.includes(area)) show = false;
+    if (status === 'open' && rowStatus !== 'open') show = false;
+    if (status === 'closed' && rowStatus !== 'closed') show = false;
+    if (status === 'expiring' && !isExpiring) show = false;
+    if (status === 'unclaimed' && !isUnclaimed) show = false;
+    row.style.display = show ? '' : 'none';
+  });
+}
+
+async function toggleAdminStatus(id, current, btn) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const newStatus = !current;
+  await sb2.from('listings').update({ status: newStatus }).eq('id', id);
+  btn.textContent = newStatus ? 'Open' : 'Closed';
+  btn.style.color = newStatus ? 'var(--sage)' : 'var(--text-muted)';
+  btn.style.borderColor = newStatus ? 'var(--sage)' : '#ccc';
+  const dot = btn.previousElementSibling;
+  if (dot) dot.className = newStatus ? 'status-dot-open' : 'status-dot-closed';
+  showToast(newStatus ? 'Listing opened' : 'Listing closed');
+}
+
+async function saveAdminNote(id, note) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await sb2.from('listings').update({ admin_notes: note }).eq('id', id);
+}
+
+async function extendListing(id) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: l } = await sb2.from('listings').select('expires_at').eq('id', id).single();
+  const base = l?.expires_at ? new Date(l.expires_at) : new Date();
+  const newExp = new Date(Math.max(base.getTime(), Date.now()) + 7*24*60*60*1000);
+  await sb2.from('listings').update({ expires_at: newExp.toISOString() }).eq('id', id);
+  showToast('Extended by 7 days 🌺');
+  setTimeout(renderAdminPage, 600);
+}
+
+async function approveClaim(claimId, listingId) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: claim } = await sb2.from('claim_requests').select('*').eq('id', claimId).single();
+  if (!claim) return;
+  // Find user by email
+  showToast('Claim approved — contact requester to transfer account access.');
+  await sb2.from('claim_requests').update({ status: 'approved' }).eq('id', claimId);
+  setTimeout(renderAdminPage, 600);
+}
+
+async function declineClaim(claimId) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await sb2.from('claim_requests').update({ status: 'declined' }).eq('id', claimId);
+  showToast('Claim declined');
+  setTimeout(renderAdminPage, 600);
 }
 
 try { init(); } catch(e) { console.error('Init error:', e); }
