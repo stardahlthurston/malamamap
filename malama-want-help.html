@@ -118,6 +118,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <div class="chip-divider"></div>
   <button class="chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Donation Drop-offs</button>
   <button class="chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteer Events</button>
+  <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔍 Needs Skills</button>
   <div class="chip-divider"></div>
   <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Open right now</label>
   <div class="chip-divider"></div>
@@ -151,7 +152,7 @@ const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb = window.supabase.createClient(SURL, SKEY);
 
 const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#d4580a'};
-const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Event',skills_labor:'🔧 Skills & Labor'};
+const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Event',skills_labor:'🔍 Needs Skills & Labor'};
 
 let allListings = [], filtered = [], activeFilter = 'all';
 let map, markers = [], mapReady = false;
@@ -159,7 +160,7 @@ let map, markers = [], mapReady = false;
 async function init() {
   const { data } = await sb.from('listings')
     .select('*')
-    .in('type', ['donation_dropoff','volunteer_event'])
+    .or('type.in.(donation_dropoff,volunteer_event),and(type.eq.skills_labor,skills_direction.eq.seeking)')
     .order('created_at', { ascending: false });
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
