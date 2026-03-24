@@ -216,8 +216,7 @@ function renderList() {
     const items = (l.items || []).slice(0,5);
     const tagClass = isEvent ? 'lc-tag-purple' : 'lc-tag-gold';
     return `
-    <a class="listing-card" href="malama-listing.html?id=${l.id}" style="display:block;text-decoration:none;color:inherit;">
-      <div class="lc-stripe ${l.type}"></div>
+    <a class="listing-card" href="malama-listing.html?id=${l.id}" style="display:block;text-decoration:none;color:inherit;border-left:4px solid ${l.type==='donation_dropoff'?'var(--gold)':l.type==='volunteer_event'?'#7b5ea7':l.type==='shelter'?'var(--blue)':l.type==='medical_assistance'?'var(--red)':'var(--sage)'};">
       <div class="lc-header">
         <div>
           <p class="lc-name">${l.name}</p>
