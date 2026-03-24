@@ -174,13 +174,17 @@ let mapReady = false;
 async function init() {
   const { data, error } = await sb.from('listings')
     .select('*')
-    .or('type.in.(shelter,supply_station,medical_assistance),and(type.eq.skills_labor,skills_direction.eq.offering)')
+    .in('type', ['shelter','supply_station','medical_assistance','skills_labor'])
+    .eq('status', true)
     .order('created_at', { ascending: false });
+  const filteredByDir = (data || []).filter(l =>
+    l.type !== 'skills_labor' || l.skills_direction === 'offering' || !l.skills_direction
+  );
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
 
-  allListings = data || [];
+  allListings = filteredByDir;
   applyFilters();
 }
 
