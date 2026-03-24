@@ -1388,7 +1388,7 @@ async function openEditModal(id) {
     clearAreaSuggestion();
     // Reset volunteer toggle
     const volCb = document.getElementById('needsVolunteers');
-    if (volCb) { volCb.checked = false; toggleVolSection(); }
+    if (volCb) { volCb.checked = false; var body=document.getElementById('volToggleBody'); if(body) body.style.display='none'; }
     document.querySelectorAll('.vol-skill').forEach(c => c.checked = false);
     document.querySelectorAll('.vol-avail-pill').forEach(b => b.classList.remove('selected'));
     const vt = document.getElementById('volTimeRange'); if(vt) vt.value = '';
