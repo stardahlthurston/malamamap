@@ -228,6 +228,14 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .area-bubble:hover { border-color:var(--sage); color:var(--sage-deep); }
 .area-bubble.selected { background:var(--sage); border-color:var(--sage); color:white; }
 
+.vol-toggle-wrap { background:var(--sage-pale); border:1.5px solid rgba(58,125,92,0.2); border-radius:12px; padding:1rem 1.1rem; margin-bottom:0.85rem; display:none; }
+.vol-toggle-wrap.show { display:block; }
+.vol-toggle-label { font-size:0.88rem; font-weight:700; color:var(--sage-deep); display:flex; align-items:center; gap:8px; }
+.shift-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:6px; align-items:center; background:white; border-radius:10px; padding:8px; margin-bottom:6px; border:1px solid #e8e8e8; }
+.shift-input { padding:6px 8px; border:1.5px solid #ddd; border-radius:8px; font-size:0.82rem; font-family:'Nunito',sans-serif; font-weight:500; color:var(--text-dark); width:100%; }
+.shift-input:focus { outline:none; border-color:var(--sage); }
+.shift-del { width:28px; height:28px; border-radius:50%; background:#fee; border:none; cursor:pointer; color:var(--red); font-size:1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
 .toast { display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--sage-deep); color:white; padding:0.75rem 1.5rem; border-radius:100px; font-size:0.85rem; font-weight:700; z-index:900; box-shadow:0 4px 20px rgba(0,0,0,0.15); white-space:nowrap; }
 
 @media (max-width:800px) {
@@ -271,6 +279,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <hr class="sidebar-divider">
     <div class="sidebar-section">
       <p class="sidebar-label">Account</p>
+      <a class="sidebar-link" id="navVolunteers" href="#" onclick="event.preventDefault();showPage('volunteers')">🙋 Volunteers</a>
       <a class="sidebar-link" id="navProfile" href="#" onclick="event.preventDefault();showPage('profile')">Profile & Contact</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
@@ -437,6 +446,43 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
     </div>
 
+    <!-- VOLUNTEER TOGGLE — shows for supply_station, donation_dropoff, medical_assistance -->
+    <div class="vol-toggle-wrap" id="volToggleWrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+        <p class="vol-toggle-label">🙋 We need volunteers</p>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="needsVolunteers" style="accent-color:var(--sage);width:16px;height:16px;" onchange="onNeedsVolChange()">
+          <span style="font-size:0.78rem;font-weight:600;color:var(--sage-deep);">Yes</span>
+        </label>
+      </div>
+      <div id="volToggleBody" style="display:none;">
+        <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">How should people sign up?</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+          <div id="pathBuiltin" onclick="selectVolPath('builtin')" style="padding:0.85rem;border:2px solid var(--sage);border-radius:12px;cursor:pointer;background:var(--sage-pale);text-align:center;">
+            <div style="font-size:1.2rem;margin-bottom:4px;">📋</div>
+            <p style="font-size:0.8rem;font-weight:700;color:var(--sage-deep);">Use Mālama Map</p>
+            <p style="font-size:0.68rem;color:var(--sage);margin-top:2px;">We collect signups</p>
+          </div>
+          <div id="pathExternal" onclick="selectVolPath('external')" style="padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;">
+            <div style="font-size:1.2rem;margin-bottom:4px;">🔗</div>
+            <p style="font-size:0.8rem;font-weight:700;color:var(--text-mid);">My own signup</p>
+            <p style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">Link to your form</p>
+          </div>
+        </div>
+        <div id="volBuiltinSection">
+          <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Shifts</p>
+          <div id="shiftList" style="margin-bottom:0.75rem;"></div>
+          <button type="button" onclick="addShiftRow()" style="width:100%;padding:0.6rem;border:1.5px dashed rgba(58,125,92,0.4);border-radius:10px;background:white;font-size:0.82rem;font-weight:700;color:var(--sage);cursor:pointer;font-family:'Nunito',sans-serif;">+ Add a shift</button>
+          <p style="font-size:0.7rem;color:var(--text-muted);margin-top:6px;">Volunteers will pick the shift that works for them.</p>
+        </div>
+        <div id="volExternalSection" style="display:none;">
+          <p class="modal-label">Your signup link</p>
+          <input type="url" class="modal-input" id="volSignupUrl" placeholder="e.g. https://signupgenius.com/your-link">
+          <p style="font-size:0.7rem;color:var(--text-muted);margin-top:-6px;margin-bottom:0.5rem;">We'll show a button on your listing that takes people here.</p>
+        </div>
+      </div>
+    </div>
+
     <p class="modal-label">Notes for visitors</p>
     <textarea class="modal-input" id="editNotes" rows="2" placeholder="Drive-through available, cash donations accepted, etc."></textarea>
 
@@ -562,6 +608,12 @@ const TYPE_LABELS = {
 function showPage(page) {
   currentPage = page;
   document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  if (page === 'volunteers') {
+    document.getElementById('navVolunteers').classList.add('active');
+    document.getElementById('volunteersPage').style.display = 'block';
+    loadVolunteerDashboard();
+    return;
+  }
   if (page === 'listings') {
     document.getElementById('navListings').classList.add('active');
     renderListingsPage();
@@ -589,6 +641,8 @@ function selectType(type) {
   document.getElementById('skillsExtras').style.display = type === 'skills_labor' ? 'block' : 'none';
   const itemsSection = document.getElementById('itemsSection');
   if (itemsSection) itemsSection.style.display = (type === 'skills_labor' || type === 'medical_assistance') ? 'none' : 'block';
+  // Show/hide volunteer toggle
+  showVolToggle(type);
   // Dynamic items section title
   const itemsTitle = document.getElementById('itemsSectionTitle');
   if (itemsTitle) {
@@ -1121,6 +1175,9 @@ function openEditModal(id) {
     nameFieldEdit.value = l.name || '';
     nameFieldEdit.dataset.userEdited = 'true';
     nameFieldEdit.dataset.autoFilled = 'false';
+    // Restore volunteer data
+    restoreVolData(l);
+    showVolToggle(l.type);
     // Restore area bubble from saved location
     if (l.location) {
       const locEl = document.getElementById('editLocation');
@@ -1247,6 +1304,13 @@ function openEditModal(id) {
     nameFieldReset.placeholder = 'Auto-fills after selecting type & address';
     document.getElementById('editType').value = '';
     clearAreaSuggestion();
+    // Reset volunteer toggle
+    const volCb = document.getElementById('needsVolunteers');
+    if (volCb) { volCb.checked = false; toggleVolSection(); }
+    document.querySelectorAll('.vol-skill').forEach(c => c.checked = false);
+    document.querySelectorAll('.vol-avail-pill').forEach(b => b.classList.remove('selected'));
+    const vt = document.getElementById('volTimeRange'); if(vt) vt.value = '';
+    const volWrap = document.getElementById('volToggleWrap'); if(volWrap) volWrap.classList.remove('show');
     document.getElementById('editStatus').value = 'true';
     document.getElementById('editAddress').value = '';
     document.getElementById('editPhone').value = '';
@@ -1370,6 +1434,7 @@ async function saveListing() {
     name, type,
     status: document.getElementById('editStatus').value === 'true',
     location: document.getElementById('editLocation')?.value || '',
+    ...getVolData(),
     address,
     lat: coords.lat, lng: coords.lng,
     hours,
@@ -1396,6 +1461,11 @@ async function saveListing() {
 
   if (error) { showToast('Error saving: ' + error.message); return; }
   closeEditModal();
+  // Save shifts for builtin volunteer listings
+  const savedId = data?.id || id;
+  if (savedId && document.getElementById('needsVolunteers')?.checked && currentVolPath === 'builtin') {
+    await saveShifts(savedId);
+  }
   showToast(id ? '🌺 Listing updated!' : '🌺 Listing published and live on the map!');
   await loadListings();
 }
@@ -2269,6 +2339,207 @@ function smartSplit(str) {
   const trimmed = current.trim();
   if (trimmed) results.push(trimmed);
   return results;
+}
+
+
+// ── VOLUNTEER SYSTEM ──
+const VOL_TYPES = ['supply_station','donation_dropoff','medical_assistance','shelter','volunteer_event'];
+let currentVolPath = 'builtin';
+let pendingShifts = []; // shifts to save after listing is saved
+
+function showVolToggle(type) {
+  const wrap = document.getElementById('volToggleWrap');
+  if (wrap) wrap.classList.toggle('show', VOL_TYPES.includes(type));
+}
+
+function onNeedsVolChange() {
+  const cb = document.getElementById('needsVolunteers');
+  const body = document.getElementById('volToggleBody');
+  if (body) body.style.display = cb.checked ? 'block' : 'none';
+  if (cb.checked && !document.getElementById('shiftList').children.length) {
+    addShiftRow(); // auto-add first shift
+  }
+}
+
+function selectVolPath(path) {
+  currentVolPath = path;
+  document.getElementById('pathBuiltin').style.cssText = path === 'builtin'
+    ? 'padding:0.85rem;border:2px solid var(--sage);border-radius:12px;cursor:pointer;background:var(--sage-pale);text-align:center;'
+    : 'padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;';
+  document.getElementById('pathExternal').style.cssText = path === 'external'
+    ? 'padding:0.85rem;border:2px solid var(--blue);border-radius:12px;cursor:pointer;background:var(--blue-pale);text-align:center;'
+    : 'padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;';
+  document.getElementById('volBuiltinSection').style.display = path === 'builtin' ? 'block' : 'none';
+  document.getElementById('volExternalSection').style.display = path === 'external' ? 'block' : 'none';
+}
+
+function addShiftRow(shift) {
+  const list = document.getElementById('shiftList');
+  const id = Date.now();
+  const div = document.createElement('div');
+  div.className = 'shift-row';
+  div.dataset.shiftId = id;
+  div.innerHTML = `
+    <input class="shift-input" type="date" placeholder="Date" value="${shift?.date||''}">
+    <input class="shift-input" type="text" placeholder="9:00 AM – 1:00 PM" value="${shift?.start_time||''}">
+    <input class="shift-input" type="text" placeholder="Role (e.g. Sorting)" value="${shift?.role||''}">
+    <button class="shift-del" onclick="this.closest('.shift-row').remove()" title="Remove">×</button>`;
+  list.appendChild(div);
+}
+
+function getShifts() {
+  return [...document.querySelectorAll('.shift-row')].map(row => {
+    const inputs = row.querySelectorAll('input');
+    return { date: inputs[0].value, start_time: inputs[1].value, role: inputs[2].value };
+  }).filter(s => s.date && s.start_time);
+}
+
+function getVolData() {
+  const cb = document.getElementById('needsVolunteers');
+  if (!cb?.checked) return { needs_volunteers: false, volunteer_type: 'builtin', volunteer_signup_url: '' };
+  return {
+    needs_volunteers: true,
+    volunteer_type: currentVolPath,
+    volunteer_signup_url: currentVolPath === 'external' ? (document.getElementById('volSignupUrl')?.value.trim() || '') : ''
+  };
+}
+
+async function saveShifts(listingId) {
+  const shifts = getShifts();
+  if (!shifts.length || currentVolPath !== 'builtin') return;
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // Delete old shifts then insert new ones
+  await sb2.from('shifts').delete().eq('listing_id', listingId);
+  if (shifts.length) {
+    await sb2.from('shifts').insert(shifts.map(s => ({...s, listing_id: listingId})));
+  }
+}
+
+function restoreVolData(l) {
+  const cb = document.getElementById('needsVolunteers');
+  if (!cb) return;
+  cb.checked = !!l.needs_volunteers;
+  if (l.needs_volunteers) {
+    document.getElementById('volToggleBody').style.display = 'block';
+    selectVolPath(l.volunteer_type || 'builtin');
+    if (l.volunteer_signup_url) {
+      const urlEl = document.getElementById('volSignupUrl');
+      if (urlEl) urlEl.value = l.volunteer_signup_url;
+    }
+    // Load existing shifts
+    loadExistingShifts(l.id);
+  }
+}
+
+async function loadExistingShifts(listingId) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data } = await sb2.from('shifts').select('*').eq('listing_id', listingId).order('date');
+  if (data?.length) {
+    document.getElementById('shiftList').innerHTML = '';
+    data.forEach(s => addShiftRow(s));
+  }
+}
+
+
+// ── VOLUNTEER DASHBOARD ──
+async function loadVolunteerDashboard() {
+  const el = document.getElementById('volunteersContent');
+  if (!el) return;
+  el.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Loading…</p>';
+
+  // Get this user's listings
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const uid = currentUser?.id;
+  if (!uid) { el.innerHTML = '<p>Not logged in</p>'; return; }
+
+  const { data: myListings } = await sb2.from('listings').select('id,name').eq('user_id', uid);
+  if (!myListings?.length) {
+    el.innerHTML = '<p style="color:var(--text-muted);">No listings yet — add one to start collecting volunteers.</p>';
+    return;
+  }
+
+  const listingIds = myListings.map(l => l.id);
+
+  // Get all shifts for those listings
+  const { data: shifts } = await sb2.from('shifts').select('*').in('listing_id', listingIds).order('date');
+  // Get all signups
+  const { data: signups } = await sb2.from('volunteer_signups').select('*').in('listing_id', listingIds).order('created_at', {ascending:false});
+
+  if (!shifts?.length && !signups?.length) {
+    el.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);"><div style="font-size:2rem;margin-bottom:0.75rem;">🙋</div><p style="font-weight:700;color:var(--text-mid);margin-bottom:0.4rem;">No volunteers yet</p><p style="font-size:0.85rem;">When people sign up to volunteer, they'll appear here.</p></div>';
+    return;
+  }
+
+  // Build listing → shifts → signups hierarchy
+  const listingMap = {};
+  myListings.forEach(l => { listingMap[l.id] = { ...l, shifts: [], signups: [] }; });
+  shifts?.forEach(s => { if (listingMap[s.listing_id]) listingMap[s.listing_id].shifts.push(s); });
+  signups?.forEach(s => { if (listingMap[s.listing_id]) listingMap[s.listing_id].signups.push(s); });
+
+  el.innerHTML = Object.values(listingMap).filter(l => l.shifts.length || l.signups.length).map(l => `
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
+      <p style="font-weight:800;font-size:0.95rem;color:var(--sage-deep);margin-bottom:0.85rem;">${l.name}</p>
+      ${l.shifts.map(shift => {
+        const shiftSignups = signups?.filter(s => s.shift_id === shift.id) || [];
+        const dateStr = shift.date ? new Date(shift.date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '';
+        return `
+          <div style="border:1px solid #eee;border-radius:10px;padding:0.85rem;margin-bottom:0.75rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+              <div>
+                <p style="font-weight:700;font-size:0.88rem;">${dateStr} · ${shift.start_time}</p>
+                ${shift.role ? `<p style="font-size:0.75rem;color:var(--text-muted);">${shift.role}</p>` : ''}
+              </div>
+              <span style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px;background:${shiftSignups.length?'var(--sage-pale)':'#f5f5f5'};color:${shiftSignups.length?'var(--sage-deep)':'var(--text-muted)'};">${shiftSignups.length} signed up</span>
+            </div>
+            ${shiftSignups.length ? `
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+                <thead><tr style="border-bottom:1.5px solid #eee;">
+                  <th style="text-align:left;padding:5px 8px;font-weight:700;color:var(--text-muted);">Name</th>
+                  <th style="text-align:left;padding:5px 8px;font-weight:700;color:var(--text-muted);">Phone</th>
+                  <th style="text-align:left;padding:5px 8px;font-weight:700;color:var(--text-muted);">Email</th>
+                  <th style="text-align:left;padding:5px 8px;font-weight:700;color:var(--text-muted);">Area</th>
+                  <th style="text-align:left;padding:5px 8px;font-weight:700;color:var(--text-muted);">Status</th>
+                </tr></thead>
+                <tbody>${shiftSignups.map(v => `
+                <tr style="border-bottom:1px solid #f5f5f5;">
+                  <td style="padding:6px 8px;font-weight:600;">${v.first_name} ${v.last_name||''}</td>
+                  <td style="padding:6px 8px;"><a href="tel:${v.phone}" style="color:var(--blue);text-decoration:none;">${v.phone}</a></td>
+                  <td style="padding:6px 8px;"><a href="mailto:${v.email}" style="color:var(--blue);text-decoration:none;">${v.email}</a></td>
+                  <td style="padding:6px 8px;color:var(--text-muted);">${v.neighborhood||'—'}</td>
+                  <td style="padding:6px 8px;">
+                    <button onclick="updateVolStatus('${v.id}', this)"
+                      style="font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:100px;border:1.5px solid ${v.status==='confirmed'?'var(--sage)':'#ccc'};background:${v.status==='confirmed'?'var(--sage-pale)':'white'};color:${v.status==='confirmed'?'var(--sage-deep)':'var(--text-muted)'};cursor:pointer;font-family:'Nunito',sans-serif;">
+                      ${v.status==='confirmed'?'✓ Confirmed':'Confirm'}
+                    </button>
+                  </td>
+                </tr>`).join('')}</tbody>
+              </table>
+            </div>` : '<p style="font-size:0.78rem;color:var(--text-muted);padding:4px 0;">No signups yet for this shift.</p>'}
+          </div>`;
+      }).join('')}
+      ${l.signups.filter(s => !s.shift_id).length ? `
+        <div style="border:1px solid #eee;border-radius:10px;padding:0.85rem;margin-bottom:0.75rem;">
+          <p style="font-weight:700;font-size:0.88rem;margin-bottom:0.5rem;">General interest (no shift selected)</p>
+          ${l.signups.filter(s => !s.shift_id).map(v => `
+            <div style="display:flex;align-items:center;gap:1rem;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:0.8rem;">
+              <span style="font-weight:600;min-width:120px;">${v.first_name} ${v.last_name||''}</span>
+              <a href="tel:${v.phone}" style="color:var(--blue);text-decoration:none;">${v.phone}</a>
+              <a href="mailto:${v.email}" style="color:var(--blue);text-decoration:none;">${v.email}</a>
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`).join('') || '<p style="color:var(--text-muted);">No volunteer activity yet.</p>';
+}
+
+async function updateVolStatus(signupId, btn) {
+  const isConfirmed = btn.textContent.trim() === '✓ Confirmed';
+  const newStatus = isConfirmed ? 'interested' : 'confirmed';
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await sb2.from('volunteer_signups').update({ status: newStatus }).eq('id', signupId);
+  btn.textContent = newStatus === 'confirmed' ? '✓ Confirmed' : 'Confirm';
+  btn.style.border = newStatus === 'confirmed' ? '1.5px solid var(--sage)' : '1.5px solid #ccc';
+  btn.style.background = newStatus === 'confirmed' ? 'var(--sage-pale)' : 'white';
+  btn.style.color = newStatus === 'confirmed' ? 'var(--sage-deep)' : 'var(--text-muted)';
 }
 
 try { init(); } catch(e) { console.error('Init error:', e); }
