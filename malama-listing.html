@@ -348,6 +348,8 @@ function renderListing(l) {
     <!-- CLAIM BANNER (admin listings only) -->
     ${claimHtml}
 
+    ${l.user_id === '04e3776b-b75f-4701-888e-511a9cf21382' ? '<div style="background:#fdf4e3;border:1.5px solid #c9983a;border-radius:10px;padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#7a5c1a;margin-bottom:1rem;">⚠️ This listing was added by Mālama Map and may not reflect the most current hours or availability. Call ahead to confirm.</div>' : ''}
+
     <!-- DETAILS -->
     <div class="info-card">
       <p class="info-card-title">Details</p>
