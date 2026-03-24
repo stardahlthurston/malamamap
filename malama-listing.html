@@ -97,11 +97,6 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .form-success{text-align:center;padding:1.5rem 0;}
 .form-success-icon{width:52px;height:52px;border-radius:50%;background:var(--sage-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 0.85rem;}
 
-/* REPORT */
-.report-row{display:flex;justify-content:center;margin-top:0.5rem;}
-.report-link{font-size:0.75rem;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;text-decoration:underline;}
-.report-link:hover{color:var(--red);}
-
 /* LOADING */
 .loading{text-align:center;padding:4rem 1rem;color:var(--text-muted);}
 .loading p{font-size:1rem;font-weight:600;}
@@ -393,10 +388,6 @@ function renderListing(l) {
       </a>
     </div>` : ''}
 
-    <!-- REPORT LINK -->
-    <div class="report-row">
-      <button class="report-link" onclick="openReport()">⚠ Report this listing</button>
-    </div>
   `;
 }
 
@@ -449,12 +440,6 @@ async function submitClaim() {
 
   document.getElementById('claimFormInner').style.display = 'none';
   document.getElementById('claimSuccess').style.display = 'block';
-}
-
-// ── REPORT ──
-function openReport() {
-  const id = new URLSearchParams(window.location.search).get('id');
-  window.location.href = `malama-portal.html?report=${id}`;
 }
 
 // ── TOAST ──
