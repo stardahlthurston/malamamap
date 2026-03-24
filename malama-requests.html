@@ -84,8 +84,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <p style="font-size:0.78rem;font-weight:500;color:rgba(255,255,255,0.85);margin-top:0.6rem;line-height:1.6;border-top:1px solid rgba(255,255,255,0.2);padding-top:0.6rem;">This board shows the gaps — things people need that aren't being covered by current supply stations. If you see a pattern, consider adding a listing or bringing those items on your next supply run. Your response to what's here is how the community stays dynamic and self-correcting.</p>
 </div>
 
-<!-- POST FORM -->
-<div class="post-section">
+<!-- POST FORM — collapsed by default, expand with button -->
+<div class="post-section" id="postSection" style="display:none;">
   <p class="post-title">📣 What do you need?</p>
 
   <div id="postForm">
@@ -357,6 +357,18 @@ checkMetLink();
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('view') === 'helper') {
   document.querySelector('.post-section').style.display = 'none';
+}
+
+function togglePostForm() {
+  const section = document.getElementById('postSection');
+  const btn = document.getElementById('postToggleBtn');
+  const isOpen = section.style.display !== 'none';
+  section.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '📣 I need something — post anonymously' : '✕ Close';
+  btn.style.borderStyle = isOpen ? 'dashed' : 'solid';
+  btn.style.borderColor = isOpen ? '#ccc' : 'var(--sage)';
+  btn.style.color = isOpen ? 'var(--text-muted)' : 'var(--sage)';
+  if (!isOpen) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function loadNeeds() {
