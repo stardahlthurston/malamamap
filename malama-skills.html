@@ -93,7 +93,12 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     Back
   </a>
   <a href="index.html" class="topbar-logo">Mālama Map</a>
-  <a href="malama-auth.html" class="add-btn">+ Add myself as a resource</a>
+  <div style="display:flex;gap:0.5rem;align-items:center;">
+    <a href="malama-map-view.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🗺️ All</a>
+    <a href="malama-need-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🆘 Need help</a>
+    <a href="malama-want-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🤝 Want to help</a>
+    <a href="malama-auth.html" class="add-btn" style="font-size:0.65rem;">+ Add myself</a>
+  </div>
 </div>
 
 <div class="hero-bar" style="background:linear-gradient(135deg,#5a3d8a,#7b5ea7);">
@@ -110,6 +115,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <div class="filter-bar">
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
+  <button class="chip" data-dir="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">🙌 Offering skills</button>
+  <button class="chip" data-dir="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">🔍 Looking for help</button>
   <button class="chip" data-filter="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">🙌 Offering skills</button>
   <button class="chip" data-filter="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">🔍 Looking for help</button>
   <button class="chip" data-filter="Physical labor" onclick="setFilter('Physical labor',this)">Physical labor</button>
@@ -180,6 +187,7 @@ async function init() {
   const { data } = await sb.from('listings')
     .select('*')
     .eq('type', 'skills_labor')
+    .eq('status', true)
     .order('created_at', { ascending: false });
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
@@ -189,10 +197,19 @@ async function init() {
 
 let activeDirFilter = 'all';
 
+let activeDirFilter = 'all';
+
 function setFilter(f, el) {
   activeFilter = f;
   document.querySelectorAll('[data-filter]').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  applyFilters();
+}
+
+function setDirFilter(dir, el) {
+  activeDirFilter = activeDirFilter === dir ? 'all' : dir;
+  document.querySelectorAll('[data-dir]').forEach(c => c.classList.remove('active'));
+  if (activeDirFilter !== 'all') el.classList.add('active');
   applyFilters();
 }
 
@@ -234,6 +251,9 @@ function renderList() {
       <div class="rc-header">
         <div>
           <p class="rc-name">${l.name}</p>
+          <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:100px;display:inline-block;margin-bottom:3px;${l.skills_direction==='seeking'?'background:#f5f0ff;color:#4a2d7a;':'background:var(--sage-pale);color:var(--sage-deep);'}">
+            ${l.skills_direction==='seeking'?'🔍 Looking for skilled help':'🙌 Offering skills'}
+          </span>
       <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:100px;margin-bottom:4px;display:inline-block;${l.skills_direction==='seeking'?'background:#f5f0ff;color:#4a2d7a;':'background:var(--sage-pale);color:var(--sage-deep);'}">
         ${l.skills_direction==='seeking'?'🔍 Looking for help':'🙌 Offering skills'}
       </span>
