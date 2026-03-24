@@ -340,6 +340,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <div id="aiStep1">
       <p class="ai-modal-title">✨ Import from screenshot</p>
       <p class="ai-modal-sub">Take a screenshot of an Instagram post, flyer, or any relief announcement and upload it. AI will read it and pre-fill a listing for you to review.</p>
+      <p id="aiStatusMsg" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;display:none;"></p>
       <div class="ai-upload-zone" id="aiUploadZone"
         onclick="document.getElementById('aiFileInput').click()"
         ondragover="event.preventDefault();this.classList.add('drag')"
@@ -676,6 +677,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
 <script>
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const ADMIN_USER_ID = '04e3776b-b75f-4701-888e-511a9cf21382'; // Supabase → Auth → Users → your UUID
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -2658,6 +2660,30 @@ function openAIImport() {
   document.getElementById('aiImportOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   showAIStep(1);
+  // Quick ping to check edge function is alive
+  testEdgeFunction();
+}
+
+async function testEdgeFunction() {
+  const statusEl = document.getElementById('aiStatusMsg');
+  if (!statusEl) return;
+  try {
+    const res = await fetch(
+      'https://wvplmqmqlnftlpyrqnle.supabase.co/functions/v1/parse-listing-image',
+      { method: 'OPTIONS' }
+    );
+    if (res.ok || res.status === 200 || res.status === 204) {
+      statusEl.style.display = 'none';
+    } else {
+      statusEl.textContent = '⚠ Edge function not responding (status ' + res.status + ') — check Supabase deployment';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#c0392b';
+    }
+  } catch(e) {
+    statusEl.textContent = '⚠ Cannot reach Edge Function — make sure it is deployed in Supabase';
+    statusEl.style.display = 'block';
+    statusEl.style.color = '#c0392b';
+  }
 }
 
 function closeAIImport() {
@@ -2695,7 +2721,8 @@ async function handleAIFile(file) {
     document.getElementById('aiPreviewImg').src = base64;
 
     try {
-      const extracted = await callClaudeVision(base64.split(',')[1]);
+      const mimeType = file.type || 'image/jpeg';
+    const extracted = await callClaudeVision(base64.split(',')[1], mimeType);
       if (!extracted || !extracted.name) {
         showAIStep(4);
         document.getElementById('aiErrorMsg').textContent = "Couldn't find enough listing info in this image. Try a clearer screenshot with an address.";
@@ -2706,52 +2733,36 @@ async function handleAIFile(file) {
       showAIStep(3);
     } catch(err) {
       showAIStep(4);
-      document.getElementById('aiErrorMsg').textContent = 'Something went wrong reading the image. Try again.';
+      console.error('AI import full error:', err);
+      document.getElementById('aiErrorMsg').textContent = 'Error: ' + (err.message || 'Unknown — open Console for details');
     }
   };
   reader.readAsDataURL(file);
 }
 
-async function callClaudeVision(base64Image) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: 'image/jpeg', data: base64Image }
-          },
-          {
-            type: 'text',
-            text: `This is a screenshot of a social media post or flyer about disaster relief in Hawaii. Extract all listing info and return ONLY a JSON object with these fields (no markdown, no backticks):
-{
-  "name": "Organization or event name",
-  "type": "one of: donation_dropoff, supply_station, shelter, volunteer_event, medical_assistance",
-  "address": "full address if found",
-  "location": "Hawaii neighborhood name if found (e.g. Waialua, Hawaiʻi Kai)",
-  "hours": "hours string e.g. 9:00 AM - 5:00 PM",
-  "items": ["array", "of", "items", "being", "given", "or", "accepted"],
-  "notes": "any other helpful notes from the post",
-  "website": "url if found",
-  "confidence": "high or low"
-}
-If this doesn't look like a relief listing, return: {"error": "not a relief listing"}`
-          }
-        ]
-      }]
-    })
-  });
+async function callClaudeVision(base64Image, mediaType) {
+  // Route through Supabase Edge Function to keep API key secure
+  const response = await fetch(
+    'https://wvplmqmqlnftlpyrqnle.supabase.co/functions/v1/parse-listing-image',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU'
+      },
+      body: JSON.stringify({
+        image_base64: base64Image,
+        media_type: mediaType || 'image/jpeg'
+      })
+    }
+  );
 
-  const data = await response.json();
-  const text = data.content?.[0]?.text || '';
-  // Strip any markdown fences
-  const clean = text.replace(/```json|```/g, '').trim();
-  const parsed = JSON.parse(clean);
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error('Edge function error: ' + err);
+  }
+
+  const parsed = await response.json();
   if (parsed.error) return null;
   return parsed;
 }
@@ -2857,6 +2868,12 @@ function applyAIToForm() {
       }
     }
 
+    // Set phone
+    if (d.phone) {
+      const phoneEl = document.getElementById('editPhone');
+      if (phoneEl) phoneEl.value = d.phone;
+    }
+
     // Set notes
     if (d.notes) {
       const notesEl = document.getElementById('editNotes');
@@ -2866,7 +2883,7 @@ function applyAIToForm() {
     // Set website
     if (d.website) {
       const webEl = document.getElementById('editWebsite');
-      if (webEl) webEl.value = d.website;
+      if (webEl) webEl.value = d.website.startsWith('http') ? d.website : '';
     }
 
     showToast('✨ Form pre-filled from screenshot — review and save!');
@@ -2885,9 +2902,41 @@ async function renderAdminPage() {
 
   const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Load ALL listings (not just this user's)
+  // Load ALL listings with owner info
   const { data: allListings, error } = await sb2.from('listings').select('*').order('created_at', { ascending: false });
   if (error) { main.innerHTML = `<p style="color:var(--red);">Error loading listings: ${error.message}</p>`; return; }
+
+  // Load user profiles to show owner names/emails
+  const userIds = [...new Set(allListings.map(l => l.user_id).filter(Boolean))];
+  const ownerMap = {};
+  // Fetch display names from user metadata via profiles or auth
+  for (const uid of userIds) {
+    const { data: profile } = await sb2.from('listings')
+      .select('user_id')
+      .eq('user_id', uid)
+      .limit(1);
+    ownerMap[uid] = uid === ADMIN_USER_ID ? '⭐ Mālama Map Admin' : null;
+  }
+  // Build owner display from listing data
+  // We can't query auth.users directly, but we can show truncated IDs
+  // and mark admin-owned listings clearly
+  allListings.forEach(l => {
+    if (l.user_id && !ownerMap[l.user_id]) {
+      ownerMap[l.user_id] = 'User …' + l.user_id.slice(-6);
+    }
+  });
+
+  // Try to get profile names if a profiles table exists
+  try {
+    const { data: profiles } = await sb2.from('profiles').select('id, full_name, email');
+    if (profiles?.length) {
+      profiles.forEach(p => {
+        if (p.id && p.id !== ADMIN_USER_ID) {
+          ownerMap[p.id] = p.full_name || p.email || ownerMap[p.id];
+        }
+      });
+    }
+  } catch(e) { /* profiles table may not exist — ok */ }
 
   // Load claim requests
   const { data: claims } = await sb2.from('claim_requests').select('*').eq('status','pending').order('submitted_at', { ascending: false });
@@ -2962,9 +3011,9 @@ async function renderAdminPage() {
 
     <!-- ALL LISTINGS TABLE -->
     <p class="admin-section-title">📋 All listings</p>
-    <div style="display:flex;gap:0.5rem;margin-bottom:0.85rem;flex-wrap:wrap;">
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.85rem;flex-wrap:wrap;align-items:center;">
       <input type="text" id="adminSearch" placeholder="Search name or area…" oninput="filterAdminTable()"
-        style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;width:220px;">
+        style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;width:200px;">
       <select id="adminAreaFilter" onchange="filterAdminTable()"
         style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">
         <option value="">All areas</option>
@@ -2972,12 +3021,13 @@ async function renderAdminPage() {
       </select>
       <select id="adminStatusFilter" onchange="filterAdminTable()"
         style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">
-        <option value="">All statuses</option>
-        <option value="open">Open</option>
+        <option value="open" selected>Active only</option>
+        <option value="">All listings</option>
         <option value="closed">Closed</option>
         <option value="expiring">Expiring soon</option>
         <option value="unclaimed">Admin-owned</option>
       </select>
+      <span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);">${allListings.filter(l=>l.status).length} active · ${allListings.length} total</span>
     </div>
 
     <div style="background:white;border:1.5px solid var(--border);border-radius:14px;overflow:auto;margin-bottom:2rem;">
@@ -2987,7 +3037,7 @@ async function renderAdminPage() {
           <th>Owner</th><th>Last updated</th><th>Expires</th><th>Contact log</th><th>Actions</th>
         </tr></thead>
         <tbody id="adminTableBody">
-          ${renderAdminRows(allListings, claims)}
+          ${renderAdminRows(allListings, claims, ownerMap)}
         </tbody>
       </table>
     </div>
@@ -2998,7 +3048,7 @@ async function renderAdminPage() {
   window._adminClaims = claims;
 }
 
-function renderAdminRows(listings, claims) {
+function renderAdminRows(listings, claims, ownerMap={}) {
   const now = new Date();
   const TYPE_SHORT = {
     shelter:'Shelter', supply_station:'Supply', donation_dropoff:'Drop-Off',
@@ -3029,7 +3079,11 @@ function renderAdminRows(listings, claims) {
       <td style="color:var(--sage);font-weight:600;">${l.location || '—'}</td>
       <td style="color:var(--text-muted);font-size:0.75rem;">${TYPE_SHORT[l.type]||l.type||'—'}</td>
       <td style="font-size:0.75rem;color:${isUnclaimed?'var(--gold)':'var(--text-muted)'};">
-        ${isUnclaimed ? '<span class="admin-tag tag-unclaimed">Admin</span>' : '👤 Owner'}
+        ${isUnclaimed
+          ? '<span class="admin-tag tag-unclaimed">Mālama Map</span>'
+          : l.user_id
+            ? '<span style="font-size:0.72rem;background:#f0f0ec;padding:2px 8px;border-radius:100px;">👤 ' + (ownerMap[l.user_id] || l.user_id.slice(0,8)+'…') + '</span>'
+            : '—'}
       </td>
       <td style="color:var(--text-muted);font-size:0.75rem;">${updatedStr}</td>
       <td style="font-size:0.75rem;color:${isExpiring?'#c9983a':isExpired?'var(--red)':'var(--text-muted)'};">${expiresStr}</td>
