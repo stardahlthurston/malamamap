@@ -406,7 +406,7 @@ function buildCard(l, inPopup) {
           ${l.givingUrl ? `<a href="https://${l.givingUrl}" target="_blank" class="lc-btn btn-give" onclick="event.stopPropagation()">Donate online</a>` : ''}
           ${l.website ? `<a href="https://${l.website}" target="_blank" class="lc-btn btn-web" onclick="event.stopPropagation()">Website</a>` : ''}
         </div>
-        <p class="view-all-hint" style="margin-top:8px;font-size:0.72rem;color:var(--text-muted);">Tap card to see full details →</p>
+
       </div>
     </div>
   `;
@@ -424,15 +424,26 @@ function renderCards() {
     </div>`; return;
   }
   scroll.innerHTML = visibleListings.map(l => `
-    <div class="listing-card" onclick="window.location.href='malama-listing.html?id=${l.id}'" data-listing-id="${l.id}">
+    <a class="listing-card" href="malama-listing.html?id=${l.id}" style="display:block;text-decoration:none;color:inherit;">
       ${buildCard(l, false)}
-    </div>`).join('');
+    </a>`).join('');
 }
 
 function showPopup(l) {
   document.getElementById('popupContent').innerHTML = `
-    <div onclick="window.location.href='malama-listing.html?id=${l.id}'" style="cursor:pointer;">
+    <div>
       ${buildCard(l, true)}
+      <a href="malama-listing.html?id=${l.id}"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+               padding:0.85rem;margin-top:0.5rem;margin-bottom:0.5rem;
+               background:var(--sage);color:white;border-radius:100px;
+               font-size:0.85rem;font-weight:700;font-family:'Nunito',sans-serif;
+               text-decoration:none;letter-spacing:0.02em;cursor:pointer;">
+        See full listing &amp; details
+        <svg viewBox="0 0 14 14" fill="none" style="width:13px;height:13px;flex-shrink:0;">
+          <path d="M3 7h8M7 3l4 4-4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
     </div>`;
   document.getElementById('pinPopup').classList.add('open');
 }
