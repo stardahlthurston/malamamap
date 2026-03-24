@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mālama Map — Find Resources</title>
+<!-- v20260323-fix -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -159,7 +160,7 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
   <div class="filter-divider"></div>
   <button class="filter-chip" data-filter="shelter" onclick="setFilter('shelter',this)">🏠 Shelter</button>
   <button class="filter-chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">🛖 Supply Station</button>
-  <button class="filter-chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Drop-off</button>
+  <button class="filter-chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Drop-Off</button>
   <button class="filter-chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteer</button>
   <div class="filter-divider"></div>
   <!-- Area filter dropdown -->
@@ -283,7 +284,7 @@ const TYPE_COLORS = {
   giving:'#3a7d5c', accepting:'#2a6496'
 };
 const TYPE_LABELS = {
-  shelter:'🏠 Shelter', supply_station:'🛖 Supply Station', donation_dropoff:'📦 Drop-off',
+  shelter:'🏠 Shelter', supply_station:'🛖 Supply Station', donation_dropoff:'📦 Drop-Off',
   volunteer_event:'🙋 Volunteer', medical_assistance:'🏥 Medical',
   skills_labor:'🔧 Skills', giving:'Giving', accepting:'Accepting'
 };
