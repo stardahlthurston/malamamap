@@ -49,8 +49,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .result-count{font-size:0.82rem;font-weight:700;color:var(--text-muted);margin-bottom:1rem;}
 .result-count span{color:var(--sage-deep);}
 
-.listing-card{background:white;border-radius:14px;border:1.5px solid var(--border);margin-bottom:0.85rem;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s,border-color 0.2s;}
-.listing-card:hover{box-shadow:0 3px 14px rgba(0,0,0,0.09);}
+.listing-card{display:block;background:white;border-radius:14px;border:1.5px solid var(--border);margin-bottom:0.85rem;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s,border-color 0.2s;text-decoration:none;color:inherit;}
+.listing-card:hover{box-shadow:0 3px 14px rgba(0,0,0,0.09);border-color:rgba(58,125,92,0.3);}
 .lc-stripe{height:5px;}
 .lc-stripe.donation_dropoff{background:var(--gold);}
 .lc-stripe.volunteer_event{background:var(--purple);}
@@ -244,7 +244,7 @@ function renderList() {
           ${l.website ? `<a href="${l.website.startsWith('http')?l.website:'https://'+l.website}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
           ${l.giving_url ? `<a href="${l.giving_url.startsWith('http')?l.giving_url:'https://'+l.giving_url}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
         </div>
-        <p style="font-size:0.72rem;font-weight:600;color:var(--sage);margin-top:8px;">Tap to see full details →</p>
+        
       </div>
     </a>`;
   }).join('');
