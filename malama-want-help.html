@@ -160,11 +160,15 @@ let map, markers = [], mapReady = false;
 async function init() {
   const { data } = await sb.from('listings')
     .select('*')
-    .or('type.in.(donation_dropoff,volunteer_event),and(type.eq.skills_labor,skills_direction.eq.seeking)')
+    .in('type', ['donation_dropoff','volunteer_event','skills_labor'])
+    .eq('status', true)
     .order('created_at', { ascending: false });
+  const filteredByDir = (data || []).filter(l =>
+    l.type !== 'skills_labor' || l.skills_direction === 'seeking'
+  );
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
-  allListings = data || [];
+  allListings = filteredByDir;
 
   // Auto-filter if URL param present
   const params = new URLSearchParams(window.location.search);
