@@ -696,6 +696,8 @@ const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const ADMIN_USER_ID = '04e3776b-b75f-4701-888e-511a9cf21382'; // Supabase → Auth → Users → your UUID
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Use this instead of creating new clients everywhere
+function getSb() { return sb; }
 
 let currentUser = null;
 let myListings = [];
@@ -1282,8 +1284,14 @@ function openEditModal(id) {
 
   if (id) {
     // ── EDITING EXISTING LISTING ──
-    const l = myListings.find(x => x.id === id);
-    if (!l) return;
+    let l = myListings.find(x => x.id === id);
+    if (!l) {
+      // Admin editing a listing not in myListings — fetch from DB
+      const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const { data } = await sb2.from('listings').select('*').eq('id', id).single();
+      if (!data) { showToast('Listing not found'); return; }
+      l = data;
+    }
 
     document.getElementById('modalTitle').textContent = 'Edit listing';
     document.getElementById('modalSub').textContent = 'Update your details below. Nothing saves until you hit Save changes.';
@@ -3149,7 +3157,11 @@ function renderAdminRows(listings, claims, ownerMap={}) {
           ? '<span class="admin-tag" style="background:var(--blue-pale);color:var(--blue-deep);">🆘 I Need Help</span>'
           : ['donation_dropoff','volunteer_event'].includes(l.type)
             ? '<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🤝 I Want to Help</span>'
-            : '<span class="admin-tag" style="background:#f0f0ec;color:var(--text-muted);">🗺️ Map only</span>'}
+            : l.type === 'skills_labor'
+              ? (l.skills_direction === 'seeking'
+                ? '<span class="admin-tag" style="background:#f5f0ff;color:#4a2d7a;">🔍 Want to Help + Skills</span>'
+                : '<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🙌 Need Help + Skills</span>')
+              : '<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🙌 Need Help + Skills</span>'}
       </td>
       <td style="font-size:0.75rem;color:${isUnclaimed?'var(--gold)':'var(--text-muted)'};">
         ${isUnclaimed
