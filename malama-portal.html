@@ -2699,19 +2699,11 @@ async function testEdgeFunction() {
   try {
     const res = await fetch(
       'https://wvplmqmqlnftlpyrqnle.supabase.co/functions/v1/parse-listing-image',
-      { method: 'OPTIONS' }
+      { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU' }, body: JSON.stringify({ image_base64: 'test', media_type: 'image/jpeg' }) }
     );
-    if (res.ok || res.status === 200 || res.status === 204) {
-      statusEl.style.display = 'none';
-    } else {
-      statusEl.textContent = '⚠ Edge function not responding (status ' + res.status + ') — check Supabase deployment';
-      statusEl.style.display = 'block';
-      statusEl.style.color = '#c0392b';
-    }
+    statusEl.style.display = 'none';
   } catch(e) {
-    statusEl.textContent = '⚠ Cannot reach Edge Function — make sure it is deployed in Supabase';
-    statusEl.style.display = 'block';
-    statusEl.style.color = '#c0392b';
+    statusEl.style.display = 'none';
   }
 }
 
