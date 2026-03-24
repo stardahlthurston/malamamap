@@ -113,7 +113,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   </a>
   <a href="index.html" class="topbar-logo">Mālama Map</a>
   <div class="topbar-right" style="gap:0.5rem;">
-    <a href="malama-map-view.html" class="topbar-link" style="font-size:0.68rem;">🗺️ See all listings</a>
+    <a href="malama-map-view.html" class="topbar-link" style="font-size:0.68rem;">🗺️ All listings</a>
     <a href="malama-want-help.html" class="topbar-link" style="font-size:0.68rem;">🤝 I want to help</a>
     <a href="malama-skills.html" class="topbar-link" style="font-size:0.68rem;">🔧 Skills</a>
     <a href="malama-auth.html" class="topbar-link" style="font-size:0.68rem;">Log in</a>
@@ -255,7 +255,7 @@ function renderList() {
         </div>
         ${l.notes ? `<p class="lc-notes">${l.notes}</p>` : ''}
         <div class="lc-actions" onclick="event.preventDefault();event.stopPropagation();">
-          <a href="https://maps.google.com/?q=${l.lat&&l.lng?l.lat+','+l.lng:encodeURIComponent(l.address)}" target="_blank" class="lc-btn btn-dir">Take me there</a>
+          ${l.address ? `<a href="https://maps.google.com/?q=${l.lat&&l.lng?l.lat+','+l.lng:encodeURIComponent(l.address)}" target="_blank" class="lc-btn btn-dir">Take me there</a>` : ''}
           ${l.website ? `<a href="${l.website.startsWith('http')?l.website:'https://'+l.website}" target="_blank" class="lc-btn" style="color:var(--blue);background:var(--blue-pale);border-color:var(--blue-light);">Website</a>` : ''}
         </div>
         
