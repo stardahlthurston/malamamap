@@ -426,6 +426,22 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       </label>
     </div>
     <div id="skillsExtras" style="display:none;">
+      <p class="modal-label">Are you offering or looking for skills?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.85rem;">
+        <div id="dirOffering" onclick="selectSkillsDir('offering')"
+          style="padding:0.85rem;border:2px solid var(--sage);border-radius:12px;cursor:pointer;background:var(--sage-pale);text-align:center;">
+          <div style="font-size:1.3rem;margin-bottom:4px;">🙌</div>
+          <p style="font-size:0.82rem;font-weight:700;color:var(--sage-deep);">I'm offering</p>
+          <p style="font-size:0.68rem;color:var(--sage);margin-top:2px;">I have skills to give</p>
+        </div>
+        <div id="dirSeeking" onclick="selectSkillsDir('seeking')"
+          style="padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;">
+          <div style="font-size:1.3rem;margin-bottom:4px;">🔍</div>
+          <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);">I'm looking for</p>
+          <p style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">I need skilled help</p>
+        </div>
+      </div>
+      <input type="hidden" id="editSkillsDirection" value="offering">
       <p class="modal-label">Contact email for requests</p>
       <input type="email" class="modal-input" id="editContactEmail" placeholder="you@email.com">
     </div>
@@ -1282,6 +1298,10 @@ function openEditModal(id) {
     nameFieldEdit.value = l.name || '';
     nameFieldEdit.dataset.userEdited = 'true';
     nameFieldEdit.dataset.autoFilled = 'false';
+    // Restore skills direction
+    if (l.type === 'skills_labor' && l.skills_direction) {
+      selectSkillsDir(l.skills_direction);
+    }
     // Restore volunteer data
     restoreVolData(l);
     showVolToggle(l.type);
@@ -1541,6 +1561,7 @@ async function saveListing() {
     name, type,
     status: document.getElementById('editStatus').value === 'true',
     location: document.getElementById('editLocation')?.value || '',
+    skills_direction: document.getElementById('editSkillsDirection')?.value || 'offering',
     ...getVolData(),
     address,
     lat: coords.lat, lng: coords.lng,
@@ -3225,6 +3246,22 @@ async function declineClaim(claimId) {
   await sb2.from('claim_requests').update({ status: 'declined' }).eq('id', claimId);
   showToast('Claim declined');
   setTimeout(renderAdminPage, 600);
+}
+
+
+// ── SKILLS DIRECTION ──
+function selectSkillsDir(dir) {
+  document.getElementById('editSkillsDirection').value = dir;
+  const ofEl = document.getElementById('dirOffering');
+  const seEl = document.getElementById('dirSeeking');
+  if (!ofEl || !seEl) return;
+  if (dir === 'offering') {
+    ofEl.style.cssText = 'padding:0.85rem;border:2px solid var(--sage);border-radius:12px;cursor:pointer;background:var(--sage-pale);text-align:center;';
+    seEl.style.cssText = 'padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;';
+  } else {
+    seEl.style.cssText = 'padding:0.85rem;border:2px solid #7b5ea7;border-radius:12px;cursor:pointer;background:#f5f0ff;text-align:center;';
+    ofEl.style.cssText = 'padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;';
+  }
 }
 
 try { init(); } catch(e) { console.error('Init error:', e); }
