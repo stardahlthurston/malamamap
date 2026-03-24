@@ -29,7 +29,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 .filter-bar{background:white;border-bottom:2px solid var(--border);padding:0.7rem 1.5rem;display:flex;align-items:center;gap:0.5rem;overflow-x:auto;scrollbar-width:none;position:sticky;top:48px;z-index:90;}
 .filter-bar::-webkit-scrollbar{display:none;}
-.chip{font-size:0.72rem;font-weight:700;white-space:nowrap;padding:0.38rem 0.9rem;border-radius:100px;border:1.5px solid #ccc;background:white;color:var(--text-dark);cursor:pointer;transition:all 0.18s;flex-shrink:0;}
+.chip{font-size:0.72rem;font-weight:700;white-space:nowrap;padding:0.38rem 0.9rem;border-radius:100px;border:1.5px solid #ddd;background:white;color:var(--text-mid);cursor:pointer;transition:all 0.18s;font-family:'Nunito',sans-serif;}
+.chip:hover{border-color:var(--sage);color:var(--sage);}
+.chip.active{border-color:var(--sage);background:var(--sage);color:white;}
+#chipOffering.active{border-color:var(--sage);background:var(--sage);color:white;}
+#chipSeeking.active{border-color:#7b5ea7;background:#7b5ea7;color:white;}
 .chip:hover{border-color:var(--teal);color:var(--teal);}
 .chip.active{border-color:var(--teal);background:var(--teal-pale);color:var(--teal-deep);}
 
@@ -94,9 +98,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   </a>
   <a href="index.html" class="topbar-logo">Mālama Map</a>
   <div style="display:flex;gap:0.5rem;align-items:center;">
-    <a href="malama-map-view.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🗺️ All</a>
-    <a href="malama-need-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🆘 Need help</a>
-    <a href="malama-want-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🤝 Want to help</a>
+<a href="malama-need-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🆘 I need help</a>
+    <a href="malama-want-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🤝 I want to help</a>
     <a href="malama-auth.html" class="add-btn" style="font-size:0.65rem;">+ Add myself</a>
   </div>
 </div>
@@ -115,8 +118,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <div class="filter-bar">
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
-  <button class="chip" data-dir="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">🙌 Offering skills</button>
-  <button class="chip" data-dir="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">🔍 Looking for help</button>
+  <button class="chip" id="chipOffering" onclick="setDirFilter('offering',this)">🙌 Offering skills</button>
+  <button class="chip" id="chipSeeking" onclick="setDirFilter('seeking',this)">🔍 Looking for help</button>
+
   <button class="chip" data-filter="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">🙌 Offering skills</button>
   <button class="chip" data-filter="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">🔍 Looking for help</button>
   <button class="chip" data-filter="Physical labor" onclick="setFilter('Physical labor',this)">Physical labor</button>
@@ -208,8 +212,8 @@ function setFilter(f, el) {
 
 function setDirFilter(dir, el) {
   activeDirFilter = activeDirFilter === dir ? 'all' : dir;
-  document.querySelectorAll('[data-dir]').forEach(c => c.classList.remove('active'));
-  if (activeDirFilter !== 'all') el.classList.add('active');
+  document.getElementById('chipOffering')?.classList.toggle('active', activeDirFilter === 'offering');
+  document.getElementById('chipSeeking')?.classList.toggle('active', activeDirFilter === 'seeking');
   applyFilters();
 }
 
@@ -222,7 +226,11 @@ function setDirFilter(dir, el) {
 function applyFilters() {
   filtered = allListings.filter(l => {
     if (activeFilter !== 'all' && !(l.items || []).includes(activeFilter)) return false;
-    if (activeDirFilter !== 'all' && l.skills_direction !== activeDirFilter) return false;
+    if (activeDirFilter !== 'all') {
+      // Treat null/undefined as 'offering'
+      const dir = l.skills_direction || 'offering';
+      if (dir !== activeDirFilter) return false;
+    }
     return true;
   });
   renderList();
@@ -236,7 +244,7 @@ function renderList() {
   if (!filtered.length) {
     container.innerHTML = `
       <div class="empty">
-        <h3>No resources posted yet</h3>
+        <h3>${activeDirFilter === 'seeking' ? 'No one is looking for help right now' : activeDirFilter === 'offering' ? 'No one has posted skills yet' : 'No listings yet'}</h3>
         <p>Be the first to post your skills, labor, or equipment. If you have something to offer your community right now — add yourself.</p>
         <a href="malama-auth.html" class="empty-btn">+ Add myself as a resource</a>
       </div>`;
