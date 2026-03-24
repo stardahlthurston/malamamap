@@ -313,11 +313,19 @@ function renderListing(l) {
       <div><p class="info-label">Website</p><a href="${l.website}" target="_blank" class="info-link">${l.website.replace('https://','').replace('http://','')}</a></div>
     </div>` : '';
 
-  const givingUrlHtml = l.giving_url ? `
-    <div class="info-row">
-      <div class="info-icon" style="background:var(--gold-pale);">💛</div>
-      <div><p class="info-label">Online donations</p><a href="${l.giving_url}" target="_blank" class="info-link" style="color:var(--gold);">Donate online →</a></div>
-    </div>` : '';
+  // Donation display — show link if they have one, "not accepting" if supply station with no giving url
+  const DONATION_TYPES = ['supply_station','donation_dropoff','shelter'];
+  const givingUrlHtml = l.giving_url
+    ? `<div class="info-row">
+        <div class="info-icon" style="background:var(--gold-pale);">💛</div>
+        <div><p class="info-label">Online donations</p><a href="${l.giving_url}" target="_blank" class="info-link" style="color:var(--gold);">Donate online →</a></div>
+       </div>`
+    : DONATION_TYPES.includes(l.type)
+      ? `<div class="info-row">
+          <div class="info-icon" style="background:#f5f5f5;">🚫</div>
+          <div><p class="info-label">Donations</p><p class="info-value" style="color:var(--text-muted);font-size:0.85rem;">Not currently accepting monetary donations</p></div>
+         </div>`
+      : '';
 
   const phoneHtml = l.contact_phone ? `
     <div class="info-row">
@@ -370,7 +378,8 @@ function renderListing(l) {
     <!-- NOTES -->
     ${notesHtml}
 
-    <!-- MAP + DIRECTIONS -->
+    <!-- MAP + DIRECTIONS — only show if listing has an address -->
+    ${l.address && l.address.trim() ? `
     <div class="map-card">
       <iframe
         class="map-frame"
@@ -382,7 +391,7 @@ function renderListing(l) {
         <svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px;"><path d="M10 2L4 8h4v3H6l4 7 4-7h-2V8h4z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg>
         Take me there — Get directions
       </a>
-    </div>
+    </div>` : ''}
 
     <!-- REPORT LINK -->
     <div class="report-row">
