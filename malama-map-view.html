@@ -252,17 +252,39 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 
+const ZIP_CITY = {
+  "96701":"ʻAiea","96706":"ʻEwa Beach","96707":"Kapolei","96708":"Makakilo",
+  "96712":"Haleʻiwa","96730":"Kahuku","96734":"Kailua","96744":"Kāneʻohe",
+  "96782":"Pearl City","96786":"Wahiawā","96789":"Mililani","96791":"Waialua",
+  "96792":"Waiʻanae","96795":"Waimānalo","96797":"Waipahu","96813":"Downtown Honolulu",
+  "96814":"Makiki","96815":"Waikīkī","96816":"Kaimukī","96817":"Nuuanu",
+  "96818":"Āliamanu","96819":"Kalihi","96821":"Aina Haina","96822":"Mānoa",
+  "96825":"Hawaiʻi Kai","96826":"Mōʻiliʻili","96853":"Kahala","96862":"Royal Kunia"
+};
+
 async function loadListingsFromDB() {
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data, error } = await sb.from('listings').select('*').eq('status', true);
   if (error || !data) return [];
-  return data.map(l => ({
-    id: l.id, name: l.name, type: l.type, open: l.status, verified: l.verified,
-    address: l.address, location: l.location || '', hours: l.hours || 'See listing',
-    categories: l.categories || [], items: Array.isArray(l.items) ? l.items : [],
-    notes: l.notes || '', website: l.website || '', givingUrl: l.giving_url || '',
-    lat: l.lat, lng: l.lng
-  }));
+  return data.map(l => {
+    // Extract city from address if no location saved yet
+    let loc = l.location || '';
+    if (!loc && l.address) {
+      const zip = (l.address.match(/96\d{3}/) || [])[0];
+      if (zip) loc = ZIP_CITY[zip] || '';
+      if (!loc) {
+        const m = l.address.match(/,\s*([^,]+),\s*HI/i);
+        if (m) loc = m[1].trim().replace(/\s*\d{5}.*/, '');
+      }
+    }
+    return {
+      id: l.id, name: l.name, type: l.type, open: l.status, verified: l.verified,
+      address: l.address, location: loc, hours: l.hours || 'See listing',
+      categories: l.categories || [], items: Array.isArray(l.items) ? l.items : [],
+      notes: l.notes || '', website: l.website || '', givingUrl: l.giving_url || '',
+      lat: l.lat, lng: l.lng, user_id: l.user_id
+    };
+  });
 }
 
 // Sample data fallback
