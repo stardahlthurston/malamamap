@@ -129,6 +129,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <button class="chip" data-filter="shelter" onclick="setFilter('shelter',this)">🏠 Shelters</button>
   <button class="chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">🛖 Supply Stations</button>
   <button class="chip" data-filter="medical_assistance" onclick="setFilter('medical_assistance',this)">🏥 Medical</button>
+  <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔧 Skills & Labor</button>
   <div class="chip-divider"></div>
   <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Open right now</label>
   <div class="chip-divider"></div>
@@ -162,7 +163,7 @@ const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb = window.supabase.createClient(SURL, SKEY);
 
 const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',medical_assistance:'#c0392b'};
-const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',medical_assistance:'🏥 Medical Aid Station'};
+const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',medical_assistance:'🏥 Medical Aid Station',skills_labor:'🔧 Skills & Labor'};
 
 let allListings = [];
 let filtered = [];
@@ -173,7 +174,7 @@ let mapReady = false;
 async function init() {
   const { data, error } = await sb.from('listings')
     .select('*')
-    .in('type', ['shelter','supply_station','medical_assistance'])
+    .or('type.in.(shelter,supply_station,medical_assistance),and(type.eq.skills_labor,skills_direction.eq.offering)')
     .order('created_at', { ascending: false });
 
   document.getElementById('loading').style.display = 'none';
