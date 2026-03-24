@@ -191,11 +191,10 @@ async function init() {
   const { data } = await sb.from('listings')
     .select('*')
     .eq('type', 'skills_labor')
-    .eq('status', true)
     .order('created_at', { ascending: false });
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
-  allListings = data || [];
+  allListings = (data || []).filter(l => l.status !== false);
   applyFilters();
 }
 
