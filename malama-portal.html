@@ -2470,12 +2470,27 @@ async function downloadShareCard() {
       backgroundColor: '#0d2a3d',
       logging: false
     });
-    const link = document.createElement('a');
     const safeName = ((l||{}).name||'listing').replace(/[^a-z0-9]/gi,'_').slice(0,40);
-    link.download = 'MalamaMap_' + safeName + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    showToast('🌺 Image saved!');
+    const shareTitle = (l.location ? l.location.toUpperCase() : '') + (l.location && l.type ? ' · ' : '') + (TYPE_LABELS_SHARE[l.type] || l.type || '').toUpperCase();
+    const shareText = (l.name || '') + '\n' + (l.address ? '📍 ' + l.address.replace(', USA','') + '\n' : '') + (l.hours ? '🕐 ' + l.hours.replace(' · Until further notice','') + '\n' : '') + '\nFind more resources → malamamap.org';
+    // Try native share with image
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], 'MalamaMap_' + safeName + '.png', { type: 'image/png' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: shareTitle, text: shareText });
+          showToast('🌺 Shared!');
+          return;
+        } catch(e) { if (e.name === 'AbortError') return; }
+      }
+      // Fallback: download
+      const link = document.createElement('a');
+      link.download = 'MalamaMap_' + safeName + '.png';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast('🌺 Image saved!');
+    }, 'image/png');
   } catch(e) {
     console.error('Share card download error:', e);
     showToast('Error generating image');
