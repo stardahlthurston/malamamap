@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/parse-image.js": {
+      "maxDuration": 30
+    }
+  }
+}

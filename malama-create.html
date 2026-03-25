@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<!-- v4-autotitle -->
+<title>Mālama Map — Add a listing</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+function loadGooglePlaces() {
+  const s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU&libraries=places';
+  s.async = true; s.defer = true;
+  document.head.appendChild(s);
+}
+window.addEventListener('load', loadGooglePlaces);
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#275c42;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --blue:#2a6496;--blue-pale:#eaf3fb;--blue-deep:#1a4a72;
+  --gold:#c9983a;--gold-pale:#fdf4e3;
+  --purple:#7b5ea7;--purple-pale:#f3eeff;
+  --orange:#d4580a;--orange-pale:#fff3ee;
+  --cream:#fdf8f2;--text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.1);--red:#c0392b;--red-pale:#fdf0ee;
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--sage-deep);padding:0.7rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.78rem;font-weight:700;color:white;text-decoration:none;display:flex;align-items:center;gap:4px;}
+.content{max-width:600px;margin:0 auto;padding:1.5rem 1.25rem 3rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.25rem;}
+.page-sub{font-size:0.85rem;font-weight:500;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.5;}
+.section-label{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.6rem;display:block;}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem;}
+.type-card{padding:1rem;border:2px solid #ddd;border-radius:14px;cursor:pointer;transition:all 0.18s;text-align:center;background:white;-webkit-tap-highlight-color:transparent;user-select:none;}
+.type-card:active{opacity:0.85;}
+.type-card .emoji{font-size:1.6rem;display:block;margin-bottom:6px;}
+.type-card .type-name{font-size:0.88rem;font-weight:700;color:var(--text-dark);display:block;}
+.type-card .type-desc{font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:3px;line-height:1.4;display:block;}
+.type-full{grid-column:1/-1;}
+.field{margin-bottom:1.1rem;}
+.field label{display:block;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:0.75rem 1rem;border:1.5px solid #ddd;border-radius:10px;font-size:1rem;font-family:'Nunito',sans-serif;font-weight:500;color:var(--text-dark);background:white;transition:border-color 0.2s;-webkit-appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--sage);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+.hint{font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:4px;line-height:1.5;}
+.name-preview{font-size:0.82rem;font-weight:700;color:var(--sage-deep);background:var(--sage-pale);border-radius:8px;padding:6px 10px;margin-top:6px;display:none;}
+.section{background:white;border-radius:14px;border:1.5px solid var(--border);padding:1.25rem;margin-bottom:1.1rem;}
+.section-title{font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.check-label{display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:10px 12px;border:1.5px solid #ddd;border-radius:10px;transition:all 0.15s;background:white;}
+.check-label input{accent-color:var(--sage);width:16px;height:16px;flex-shrink:0;}
+.check-label.checked{border-color:var(--sage);background:var(--sage-pale);color:var(--sage-deep);}
+.day-row{display:flex;gap:6px;flex-wrap:wrap;}
+.day-label{display:flex;align-items:center;gap:5px;font-size:0.8rem;font-weight:700;cursor:pointer;padding:8px 16px;border:1.5px solid #ddd;border-radius:100px;transition:all 0.15s;background:white;user-select:none;}
+.day-label input{display:none;}
+.day-label.checked{border-color:var(--sage);background:var(--sage);color:white;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;}
+.toggle-info p{font-size:0.88rem;font-weight:700;}
+.toggle-info span{font-size:0.75rem;font-weight:500;color:var(--text-muted);}
+.toggle{position:relative;width:52px;height:28px;cursor:pointer;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;border-radius:100px;background:#ddd;transition:background 0.25s;}
+.toggle-slider::before{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:white;top:3px;left:3px;transition:transform 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.15);}
+.toggle input:checked + .toggle-slider{background:var(--sage-light);}
+.toggle input:checked + .toggle-slider::before{transform:translateX(24px);}
+.giving-row{display:flex;align-items:center;gap:10px;padding:0.75rem 0;}
+.giving-row input[type="checkbox"]{accent-color:var(--sage);width:18px;height:18px;}
+.giving-row label{font-size:0.88rem;font-weight:700;cursor:pointer;}
+.submit-btn{width:100%;padding:1rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:background 0.2s;margin-top:0.5rem;}
+.submit-btn:hover{background:var(--sage-deep);}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+#shelterExtras,#eventExtras,#dropoffToggle,#skillsExtras,#givingUrlWrap{display:none;}
+.extras-section{background:#f9fbf9;border-radius:12px;border:1.5px solid rgba(58,125,92,0.15);padding:1rem;margin-top:0.75rem;}
+.area-bubble { padding:8px 16px; border-radius:100px; border:2px solid #ddd; background:white; font-size:0.85rem; font-weight:700; color:var(--text-mid); cursor:pointer; font-family:'Nunito',sans-serif; transition:all 0.15s; }
+.area-bubble:hover { border-color:var(--sage); color:var(--sage-deep); }
+.area-bubble.selected { background:var(--sage); border-color:var(--sage); color:white; }
+
+.toast{display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--sage-deep);color:white;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.88rem;font-weight:700;z-index:900;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="malama-portal.html" class="topbar-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    My listings
+  </a>
+  <a href="index.html" class="topbar-logo">Mālama Map</a>
+  <div style="width:60px;"></div>
+</div>
+
+<div class="content">
+  <h1 class="page-title">Add a listing</h1>
+  <p class="page-sub">Your listing goes live immediately and appears on the map for 72 hours.</p>
+
+  <div class="section">
+    <p class="section-title">What are you offering?</p>
+    <p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;line-height:1.5;">If your location serves multiple roles, select all that apply — e.g. a supply station that also accepts donations.</p>
+    <div class="type-grid" id="typeGrid">
+      <div class="type-card" data-type="shelter" onclick="toggleType('shelter',this)" ontouchstart="">
+        <span class="emoji">🏠</span><span class="type-name">Shelter</span><span class="type-desc">Housing displaced people</span>
+      </div>
+      <div class="type-card" data-type="supply_station" onclick="toggleType('supply_station',this)" ontouchstart="">
+        <span class="emoji">🛖</span><span class="type-name">Supply Station</span><span class="type-desc">Distributing food, water & supplies</span>
+      </div>
+      <div class="type-card" data-type="donation_dropoff" onclick="toggleType('donation_dropoff',this)" ontouchstart="">
+        <span class="emoji">📦</span><span class="type-name">Donation Drop-off</span><span class="type-desc">Collecting community donations</span>
+      </div>
+      <div class="type-card" data-type="volunteer_event" onclick="toggleType('volunteer_event',this)" ontouchstart="">
+        <span class="emoji">🙋</span><span class="type-name">Volunteer Event</span><span class="type-desc">Cleanup day or community drive</span>
+      </div>
+      <div class="type-card type-full" data-type="skills_labor" onclick="toggleType('skills_labor',this)" ontouchstart="">
+        <span class="emoji">🔧</span><span class="type-name">Skills & Labor</span><span class="type-desc">Offering skills, equipment or labor</span>
+      </div>
+      <div class="type-card type-full" data-type="medical_assistance" onclick="toggleType('medical_assistance',this)" ontouchstart="">
+        <span class="emoji">🏥</span><span class="type-name">Medical Aid Station</span><span class="type-desc">Medical care, check-ups & health support</span>
+      </div>
+    </div>
+    <input type="hidden" id="editType">
+  </div>
+
+  <div id="shelterExtras" class="section">
+    <p class="section-title">🏠 Shelter details</p>
+    <div class="field-row">
+      <div class="field"><label>Capacity (people)</label><input type="number" id="editCapacity" placeholder="e.g. 50"></div>
+      <div class="field"><label>Pet friendly?</label>
+        <select id="editPetFriendly"><option value="false">No pets</option><option value="true">Yes, pets welcome</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div id="eventExtras" class="section">
+    <p class="section-title">🙋 What kind of event?</p>
+    <div class="check-grid" id="eventTypeGrid" style="margin-bottom:0.85rem;">
+      <label class="check-label"><input type="checkbox" value="Cleanup" class="event-type-check"> 🧹 Cleanup</label>
+      <label class="check-label"><input type="checkbox" value="Mud & flood cleanup" class="event-type-check"> 💧 Mud & flood cleanup</label>
+      <label class="check-label"><input type="checkbox" value="Debris removal" class="event-type-check"> 🗑 Debris removal</label>
+      <label class="check-label"><input type="checkbox" value="Demolition" class="event-type-check"> 🔨 Demolition</label>
+      <label class="check-label"><input type="checkbox" value="Home repair" class="event-type-check"> 🏠 Home repair</label>
+      <label class="check-label"><input type="checkbox" value="Tree & yard clearing" class="event-type-check"> 🌳 Tree & yard clearing</label>
+      <label class="check-label"><input type="checkbox" value="Donation drive" class="event-type-check"> 📦 Donation drive</label>
+      <label class="check-label"><input type="checkbox" value="Prayer & support gathering" class="event-type-check"> 🙏 Prayer & support</label>
+      <label class="check-label"><input type="checkbox" value="Kids & family support" class="event-type-check"> 👨‍👩‍👧 Kids & family support</label>
+      <label class="check-label" id="otherEventLabel" onclick="toggleOtherEvent()">
+        <input type="checkbox" value="Other" class="event-type-check" id="otherEventCheck"> ➕ Other
+      </label>
+    </div>
+    <div id="otherEventWrap" style="display:none;">
+      <div class="field"><label>Describe your event</label><input type="text" id="otherEventText" placeholder="e.g. Community garden restoration"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Event date</label><input type="date" id="editEventDate"></div>
+      <div class="field"><label>Start time</label>
+        <select id="editEventTime"><option value="">Select time</option><option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option></select>
+      </div>
+    </div>
+    <div class="field"><label>What kind of volunteers are needed? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="text" id="editVolunteerNeeds" placeholder="e.g. Strong backs, chainsaws, gloves provided"></div>
+  </div>
+
+  <div id="skillsExtras" class="section">
+    <p class="section-title">🔧 What are you offering?</p>
+    <div class="check-grid" id="skillsGrid">
+      <label class="check-label"><input type="checkbox" value="Physical labor" class="skill-check"> Physical labor</label>
+      <label class="check-label"><input type="checkbox" value="Truck / hauling" class="skill-check"> Truck / hauling</label>
+      <label class="check-label"><input type="checkbox" value="Heavy equipment" class="skill-check"> Heavy equipment</label>
+      <label class="check-label"><input type="checkbox" value="Chainsaw / tree work" class="skill-check"> Chainsaw / tree work</label>
+      <label class="check-label"><input type="checkbox" value="Electrician" class="skill-check"> Electrician</label>
+      <label class="check-label"><input type="checkbox" value="Plumber" class="skill-check"> Plumber</label>
+      <label class="check-label"><input type="checkbox" value="Carpenter" class="skill-check"> Carpenter</label>
+      <label class="check-label"><input type="checkbox" value="Medical / nursing" class="skill-check"> Medical / nursing</label>
+      <label class="check-label"><input type="checkbox" value="Childcare" class="skill-check"> Childcare</label>
+      <label class="check-label"><input type="checkbox" value="Meals / cooking" class="skill-check"> Meals / cooking</label>
+      <label class="check-label"><input type="checkbox" value="Transportation" class="skill-check"> Transportation</label>
+      <label class="check-label"><input type="checkbox" value="Generator / power" class="skill-check"> Generator / power</label>
+    </div>
+    <div class="field" style="margin-top:0.85rem;"><label>Contact email for help requests</label><input type="email" id="editContactEmail" placeholder="you@email.com"></div>
+  </div>
+
+  <div id="medicalExtras" class="section" style="display:none;">
+    <p class="section-title" style="color:#c0392b;">🏥 What services are you providing?</p>
+    <div class="check-grid">
+      <label class="check-label"><input type="checkbox" value="Medications" class="medical-check"> Medications</label>
+      <label class="check-label"><input type="checkbox" value="Check-ups & wellness checks" class="medical-check"> Check-ups</label>
+      <label class="check-label"><input type="checkbox" value="Wound care" class="medical-check"> Wound care</label>
+      <label class="check-label"><input type="checkbox" value="Mental health support" class="medical-check"> Mental health support</label>
+      <label class="check-label"><input type="checkbox" value="First aid" class="medical-check"> First aid</label>
+      <label class="check-label"><input type="checkbox" value="Prescription refills" class="medical-check"> Prescription refills</label>
+      <label class="check-label"><input type="checkbox" value="Elderly care" class="medical-check"> Elderly care</label>
+      <label class="check-label"><input type="checkbox" value="Special needs support" class="medical-check"> Special needs support</label>
+      <label class="check-label"><input type="checkbox" value="CPR & emergency response" class="medical-check"> CPR & emergency response</label>
+      <label class="check-label"><input type="checkbox" value="Vaccination" class="medical-check"> Vaccination</label>
+      <label class="check-label"><input type="checkbox" value="Dental care" class="medical-check"> Dental care</label>
+    </div>
+    <div class="field" style="margin-top:0.75rem;"><label>Anything else?</label><input type="text" id="medicalCustom" placeholder="e.g. Dialysis support, Physical therapy"></div>
+  </div>
+
+  <!-- LISTING NAME — auto-titled -->
+  <div class="section">
+    <p class="section-title">📍 Location & name</p>
+    <div class="field">
+      <label>Listing name</label>
+      <input type="text" id="editName" placeholder="Select a listing type above first">
+      <div class="name-preview" id="namePreview"></div>
+      <p class="hint" id="nameHint">Once you pick a type above, your name auto-fills as <strong>[Your name] — [Type]</strong>. You can always edit it.</p>
+    </div>
+    <div class="field">
+      <label>Full address <span style="color:var(--red);">*</span></label>
+      <input type="text" id="editAddress" placeholder="Street address (e.g. 123 Main St)" autocomplete="off"
+        oninput="onAddressInput(this.value)">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+      <div class="field">
+        <label>City / Town</label>
+        <input type="text" id="editCity" placeholder="Auto-fills from zip" readonly style="background:#f9f9f7;">
+      </div>
+      <div class="field">
+        <label>Zip code <span style="color:var(--red);">*</span></label>
+        <input type="text" id="editZip" placeholder="96XXX" maxlength="5" oninput="onZipInput(this.value)">
+      </div>
+    </div>
+    <input type="hidden" id="editLocation">
+    <div id="areaSuggestion" style="display:none;margin-bottom:1rem;">
+      <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Neighborhood</p>
+      <div id="areaBubbles" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+    <div class="field">
+      <label>Contact phone</label>
+      <input type="tel" id="editPhone" placeholder="(808) 555-0000">
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-title">🕐 Availability & hours</p>
+    <div class="field">
+      <label>Available days</label>
+      <div class="day-row">
+        <label class="day-label"><input type="checkbox" value="Mon" class="day-check"> Mon</label>
+        <label class="day-label"><input type="checkbox" value="Tue" class="day-check"> Tue</label>
+        <label class="day-label"><input type="checkbox" value="Wed" class="day-check"> Wed</label>
+        <label class="day-label"><input type="checkbox" value="Thu" class="day-check"> Thu</label>
+        <label class="day-label"><input type="checkbox" value="Fri" class="day-check"> Fri</label>
+        <label class="day-label"><input type="checkbox" value="Sat" class="day-check"> Sat</label>
+        <label class="day-label"><input type="checkbox" value="Sun" class="day-check"> Sun</label>
+        <label class="day-label" style="border-color:var(--sage);background:var(--sage-pale);color:var(--sage-deep);"><input type="checkbox" value="Daily" class="day-check"> Every day</label>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Opens at</label>
+        <select id="editHoursOpen">
+          <option value="">Select</option>
+          <option>12:00 AM</option><option>12:30 AM</option><option>1:00 AM</option><option>1:30 AM</option><option>2:00 AM</option><option>2:30 AM</option><option>3:00 AM</option><option>3:30 AM</option><option>4:00 AM</option><option>4:30 AM</option><option>5:00 AM</option><option>5:30 AM</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option><option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option><option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option><option>9:30 PM</option><option>10:00 PM</option><option>10:30 PM</option><option>11:00 PM</option><option>11:30 PM</option>
+          <option>Open 24 hours</option><option>Sunrise – Sunset</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Closes at</label>
+        <select id="editHoursClose">
+          <option value="">Select</option>
+          <option>12:00 AM</option><option>12:30 AM</option><option>1:00 AM</option><option>1:30 AM</option><option>2:00 AM</option><option>2:30 AM</option><option>3:00 AM</option><option>3:30 AM</option><option>4:00 AM</option><option>4:30 AM</option><option>5:00 AM</option><option>5:30 AM</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option><option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option><option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option><option>9:30 PM</option><option>10:00 PM</option><option>10:30 PM</option><option>11:00 PM</option><option>11:30 PM</option><option>Midnight</option>
+        </select>
+      </div>
+    </div>
+    <div id="altHoursContainer"></div>
+    <button type="button" id="addAltHoursBtn" onclick="addAltHours()" style="background:none;border:1.5px dashed #ccc;border-radius:10px;padding:0.5rem 1rem;font-size:0.78rem;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:0.75rem;width:100%;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--sage)';this.style.color='var(--sage)'" onmouseout="this.style.borderColor='#ccc';this.style.color='var(--text-muted)'">+ Different hours for other days</button>
+    <div class="field-row">
+      <div class="field"><label>Available from</label><input type="date" id="editDateFrom"></div>
+      <div class="field"><label>Available until</label><input type="date" id="editDateUntil"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:700;cursor:pointer;margin-bottom:0.75rem;color:var(--sage-deep);">
+      <input type="checkbox" id="untilFurtherNotice" style="accent-color:var(--sage);width:15px;height:15px;"
+        onchange="(function(cb){ const el=document.getElementById('editDateUntil'); el.disabled=cb.checked; el.style.opacity=cb.checked?'0.4':''; el.style.cursor=cb.checked?'not-allowed':''; if(cb.checked)el.value=''; })(this)">
+      Until further notice
+    </label>
+    <div class="toggle-row">
+      <div class="toggle-info"><p>Currently open</p><span>Toggle off if temporarily closed</span></div>
+      <label class="toggle"><input type="checkbox" id="editStatus" checked><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <div id="itemsSection">
+    <div id="givingItemsSection" style="display:none;">
+      <div class="section" style="background:#f0f7f4;border-color:#6ab98a;border-width:2px;">
+        <p class="section-title" style="color:var(--sage-deep);">✅ What we have to give out</p>
+        <div class="check-grid">
+          <label class="check-label"><input type="checkbox" value="Water" class="giving-item"> Water</label>
+          <label class="check-label"><input type="checkbox" value="Canned food" class="giving-item"> Canned food</label>
+          <label class="check-label"><input type="checkbox" value="Hot meals" class="giving-item"> Hot meals</label>
+          <label class="check-label"><input type="checkbox" value="Non-perishable food" class="giving-item"> Non-perishable food</label>
+          <label class="check-label"><input type="checkbox" value="Baby formula" class="giving-item"> Baby formula</label>
+          <label class="check-label"><input type="checkbox" value="Shelf-stable milk" class="giving-item"> Shelf-stable milk</label>
+          <label class="check-label"><input type="checkbox" value="Diapers" class="giving-item"> Diapers</label>
+          <label class="check-label"><input type="checkbox" value="Baby wipes" class="giving-item"> Baby wipes</label>
+          <label class="check-label"><input type="checkbox" value="Clothing" class="giving-item"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="Blankets" class="giving-item"> Blankets</label>
+          <label class="check-label"><input type="checkbox" value="Hygiene kits" class="giving-item"> Hygiene kits</label>
+          <label class="check-label"><input type="checkbox" value="Feminine hygiene products" class="giving-item"> Feminine hygiene</label>
+          <label class="check-label"><input type="checkbox" value="Towels" class="giving-item"> Towels</label>
+          <label class="check-label"><input type="checkbox" value="Gasoline" class="giving-item"> Gasoline</label>
+          <label class="check-label"><input type="checkbox" value="Generators" class="giving-item"> Generators</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="giving-item"> Batteries</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="giving-item"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="First aid supplies" class="giving-item"> First aid supplies</label>
+          <label class="check-label"><input type="checkbox" value="Medications" class="giving-item"> Medications</label>
+          <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="giving-item"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="giving-item"> Pet food & supplies</label>
+          <label class="check-label"><input type="checkbox" value="Work supplies" class="giving-item"> Work supplies</label>
+        </div>
+        <div class="field" style="margin-top:0.75rem;"><label>Anything else?</label><input type="text" id="givingCustomItems" placeholder="e.g. Ice, Tarps, Power banks"></div>
+      </div>
+    </div>
+    <div id="acceptingItemsSection" style="display:none;">
+      <div class="section" style="background:#fdf4e3;border-color:#c9983a;border-width:2px;">
+        <p class="section-title" style="color:#c9983a;">📦 What donations we're accepting</p>
+        <div class="check-grid">
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Water" class="accepting-item"> Water</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Canned food" class="accepting-item"> Canned food</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Non-perishable food" class="accepting-item"> Non-perishable food</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Canned vegetables & soup" class="accepting-item"> Canned veg & soup</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Baby formula" class="accepting-item"> Baby formula</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Shelf-stable milk" class="accepting-item"> Shelf-stable milk</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Diapers" class="accepting-item"> Diapers</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Baby wipes" class="accepting-item"> Baby wipes</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Clothing" class="accepting-item"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Blankets" class="accepting-item"> Blankets</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Hygiene kits" class="accepting-item"> Hygiene kits</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Feminine hygiene products" class="accepting-item"> Feminine hygiene</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Towels" class="accepting-item"> Towels</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Toiletry kits" class="accepting-item"> Toiletry kits</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Rainboots" class="accepting-item"> Rainboots</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Tarps" class="accepting-item"> Tarps</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Squeegees" class="accepting-item"> Squeegees</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Rakes & shovels" class="accepting-item"> Rakes & shovels</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Brooms & mops" class="accepting-item"> Brooms & mops</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Bleach & Clorox wipes" class="accepting-item"> Bleach & Clorox wipes</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Trash bags" class="accepting-item"> Trash bags</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Duck tape" class="accepting-item"> Duck tape</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Waterproof bins" class="accepting-item"> Waterproof bins</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Ziplock bags" class="accepting-item"> Ziplock bags</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Generators" class="accepting-item"> Generators</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Propane tanks" class="accepting-item"> Propane tanks</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Butane" class="accepting-item"> Butane</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Batteries" class="accepting-item"> Batteries</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Portable solar chargers" class="accepting-item"> Solar chargers</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Flashlights" class="accepting-item"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:First aid supplies" class="accepting-item"> First aid supplies</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Pet food & supplies" class="accepting-item"> Pet food & supplies</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Reusable shopping bags" class="accepting-item"> Reusable bags</label>
+        </div>
+        <div class="field" style="margin-top:0.75rem;"><label>Anything else?</label><input type="text" id="acceptingCustomItems" placeholder="e.g. Gloves, Safety goggles"></div>
+      </div>
+    </div>
+    <div id="defaultItemsSection" style="display:none;">
+      <div class="section">
+        <p class="section-title">📋 What you're offering</p>
+        <div class="check-grid">
+          <label class="check-label"><input type="checkbox" value="Water" class="item-check"> Water</label>
+          <label class="check-label"><input type="checkbox" value="Canned food" class="item-check"> Canned food</label>
+          <label class="check-label"><input type="checkbox" value="Hot meals" class="item-check"> Hot meals</label>
+          <label class="check-label"><input type="checkbox" value="Baby formula" class="item-check"> Baby formula</label>
+          <label class="check-label"><input type="checkbox" value="Diapers" class="item-check"> Diapers</label>
+          <label class="check-label"><input type="checkbox" value="Clothing" class="item-check"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="Blankets" class="item-check"> Blankets</label>
+          <label class="check-label"><input type="checkbox" value="Gasoline" class="item-check"> Gasoline</label>
+          <label class="check-label"><input type="checkbox" value="Generators" class="item-check"> Generators</label>
+          <label class="check-label"><input type="checkbox" value="First aid supplies" class="item-check"> First aid supplies</label>
+          <label class="check-label"><input type="checkbox" value="Medications" class="item-check"> Medications</label>
+          <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="item-check"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Hygiene kits" class="item-check"> Hygiene kits</label>
+          <label class="check-label"><input type="checkbox" value="Towels" class="item-check"> Towels</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="item-check"> Batteries</label>
+        </div>
+        <div class="field" style="margin-top:0.75rem;"><label>Anything else?</label><input type="text" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-title">📝 Notes & links</p>
+    <div class="field">
+      <label>Notes for visitors <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+      <textarea id="editNotes" rows="3" placeholder="Drive-through available, bring your own bags, etc."></textarea>
+    </div>
+    <div class="field">
+      <label>Your website <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+      <input type="url" id="editWebsite" placeholder="https://yourchurch.org">
+    </div>
+    <div class="giving-row">
+      <input type="checkbox" id="givingCheck" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'">
+      <label for="givingCheck">We accept online financial donations</label>
+    </div>
+    <div id="givingUrlWrap">
+      <div class="field">
+        <label>Online giving link</label>
+        <input type="url" id="editGivingUrl" placeholder="https://yourchurch.org/give">
+      </div>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="saveListing()">Publish listing →</button>
+  <p style="font-size:0.75rem;font-weight:500;color:var(--text-muted);text-align:center;margin-top:0.75rem;">Goes live immediately. Expires in 72 hours — you'll get a reminder to renew.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
+const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4',medical_assistance:'#fdf0ee'};
+
+const TYPE_LABELS_CREATE = {
+  shelter:'Shelter', supply_station:'Supply Station', donation_dropoff:'Donation Drop-off',
+  volunteer_event:'Volunteer Event', skills_labor:'Skills & Labor', medical_assistance:'Medical Aid Station'
+};
+
+const selectedTypes = new Set();
+function toggleType(type, el) {
+  if (selectedTypes.has(type)) {
+    selectedTypes.delete(type);
+    el.style.borderColor = '#ddd';
+    el.style.background = 'white';
+  } else {
+    selectedTypes.add(type);
+    el.style.borderColor = TYPE_COLORS[type] || '#3a7d5c';
+    el.style.background = bgMap[type] || '#edf7f1';
+  }
+  document.getElementById('editType').value = [...selectedTypes].join(',');
+  updateSections();
+}
+function autoSelectType(type) {
+  if (selectedTypes.has(type)) return;
+  const card = document.querySelector(`.type-card[data-type="${type}"]`);
+  if (card) toggleType(type, card);
+}
+
+function updateSections() {
+  const hasSupply = selectedTypes.has('supply_station');
+  const hasDonation = selectedTypes.has('donation_dropoff');
+  const hasShelter = selectedTypes.has('shelter');
+  const hasSkills = selectedTypes.has('skills_labor');
+  const hasMedical = selectedTypes.has('medical_assistance');
+  const hasEvent = selectedTypes.has('volunteer_event');
+  document.getElementById('shelterExtras').style.display = hasShelter ? 'block' : 'none';
+  document.getElementById('eventExtras').style.display = hasEvent ? 'block' : 'none';
+  document.getElementById('skillsExtras').style.display = hasSkills ? 'block' : 'none';
+  document.getElementById('medicalExtras').style.display = hasMedical ? 'block' : 'none';
+  document.getElementById('givingItemsSection').style.display = (hasSupply || hasShelter) ? 'block' : 'none';
+  document.getElementById('acceptingItemsSection').style.display = hasDonation ? 'block' : 'none';
+  document.getElementById('defaultItemsSection').style.display = (!hasSupply && !hasShelter && !hasDonation && !hasSkills && !hasMedical) ? 'block' : 'none';
+  if (selectedTypes.size > 0) autoFillListingName([...selectedTypes][0]);
+}
+
+function autoFillListingName(type) {
+  const nameField = document.getElementById('editName');
+  if (!nameField || nameField.dataset.userEdited === 'true') return;
+  const typeLabel = TYPE_LABELS_CREATE[type] || '';
+  const displayName = window._userDisplayName || '';
+  if (displayName && typeLabel) {
+    nameField.value = displayName + ' — ' + typeLabel;
+    nameField.dataset.autoFilled = 'true';
+    // Show preview
+    const preview = document.getElementById('namePreview');
+    if (preview) { preview.textContent = '✓ ' + nameField.value; preview.style.display = 'block'; }
+    const hint = document.getElementById('nameHint');
+    if (hint) hint.textContent = 'Feel free to edit this — maybe add a neighborhood if you have multiple locations.';
+  } else if (typeLabel) {
+    nameField.placeholder = 'e.g. Your Name — ' + typeLabel;
+  }
+}
+
+// Track manual edits so auto-fill doesn't override them
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'editName') {
+    const autoFilled = e.target.dataset.autoFilled === 'true';
+    if (e.target.value === '') {
+      e.target.dataset.userEdited = 'false';
+      e.target.dataset.autoFilled = 'false';
+      const preview = document.getElementById('namePreview');
+      if (preview) preview.style.display = 'none';
+    } else if (!autoFilled) {
+      e.target.dataset.userEdited = 'true';
+    } else {
+      e.target.dataset.autoFilled = 'false';
+    }
+  }
+});
+
+function toggleOtherEvent() {
+  const cb = document.getElementById('otherEventCheck');
+  document.getElementById('otherEventWrap').style.display = cb.checked ? 'block' : 'none';
+}
+function toggleAcceptingItems(cb) {
+  document.getElementById('acceptingItemsSection').style.display = cb.checked ? 'block' : 'none';
+}
+
+document.addEventListener('change', function(e) {
+  if (['item-check','skill-check','giving-item','accepting-item','event-type-check','medical-check'].some(c => e.target.classList.contains(c))) {
+    e.target.closest('label').classList.toggle('checked', e.target.checked);
+  }
+  if (e.target.classList.contains('day-check')) {
+    e.target.closest('label').classList.toggle('checked', e.target.checked);
+    if (e.target.value === 'Daily' && e.target.checked) {
+      document.querySelectorAll('.day-check:not([value="Daily"])').forEach(d => { d.checked=false; d.closest('label').classList.remove('checked'); });
+    } else if (e.target.value !== 'Daily') {
+      const daily = document.querySelector('.day-check[value="Daily"]');
+      if (daily) { daily.checked=false; daily.closest('label').classList.remove('checked'); }
+    }
+  }
+});
+
+function autoFillModalName(type) {
+  autoFillListingName(type);
+}
+function smartSplit(str) {
+  if (!str) return [];
+  return str.split(',').map(s => s.trim()).filter(Boolean);
+}
+</script>
+
+<script>
+const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SURL, SKEY);
+let currentUser = null;
+
+function getCity(components) {
+  if (!components) return '';
+  const city = components.find(c => c.types.includes('locality'));
+  if (city) return city.long_name;
+  const area = components.find(c => c.types.includes('sublocality') || c.types.includes('neighborhood'));
+  return area ? area.long_name : '';
+}
+
+function initAddressAutocomplete() {
+  const input = document.getElementById('editAddress');
+  if (!input || !window.google?.maps?.places) {
+    setTimeout(initAddressAutocomplete, 500); return;
+  }
+  const ac = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'us' },
+    fields: ['formatted_address','geometry','address_components'],
+    types: ['address']
+  });
+  ac.addListener('place_changed', function() {
+    const place = ac.getPlace();
+    if (!place.formatted_address) return;
+    input.value = place.formatted_address;
+    if (place.geometry?.location) {
+      input.dataset.lat = place.geometry.location.lat();
+      input.dataset.lng = place.geometry.location.lng();
+    }
+    const city = getCity(place.address_components);
+    if (city) input.dataset.city = city;
+  });
+}
+
+
+// ── ZIP → AREA LOOKUP ──
+const ZIP_TO_AREA = {"96701": "ʻAiea", "96706": "ʻEwa Beach", "96707": "Kapolei", "96708": "Makakilo", "96712": "Haleʻiwa", "96720": "Hawaiʻi Island — Hilo", "96730": "Kahuku", "96731": "Kahuku / Turtle Bay", "96734": "Kailua", "96740": "Hawaiʻi Island — Kona", "96744": "Kāneʻohe", "96748": "Molokaʻi", "96761": "Maui — Lahaina", "96762": "Lāʻie", "96763": "Lānaʻi", "96766": "Kauaʻi — Līhuʻe", "96768": "Maui — Wailuku", "96782": "Pearl City", "96786": "Wahiawā", "96789": "Mililani", "96791": "Waialua", "96792": "Waiʻanae / Māʻili / Nānākuli", "96793": "Maui — Kahului", "96795": "Waimānalo", "96797": "Waipahu / Waipiʻo", "96813": "Downtown Honolulu", "96814": "Makiki / Punchbowl", "96815": "Waikīkī", "96816": "Kaimukī", "96817": "Nuuanu / Pauoa / Liliha", "96818": "Āliamanu / Salt Lake", "96819": "Kalihi", "96821": "Aina Haina / Wailupe", "96822": "Mānoa / Makiki / Pauoa", "96825": "Hawaiʻi Kai", "96826": "Mōʻiliʻili / Kaimukī", "96853": "Diamond Head / Kahala", "96862": "Royal Kunia"};
+
+const ZIP_TO_CITY = {"96701":"Aiea","96706":"Ewa Beach","96707":"Kapolei","96708":"Kapolei","96712":"Haleiwa","96720":"Hilo","96730":"Kahuku","96731":"Kahuku","96734":"Kailua","96740":"Kailua-Kona","96744":"Kaneohe","96748":"Kaunakakai","96761":"Lahaina","96762":"Laie","96763":"Lanai City","96766":"Lihue","96768":"Wailuku","96782":"Pearl City","96786":"Wahiawa","96789":"Mililani","96791":"Waialua","96792":"Waianae","96793":"Kahului","96795":"Waimanalo","96797":"Waipahu","96813":"Honolulu","96814":"Honolulu","96815":"Honolulu","96816":"Honolulu","96817":"Honolulu","96818":"Honolulu","96819":"Honolulu","96821":"Honolulu","96822":"Honolulu","96825":"Honolulu","96826":"Honolulu","96853":"Honolulu","96862":"Kunia"};
+
+// ── ALTERNATE HOURS ──
+let altHoursCount = 0;
+window._userTouchedHours = false;
+const TIME_OPTIONS = '<option value="">Time</option><option>12:00 AM</option><option>12:30 AM</option><option>1:00 AM</option><option>1:30 AM</option><option>2:00 AM</option><option>2:30 AM</option><option>3:00 AM</option><option>3:30 AM</option><option>4:00 AM</option><option>4:30 AM</option><option>5:00 AM</option><option>5:30 AM</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option><option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option><option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option><option>9:30 PM</option><option>10:00 PM</option><option>10:30 PM</option><option>11:00 PM</option><option>11:30 PM</option><option>Midnight</option>';
+const DAY_CHECKBOXES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d =>
+  `<label style="display:inline-flex;align-items:center;gap:3px;font-size:0.75rem;font-weight:600;color:var(--text-mid);cursor:pointer;"><input type="checkbox" value="${d}" class="alt-day-${altHoursCount}"> ${d}</label>`
+).join(' ');
+
+function addAltHours() {
+  window._userTouchedHours = true;
+  altHoursCount++;
+  const n = altHoursCount;
+  const container = document.getElementById('altHoursContainer');
+  const row = document.createElement('div');
+  row.id = 'altHoursRow-' + n;
+  row.style.cssText = 'background:#f9fbf9;border:1.5px solid rgba(58,125,92,0.15);border-radius:12px;padding:0.85rem;margin-bottom:0.75rem;';
+  row.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+      <p style="font-size:0.75rem;font-weight:700;color:var(--sage-deep);">Alternate hours #${n}</p>
+      <button type="button" onclick="removeAltHours(${n})" style="background:none;border:none;font-size:0.85rem;cursor:pointer;color:var(--text-muted);">✕</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;">
+      ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d =>
+        `<label style="display:inline-flex;align-items:center;gap:3px;font-size:0.75rem;font-weight:600;color:var(--text-mid);cursor:pointer;"><input type="checkbox" value="${d}" class="alt-day-${n}"> ${d}</label>`
+      ).join(' ')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+      <select class="alt-open-${n}" style="padding:0.45rem;border:1.5px solid #ddd;border-radius:8px;font-size:0.82rem;font-family:'Nunito',sans-serif;">${TIME_OPTIONS}</select>
+      <select class="alt-close-${n}" style="padding:0.45rem;border:1.5px solid #ddd;border-radius:8px;font-size:0.82rem;font-family:'Nunito',sans-serif;">${TIME_OPTIONS}</select>
+    </div>`;
+  container.appendChild(row);
+}
+
+function removeAltHours(n) {
+  const row = document.getElementById('altHoursRow-' + n);
+  if (row) row.remove();
+}
+
+function buildAltHoursString() {
+  const parts = [];
+  for (let i = 1; i <= altHoursCount; i++) {
+    const row = document.getElementById('altHoursRow-' + i);
+    if (!row) continue;
+    const days = [...row.querySelectorAll(`input[type="checkbox"]:checked`)].map(c => c.value);
+    const open = row.querySelector(`select[class^="alt-open"]`)?.value || '';
+    const close = row.querySelector(`select[class^="alt-close"]`)?.value || '';
+    if (!days.length || !open) continue;
+    const dayStr = days.join(', ');
+    const timeStr = open && close ? open + ' – ' + close : open;
+    parts.push(dayStr + ': ' + timeStr);
+  }
+  return parts.join(' | ');
+}
+
+function onZipInput(val) {
+  val = val.replace(/\D/g,'');
+  if (val.length === 5) {
+    const city = ZIP_TO_CITY[val];
+    const cityField = document.getElementById('editCity');
+    if (city && cityField) cityField.value = city;
+    // Also trigger area detection
+    const area = ZIP_TO_AREA[val];
+    const sug = document.getElementById('areaSuggestion');
+    const bubbles = document.getElementById('areaBubbles');
+    if (area && sug && bubbles) {
+      const areas = area.split(' / ').map(a => a.trim());
+      if (areas.length === 1) {
+        selectArea(areas[0]);
+        bubbles.innerHTML = `<button type="button" class="area-bubble selected" onclick="selectArea('${areas[0]}')">${areas[0]}</button>`;
+      } else {
+        bubbles.innerHTML = areas.map(a => `<button type="button" class="area-bubble" onclick="selectArea('${a}')">${a}</button>`).join('');
+        document.getElementById('editLocation').value = '';
+      }
+      sug.style.display = 'block';
+    }
+  }
+}
+
+function onAddressInput(val) {
+  const zipMatch = val.match(/96\d{3}/);
+  if (!zipMatch) {
+    const sug = document.getElementById('areaSuggestion');
+    if (sug) sug.style.display = 'none';
+    return;
+  }
+  const zip = zipMatch[0];
+  // Auto-fill zip field if typed in address
+  const zipField = document.getElementById('editZip');
+  if (zipField && !zipField.value) { zipField.value = zip; onZipInput(zip); }
+  const area = ZIP_TO_AREA[zip];
+  const sug = document.getElementById('areaSuggestion');
+  const bubbles = document.getElementById('areaBubbles');
+  const locInput = document.getElementById('editLocation');
+  if (!area || !sug || !bubbles) return;
+  const areas = area.split(' / ').map(a => a.trim());
+  // Auto-select if only one option, otherwise show choices unselected
+  if (areas.length === 1) {
+    selectArea(areas[0]);
+    bubbles.innerHTML = `<button type="button" class="area-bubble selected" onclick="selectArea('${areas[0]}')">${areas[0]}</button>`;
+    sug.style.display = 'block';
+  } else {
+    bubbles.innerHTML = areas.map(a =>
+      `<button type="button" class="area-bubble" onclick="selectArea('${a}')">${a}</button>`
+    ).join('');
+    if (locInput) locInput.value = '';
+    sug.style.display = 'block';
+  }
+}
+
+function selectArea(area) {
+  const locInput = document.getElementById('editLocation');
+  if (locInput) locInput.value = area;
+  document.querySelectorAll('.area-bubble').forEach(btn => {
+    const isThis = btn.textContent.trim() === area;
+    btn.classList.toggle('selected', isThis);
+  });
+  const type = document.getElementById('editType')?.value;
+  if (type) autoFillListingName(type);
+}
+
+function clearAreaSuggestion() {
+  const sug = document.getElementById('areaSuggestion');
+  const loc = document.getElementById('editLocation');
+  if (sug) sug.style.display = 'none';
+  if (loc) loc.value = '';
+  document.querySelectorAll('.area-bubble').forEach(b => b.classList.remove('selected'));
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'malama-auth.html'; return; }
+  currentUser = session.user;
+
+  initAddressAutocomplete();
+
+  const meta = currentUser.user_metadata || {};
+
+  // Build display name for auto-title
+  let displayName = meta.display_name || '';
+  if (!displayName) {
+    const org = meta.org_name || '';
+    const first = meta.first_name || '';
+    if (org && org.toLowerCase() !== 'personal' && org.toLowerCase() !== 'individual') {
+      displayName = org;
+    } else {
+      displayName = first || '';
+    }
+  }
+  window._userDisplayName = displayName;
+
+  // Check for edit mode
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get('edit');
+  if (editId) {
+    loadEditListing(editId);
+  } else {
+    restoreFormDraft();
+  }
+
+  // Auto-save form on every input/change
+  document.addEventListener('input', saveDraft);
+  document.addEventListener('change', saveDraft);
+
+  // Track if user manually changes hours fields
+  ['editHoursOpen','editHoursClose','editDateFrom','editDateUntil','untilFurtherNotice'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => { window._userTouchedHours = true; });
+  });
+  document.querySelectorAll('.day-check').forEach(cb => {
+    cb.addEventListener('change', () => { window._userTouchedHours = true; });
+  });
+
+  // Auto-select types when giving/accepting items are checked
+  document.querySelectorAll('.giving-item').forEach(cb => {
+    cb.addEventListener('change', () => { if (cb.checked) autoSelectType('supply_station'); });
+  });
+  document.querySelectorAll('.accepting-item').forEach(cb => {
+    cb.addEventListener('change', () => { if (cb.checked) autoSelectType('donation_dropoff'); });
+  });
+}
+
+async function loadEditListing(id) {
+  const { data, error } = await sb.from('listings').select('*').eq('id', id).single();
+  if (error || !data) return;
+  document.querySelector('h1.page-title').textContent = 'Edit listing';
+  document.getElementById('submitBtn').textContent = 'Save changes →';
+  const nameField = document.getElementById('editName');
+  nameField.value = data.name || '';
+  nameField.dataset.userEdited = 'true';
+  // Parse address into street, city, zip
+  const fullAddr = data.address || '';
+  const zipMatch = fullAddr.match(/\b(96\d{3})\b/);
+  const editZip = document.getElementById('editZip');
+  const editCity = document.getElementById('editCity');
+  if (zipMatch && editZip) {
+    editZip.value = zipMatch[1];
+    onZipInput(zipMatch[1]);
+    // Remove city/state/zip from street address for the street field
+    const street = fullAddr.replace(/,?\s*([\w\sʻāēīōū]+),?\s*HI\s*96\d{3}/i, '').replace(/,\s*$/, '').trim();
+    document.getElementById('editAddress').value = street || fullAddr;
+  } else {
+    document.getElementById('editAddress').value = fullAddr;
+  }
+  document.getElementById('editPhone').value = data.contact_phone || '';
+  document.getElementById('editNotes').value = data.notes || '';
+  document.getElementById('editWebsite').value = data.website || '';
+  if (data.status !== undefined) document.getElementById('editStatus').checked = data.status;
+  // Load types — support both types array and single type
+  const typesToLoad = data.types && data.types.length ? data.types : data.type ? [data.type] : [];
+  typesToLoad.forEach(t => {
+    const card = document.querySelector(`.type-card[data-type="${t}"]`);
+    if (card) toggleType(t, card);
+  });
+
+  // Load location
+  if (data.location) {
+    const locInput = document.getElementById('editLocation');
+    if (locInput) locInput.value = data.location;
+  }
+
+  // Load hours — try to parse back into dropdowns
+  if (data.hours) {
+    const h = data.hours;
+    const hoursOpen = document.getElementById('editHoursOpen');
+    const hoursClose = document.getElementById('editHoursClose');
+    if (h.includes('Open 24 hours')) { if (hoursOpen) hoursOpen.value = 'Open 24 hours'; }
+    else if (h.includes('Sunrise')) { if (hoursOpen) hoursOpen.value = 'Sunrise – Sunset'; }
+    else {
+      // Try to extract time range like "10:00 AM – 5:00 PM"
+      const timeMatch = h.match(/(\d{1,2}:\d{2}\s*[AP]M)\s*[–-]\s*(\d{1,2}:\d{2}\s*[AP]M)/i);
+      if (timeMatch && hoursOpen) {
+        hoursOpen.value = timeMatch[1].trim();
+        if (hoursClose) hoursClose.value = timeMatch[2].trim();
+      } else if (h.match(/\d{1,2}:\d{2}\s*[AP]M/) && hoursOpen) {
+        const singleTime = h.match(/(\d{1,2}:\d{2}\s*[AP]M)/i);
+        if (singleTime) hoursOpen.value = singleTime[1].trim();
+      }
+    }
+    // Check "until further notice"
+    if (h.includes('Until further notice')) {
+      const ufn = document.getElementById('untilFurtherNotice');
+      if (ufn) ufn.checked = true;
+    }
+  }
+
+  // Load date fields
+  if (data.hours) {
+    // Try to extract dates from hours string
+    const dateFromMatch = data.hours.match(/From\s+(\w+\s+\d+)/);
+    // Dates are hard to parse back — leave for user to re-enter if needed
+  }
+
+  // Show area suggestion if location is set
+  if (data.location) {
+    const sug = document.getElementById('areaSuggestion');
+    const bubbles = document.getElementById('areaBubbles');
+    if (sug && bubbles) {
+      bubbles.innerHTML = '<button type="button" class="area-bubble selected" onclick="selectArea(\'' + data.location + '\')">' + data.location + '</button>';
+      sug.style.display = 'block';
+    }
+  }
+
+  // Store lat/lng on address input
+  if (data.lat && data.lng) {
+    const addrInput = document.getElementById('editAddress');
+    if (addrInput) { addrInput.dataset.lat = data.lat; addrInput.dataset.lng = data.lng; }
+  }
+
+  // Load items into checkboxes — collect unmatched for custom fields
+  const items = Array.isArray(data.items) ? data.items : [];
+  const unmatchedGiving = [], unmatchedAccepting = [], unmatchedDefault = [];
+  items.forEach(item => {
+    if (item.startsWith('GIVING:')) {
+      const val = item.replace('GIVING:','');
+      const cb = document.querySelector(`.giving-item[value="${val}"]`);
+      if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+      else unmatchedGiving.push(val);
+    } else if (item.startsWith('ACCEPTING:')) {
+      const cb = document.querySelector(`.accepting-item[value="${item}"]`);
+      if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+      else unmatchedAccepting.push(item.replace('ACCEPTING:',''));
+    } else {
+      const cb = document.querySelector(`.item-check[value="${item}"]`) || document.querySelector(`.giving-item[value="${item}"]`);
+      if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+      else unmatchedDefault.push(item);
+    }
+  });
+  // Put unmatched items into custom text fields
+  if (unmatchedGiving.length) { const el = document.getElementById('givingCustomItems'); if (el) el.value = unmatchedGiving.join(', '); }
+  if (unmatchedAccepting.length) { const el = document.getElementById('acceptingCustomItems'); if (el) el.value = unmatchedAccepting.join(', '); }
+  if (unmatchedDefault.length) { const el = document.getElementById('editCustomItems'); if (el) el.value = unmatchedDefault.join(', '); }
+
+  // Load other fields
+  if (data.capacity) { const el = document.getElementById('editCapacity'); if (el) el.value = data.capacity; }
+  if (data.pet_friendly) { const el = document.getElementById('editPetFriendly'); if (el) el.value = 'true'; }
+  if (data.event_date) { const el = document.getElementById('editEventDate'); if (el) el.value = data.event_date; }
+  if (data.volunteer_needs) { const el = document.getElementById('editVolunteerNeeds'); if (el) el.value = data.volunteer_needs; }
+  if (data.contact_email) { const el = document.getElementById('editContactEmail'); if (el) el.value = data.contact_email; }
+  if (data.giving_url) {
+    const cb = document.getElementById('givingCheck'); if (cb) cb.checked = true;
+    const el = document.getElementById('editGivingUrl'); if (el) el.value = data.giving_url;
+  }
+
+  // Store original data for edit preservation
+  window._editListingId = id;
+  window._editOriginalHours = data.hours || '';
+  window._editOriginalExpiresAt = data.expires_at || '';
+  window._editOriginalAddress = data.address || '';
+}
+
+async function geocodeAddress(address) {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaii')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
+  try {
+    const r = await fetch(url); const d = await r.json();
+    if (d.results && d.results[0]) return { lat: d.results[0].geometry.location.lat, lng: d.results[0].geometry.location.lng };
+  } catch(e) {}
+  return { lat: 21.3069, lng: -157.8583 };
+}
+
+async function saveListing() {
+  const type = document.getElementById('editType').value;
+  const types = type.split(',').filter(Boolean);
+  const primaryType = types[0];
+  const name = document.getElementById('editName').value.trim();
+  const streetAddr = document.getElementById('editAddress').value.trim();
+  const zip = document.getElementById('editZip')?.value.trim() || '';
+  const city = document.getElementById('editCity')?.value.trim() || '';
+  if (!type) { showToast('Please select a listing type'); return; }
+  if (!streetAddr) { showToast('Please enter an address'); return; }
+  if (!zip || zip.length !== 5) { showToast('Please enter a valid 5-digit zip code'); return; }
+  const location = document.getElementById('editLocation')?.value || '';
+  if (!location) { showToast('Please select a neighborhood — enter your zip code'); return; }
+  const address = city ? `${streetAddr}, ${city}, HI ${zip}` : `${streetAddr}, HI ${zip}`;
+  if (!name) { showToast('Please enter a listing name'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Publishing…';
+
+  const days = [...document.querySelectorAll('.day-check:checked')].map(d => d.value);
+  const openTime = document.getElementById('editHoursOpen').value;
+  const closeTime = document.getElementById('editHoursClose').value;
+  let hours = '';
+  const isEdit = !!window._editListingId;
+  const userTouchedHours = window._userTouchedHours;
+  if (!isEdit || userTouchedHours) {
+    if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') { hours = openTime; }
+    else if (openTime && closeTime) { hours = openTime + ' – ' + closeTime; }
+    else if (openTime) { hours = 'Opens at ' + openTime; }
+    if (days.length) { const ds = days.includes('Daily') ? 'Every day' : days.join(', '); hours = ds + (hours ? ' · ' + hours : ''); }
+    const altHrs = buildAltHoursString();
+    if (altHrs) hours += (hours ? ' | ' : '') + altHrs;
+    const df = document.getElementById('editDateFrom')?.value || '';
+    const ufn = document.getElementById('untilFurtherNotice')?.checked;
+    const du = document.getElementById('editDateUntil')?.value || '';
+    if (ufn) {
+      if (df) { const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); hours += (hours?' · From ':'From ')+fmt(df)+' · Until further notice'; }
+      else { hours += (hours?' · ':'')+'Until further notice'; }
+    } else if (df && du) {
+      const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      hours += (hours?' · ':'')+fmt(df)+' – '+fmt(du);
+    } else if (df) {
+      const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      hours += (hours?' · From ':'From ')+fmt(df);
+    }
+  } else if (window._editOriginalHours) {
+    hours = window._editOriginalHours;
+  }
+
+  let items = [];
+  const hasType = t => selectedTypes.has(t) || primaryType === t;
+  if (hasType('skills_labor')) {
+    items = [...document.querySelectorAll('.skill-check:checked')].map(c => c.value);
+  } else if (hasType('medical_assistance')) {
+    const medItems = [...document.querySelectorAll('.medical-check:checked')].map(c => c.value);
+    const medCustom = (document.getElementById('medicalCustom')?.value||'').split(',').map(i=>i.trim()).filter(Boolean);
+    items = [...medItems,...medCustom];
+  } else if (hasType('supply_station') || hasType('donation_dropoff') || hasType('shelter')) {
+    const gi = [...document.querySelectorAll('.giving-item:checked')].map(c=>'GIVING:'+c.value);
+    const gc = smartSplit(document.getElementById('givingCustomItems')?.value||'').map(i=>'GIVING:'+i);
+    const ai = [...document.querySelectorAll('.accepting-item:checked')].map(c => c.value.startsWith('ACCEPTING:') ? c.value : 'ACCEPTING:'+c.value);
+    const ac = smartSplit(document.getElementById('acceptingCustomItems')?.value||'').map(i => i.startsWith('ACCEPTING:') ? i : 'ACCEPTING:'+i);
+    items = [...gi,...gc,...ai,...ac];
+  } else {
+    const ci = [...document.querySelectorAll('.item-check:checked')].map(c=>c.value);
+    const cu = smartSplit(document.getElementById('editCustomItems')?.value||'');
+    items = [...ci,...cu];
+  }
+
+  const addrInput = document.getElementById('editAddress');
+  let coords;
+  if (addrInput?.dataset.lat && addrInput?.dataset.lng) {
+    coords = { lat: parseFloat(addrInput.dataset.lat), lng: parseFloat(addrInput.dataset.lng) };
+  } else {
+    coords = await geocodeAddress(address);
+  }
+
+  const payload = {
+    name, type: primaryType,
+    status: document.getElementById('editStatus').checked,
+    location: document.getElementById('editLocation')?.value || '',
+    address, lat: coords.lat, lng: coords.lng,
+    hours: hours||null,
+    contact_phone: document.getElementById('editPhone').value.trim(),
+    contact_email: document.getElementById('editContactEmail')?.value.trim()||null,
+    items, notes: document.getElementById('editNotes').value.trim(),
+    website: document.getElementById('editWebsite').value.trim(),
+    giving_url: document.getElementById('givingCheck').checked ? document.getElementById('editGivingUrl').value.trim() : null,
+    accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked||false,
+    capacity: document.getElementById('editCapacity')?.value||null,
+    pet_friendly: document.getElementById('editPetFriendly')?.value==='true',
+    event_date: document.getElementById('editEventDate')?.value||null,
+    volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
+    expires_at: new Date(Date.now()+72*3600000).toISOString()
+  };
+
+  const editId = window._editListingId;
+  let error;
+  if (editId) {
+    // Preserve original expires_at and address on edit
+    if (window._editOriginalExpiresAt) payload.expires_at = window._editOriginalExpiresAt;
+    // Don't overwrite user_id on edit
+    ({ error } = await sb.from('listings').update(payload).eq('id', editId));
+  } else {
+    // Check for duplicate address
+    const { data: existing } = await sb.from('listings').select('id,name').eq('address', address).limit(1);
+    if (existing && existing.length > 0) {
+      const proceed = confirm(
+        'A listing has already been made for this address ("' + existing[0].name + '").\n\n' +
+        'Would you like to continue? Your listing will not go live until a Mālama Map admin approves it.'
+      );
+      if (!proceed) {
+        btn.disabled = false;
+        btn.textContent = 'Publish listing →';
+        return;
+      }
+      // Mark as pending admin approval
+      payload.status = false;
+      payload.pending_approval = true;
+    }
+    payload.user_id = currentUser.id;
+    ({ error } = await sb.from('listings').insert(payload));
+  }
+  if (error) { showToast('Error: '+error.message); btn.disabled=false; btn.textContent=editId?'Save changes →':'Publish listing →'; return; }
+  clearDraft();
+  if (payload.pending_approval) {
+    showToast('Listing submitted for admin approval');
+  } else {
+    showToast('🌺 Listing is live on the map!');
+  }
+  setTimeout(() => window.location.href='malama-portal.html', 1500);
+}
+
+// ── DRAFT AUTO-SAVE / RESTORE ──
+const DRAFT_KEY = 'malama_create_draft';
+const DRAFT_FIELDS = ['editType','editName','editAddress','editZip','editCity','editLocation','editPhone','editNotes','editWebsite',
+  'editHoursOpen','editHoursClose','editDateFrom','editDateUntil','editCapacity','editPetFriendly',
+  'editEventDate','editEventTime','editVolunteerNeeds','editContactEmail','editCustomItems',
+  'givingCustomItems','acceptingCustomItems','editGivingUrl'];
+
+function saveDraft() {
+  const draft = {};
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) draft[id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  // Save checked checkboxes
+  draft._givingItems = [...document.querySelectorAll('.giving-item:checked')].map(c => c.value);
+  draft._acceptingItems = [...document.querySelectorAll('.accepting-item:checked')].map(c => c.value);
+  draft._defaultItems = [...document.querySelectorAll('.item-check:checked')].map(c => c.value);
+  draft._skillItems = [...document.querySelectorAll('.skill-check:checked')].map(c => c.value);
+  draft._medicalItems = [...document.querySelectorAll('.medical-check:checked')].map(c => c.value);
+  draft._dayChecks = [...document.querySelectorAll('.day-check:checked')].map(c => c.value);
+  draft._selectedTypes = [...selectedTypes];
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch(e) {}
+}
+
+function restoreFormDraft() {
+  let draft;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch(e) {}
+  if (!draft) return;
+
+  // Restore text/select fields
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || draft[id] === undefined) return;
+    if (el.type === 'checkbox') el.checked = draft[id];
+    else el.value = draft[id];
+  });
+
+  // Restore type selections
+  if (draft._selectedTypes && draft._selectedTypes.length) {
+    draft._selectedTypes.forEach(type => {
+      const card = document.querySelector(`.type-card[data-type="${type}"]`);
+      if (card) toggleType(type, card);
+    });
+  }
+
+  // Restore checkboxes
+  function restoreChecks(selector, values) {
+    if (!values || !values.length) return;
+    document.querySelectorAll(selector).forEach(cb => {
+      if (values.includes(cb.value)) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+    });
+  }
+  restoreChecks('.giving-item', draft._givingItems);
+  restoreChecks('.accepting-item', draft._acceptingItems);
+  restoreChecks('.item-check', draft._defaultItems);
+  restoreChecks('.skill-check', draft._skillItems);
+  restoreChecks('.medical-check', draft._medicalItems);
+  restoreChecks('.day-check', draft._dayChecks);
+
+  // Mark name as user-edited if it has a value
+  const nameEl = document.getElementById('editName');
+  if (nameEl && nameEl.value) nameEl.dataset.userEdited = 'true';
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none',3500);
+}
+
+init();
+</script>
+</body>
+</html>
