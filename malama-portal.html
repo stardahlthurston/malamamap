@@ -2149,8 +2149,250 @@ async function wrapInStoryCanvas(cardCanvas, l) {
 
 // ── Canvas-based card renderer — reliable cross-browser PNG generation ──
 async function drawShareCardCanvas(l) {
-  drawShareCard(l);
-  return null;
+  const SCALE = 2;
+  const W = 440, PAD = 32;
+  const items = (Array.isArray(l.items) ? l.items : []).filter(i => !i.startsWith('ACCEPTING:'));
+  const accepting = (Array.isArray(l.items) ? l.items : []).filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
+  const typeLabel = TYPE_LABELS_SHARE[l.type] || l.type;
+  const accentLight = '#e3f4f7';
+  const accentDeep = '#0d4d5a';
+  const goldLight = '#fdf4e3';
+  const goldDeep = '#7a5c1a';
+  function wrapText(ctx, text, maxW) {
+    const words = String(text).split(' ');
+    const lines = [];
+    let line = '';
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y); ctx.arcTo(x+w, y, x+w, y+r, r);
+    ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+    ctx.lineTo(x+r, y+h); ctx.arcTo(x, y+h, x, y+h-r, r);
+    ctx.lineTo(x, y+r); ctx.arcTo(x, y, x+r, y, r);
+    ctx.closePath();
+  }
+  function formatHours(hours) {
+    if (!hours) return '';
+    let h = hours.replace(' · Until further notice','').replace('Until further notice','').trim();
+    if (h.endsWith('·')) h = h.slice(0,-1).trim();
+    return h;
+  }
+  const neighborhood = l.location || '';
+  // MEASURE PASS
+  const tmp = document.createElement('canvas');
+  tmp.width = W * SCALE;
+  const tc = tmp.getContext('2d');
+  tc.scale(SCALE, SCALE);
+  tc.font = 'bold 24px Nunito, sans-serif';
+  const titleLines = wrapText(tc, l.name, W - PAD*2);
+  const headerH = 28 + 40 + titleLines.length * 32 + 24;
+  let yM = headerH;
+  yM += 52;
+  const hoursFormatted = formatHours(l.hours);
+  const infoRows = [
+    l.address ? ['📍', 'ADDRESS', l.address.replace(', USA','').split(',').slice(0,2).join(',')] : null,
+    hoursFormatted ? ['🕐', 'HOURS', hoursFormatted] : null,
+  ].filter(Boolean);
+  for (const [,,val] of infoRows) {
+    tc.font = '700 16px Nunito, sans-serif';
+    const lines = wrapText(tc, val, W - PAD*2 - 100);
+    yM += Math.max(30, lines.length * 22) + 16;
+  }
+  yM += 16;
+  yM += 16;
+  if (items.length) {
+    yM += 28;
+    tc.font = 'bold 14px Nunito, sans-serif';
+    let tagX = PAD, rows = 1;
+    const showItems = items.slice(0, 8);
+    for (const item of showItems) {
+      const tw = tc.measureText(item).width + 32;
+      if (tagX + tw > W - PAD && tagX > PAD) { rows++; tagX = PAD; }
+      tagX += tw + 10;
+    }
+    yM += rows * 36 + 16;
+  }
+  if (accepting.length) {
+    yM += 28;
+    tc.font = 'bold 14px Nunito, sans-serif';
+    let tagX = PAD, rows = 1;
+    const showAcc = accepting.slice(0, 6);
+    for (const item of showAcc) {
+      const tw = tc.measureText(item).width + 32;
+      if (tagX + tw > W - PAD && tagX > PAD) { rows++; tagX = PAD; }
+      tagX += tw + 10;
+    }
+    yM += rows * 36 + 16;
+  }
+  yM += 72;
+  const TOTAL_H = yM + 16;
+  // REAL CANVAS
+  const canvas = document.createElement('canvas');
+  canvas.width = W * SCALE;
+  canvas.height = TOTAL_H * SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+  ctx.fillStyle = '#f0f4f8';
+  ctx.fillRect(0, 0, W, TOTAL_H);
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 0, 0, W, TOTAL_H, 24);
+  ctx.fill();
+  // HEADER
+  const grad = ctx.createLinearGradient(0, 0, W, headerH);
+  grad.addColorStop(0, '#0d2f3f');
+  grad.addColorStop(1, '#1a3a5c');
+  ctx.fillStyle = grad;
+  roundRect(ctx, 0, 0, W, headerH + 24, 24);
+  ctx.fill();
+  ctx.fillRect(0, headerH, W, 24);
+  let y = 24;
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '700 11px Nunito, sans-serif';
+  ctx.fillText('MĀLAMA MAP', PAD, y);
+  y += 28;
+  ctx.fillStyle = '#4db8d4';
+  ctx.font = 'bold 20px Nunito, sans-serif';
+  ctx.fillText('📍', PAD - 2, y + 2);
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 22px Nunito, sans-serif';
+  ctx.fillText(neighborhood, PAD + 26, y + 2);
+  y += 32;
+  const types = (l.type||'').split(',').filter(Boolean);
+  let pillX = PAD;
+  ctx.font = 'bold 14px Nunito, sans-serif';
+  for (const t of types) {
+    const tLabel = TYPE_LABELS_SHARE[t] || t;
+    const pw = ctx.measureText(tLabel).width + 28;
+    const isgold = t === 'donation_dropoff';
+    ctx.fillStyle = isgold ? 'rgba(201,152,58,0.3)' : 'rgba(77,184,212,0.25)';
+    roundRect(ctx, pillX, y - 14, pw, 28, 14);
+    ctx.fill();
+    ctx.strokeStyle = isgold ? 'rgba(245,212,138,0.5)' : 'rgba(77,184,212,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = isgold ? '#f5d48a' : '#a8e8f5';
+    ctx.fillText(tLabel, pillX + 14, y + 5);
+    pillX += pw + 10;
+  }
+  y += 22;
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 24px Nunito, sans-serif';
+  const titleLines2 = wrapText(ctx, l.name, W - PAD*2);
+  for (const line of titleLines2) {
+    ctx.fillText(line, PAD, y);
+    y += 32;
+  }
+  y = headerH + 24;
+  y += 20;
+  for (const [icon, label, val] of infoRows) {
+    ctx.font = 'bold 11px Nunito, sans-serif';
+    const lw = ctx.measureText(label).width + 24;
+    ctx.fillStyle = accentLight;
+    roundRect(ctx, PAD, y - 12, lw, 24, 12);
+    ctx.fill();
+    ctx.fillStyle = accentDeep;
+    ctx.fillText(label, PAD + 12, y + 3);
+    ctx.font = '700 16px Nunito, sans-serif';
+    ctx.fillStyle = '#1a1a1a';
+    const vLines = wrapText(ctx, val, W - PAD - lw - 16);
+    for (let i = 0; i < vLines.length; i++) {
+      ctx.fillText(vLines[i], PAD + lw + 12, y + 3 + i * 22);
+    }
+    y += Math.max(30, vLines.length * 22) + 16;
+  }
+  ctx.strokeStyle = '#f0ede8';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke();
+  y += 20;
+  if (items.length) {
+    ctx.font = 'bold 11px Nunito, sans-serif';
+    ctx.fillStyle = accentDeep;
+    ctx.fillText('AVAILABLE NOW', PAD, y);
+    y += 16;
+    let tagX = PAD;
+    const tagH = 30, tagR = 15;
+    ctx.font = 'bold 13px Nunito, sans-serif';
+    const showItems = items.slice(0,8);
+    for (let i = 0; i < showItems.length; i++) {
+      const item = showItems[i];
+      const isLast = i === showItems.length - 1;
+      const showMore = isLast && items.length > 8;
+      const displayItem = showMore ? '+ more' : item;
+      const tw = ctx.measureText(displayItem).width + 28;
+      if (tagX + tw > W - PAD && tagX > PAD) { tagX = PAD; y += tagH + 8; }
+      ctx.fillStyle = accentLight;
+      roundRect(ctx, tagX, y, tw, tagH, tagR);
+      ctx.fill();
+      ctx.fillStyle = accentDeep;
+      ctx.fillText(displayItem, tagX + 14, y + 20);
+      tagX += tw + 8;
+    }
+    y += tagH + 20;
+  }
+  if (accepting.length) {
+    ctx.font = 'bold 11px Nunito, sans-serif';
+    ctx.fillStyle = goldDeep;
+    ctx.fillText('ACCEPTING DONATIONS', PAD, y);
+    y += 16;
+    let tagX = PAD;
+    const tagH = 30, tagR = 15;
+    ctx.font = 'bold 13px Nunito, sans-serif';
+    const showAcc = accepting.slice(0,6);
+    for (let i = 0; i < showAcc.length; i++) {
+      const item = showAcc[i];
+      const isLast = i === showAcc.length - 1;
+      const showMore = isLast && accepting.length > 6;
+      const displayItem = showMore ? '& more' : item;
+      const tw = ctx.measureText(displayItem).width + 28;
+      if (tagX + tw > W - PAD && tagX > PAD) { tagX = PAD; y += tagH + 8; }
+      ctx.fillStyle = goldLight;
+      roundRect(ctx, tagX, y, tw, tagH, tagR);
+      ctx.fill();
+      ctx.fillStyle = goldDeep;
+      ctx.fillText(displayItem, tagX + 14, y + 20);
+      tagX += tw + 8;
+    }
+    y += tagH + 20;
+  }
+  // FOOTER
+  const footerY = TOTAL_H - 68;
+  const footerGrad = ctx.createLinearGradient(0, footerY, W, TOTAL_H);
+  footerGrad.addColorStop(0, '#0d2f3f');
+  footerGrad.addColorStop(1, '#1a3a5c');
+  ctx.fillStyle = footerGrad;
+  ctx.fillRect(0, footerY, W, TOTAL_H - footerY);
+  roundRect(ctx, 0, footerY, W, TOTAL_H - footerY, 24);
+  ctx.fill();
+  ctx.fillRect(0, footerY, W, 24);
+  ctx.font = '600 11px Nunito, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.textAlign = 'center';
+  ctx.fillText('FIND MORE RESOURCES AT', W/2, footerY + 22);
+  const urlText = 'malamamap.org';
+  ctx.font = 'bold 18px Nunito, sans-serif';
+  const urlW = ctx.measureText(urlText).width + 48;
+  const urlH = 36;
+  const urlX = (W - urlW) / 2;
+  const urlY = footerY + 30;
+  ctx.fillStyle = 'rgba(77,184,212,0.25)';
+  roundRect(ctx, urlX, urlY, urlW, urlH, 18);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(77,184,212,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = '#a8e8f5';
+  ctx.font = 'bold 18px Nunito, sans-serif';
+  ctx.fillText(urlText, W/2, urlY + 24);
+  ctx.textAlign = 'left';
+  return canvas;
 }
 
 function drawShareCard(listing) {
