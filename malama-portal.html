@@ -641,16 +641,19 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 <script>
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const ADMIN_USER_ID = '04e3776b-b75f-4701-888e-511a9cf21382'; // Supabase → Auth → Users → your UUID
-const SUPER_ADMIN_ID = ADMIN_USER_ID; // Star — sees everything
+const SUPER_ADMIN_IDS = [
+  ADMIN_USER_ID,
+  'af107d04-0543-40ac-8808-765e25e6ce13'
+];
 const SUB_ADMIN_IDS = [
   '2ae9a4ab-d4a2-43b0-8e71-37b0fc60c748',
   'e11845ab-3a0d-435a-9fc3-1bbfb2fb0ed8',
   '9ac8e8b6-3c7d-4276-94c1-4a65ecff23b6',
   'fff15d66-fa50-4348-bc3b-d11b9c5600a0'
 ];
-const ADMIN_IDS = [SUPER_ADMIN_ID, ...SUB_ADMIN_IDS];
+const ADMIN_IDS = [...SUPER_ADMIN_IDS, ...SUB_ADMIN_IDS];
 function isAdmin(uid) { return ADMIN_IDS.includes(uid); }
-function isSuperAdmin(uid) { return uid === SUPER_ADMIN_ID; }
+function isSuperAdmin(uid) { return SUPER_ADMIN_IDS.includes(uid); }
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Use this instead of creating new clients everywhere
