@@ -903,7 +903,7 @@ function renderListingsPage() {
       <div class="stat-card"><p class="stat-label">Active listings</p><p class="stat-val">${myListings.filter(l => l.status).length}</p><p class="stat-sub">Currently open</p></div>
       <div class="stat-card"><p class="stat-label">Total listings</p><p class="stat-val">${myListings.length}</p><p class="stat-sub">All time</p></div>
       <div class="stat-card"><p class="stat-label">Account</p><p class="stat-val" style="font-size:1rem;color:var(--sage);padding-top:6px;text-transform:capitalize;">${getDisplayName(currentUser)}</p><p class="stat-sub">Organization</p></div>
-      <div class="stat-card"><p class="stat-label">Verified</p><p class="stat-val" style="font-size:1rem;padding-top:6px;color:var(--text-muted);">Pending</p><p class="stat-sub">Submit EIN to verify</p></div>
+      <div class="stat-card"><p class="stat-label">Verified</p><p class="stat-val" style="font-size:1rem;padding-top:6px;color:${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'var(--sage)' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '#c9983a' : 'var(--text-muted)'};">${(currentUser.user_metadata||{}).ein_status === 'verified' ? '✅ Yes' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '⏳ Pending' : 'No'}</p><p class="stat-sub">${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'Organization verified' : (currentUser.user_metadata||{}).ein_status === 'pending' ? 'EIN under review' : 'Submit EIN to verify'}</p></div>
     </div>
     ${myListings.filter(l => l.status).length < myListings.length ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
       <label class="toggle"><input type="checkbox" id="showClosedToggle" onchange="renderListingsPage()"><span class="toggle-slider"></span></label>
@@ -1062,6 +1062,31 @@ function renderProfilePage() {
           <input class="profile-input" id="profWebsite" type="url" placeholder="https://yourchurch.org" value="${escHtml(meta.website || '')}">
         </div>
 
+        <!-- EIN Verification -->
+        <div style="margin-top:1rem;padding:1rem;background:${meta.ein_status === 'verified' ? '#edf7f1' : meta.ein_status === 'pending' ? '#fdf4e3' : '#f9f9f7'};border:1.5px solid ${meta.ein_status === 'verified' ? 'rgba(58,125,92,0.3)' : meta.ein_status === 'pending' ? 'rgba(201,152,58,0.3)' : 'var(--border)'};border-radius:12px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;">
+            <p style="font-size:0.85rem;font-weight:800;color:var(--text-dark);">${meta.ein_status === 'verified' ? '✅ Verified Organization' : meta.ein_status === 'pending' ? '⏳ Verification Pending' : '🔒 Get Verified'}</p>
+            ${meta.ein_status === 'verified' ? '<span class="verified-badge">✓ Verified</span>' : ''}
+          </div>
+          <p style="font-size:0.75rem;font-weight:500;color:var(--text-mid);line-height:1.5;margin-bottom:0.75rem;">
+            ${meta.ein_status === 'verified' ? 'Your organization has been verified. A verified badge appears on all your listings.' : meta.ein_status === 'pending' ? 'Your EIN has been submitted and is awaiting review by the Mālama Map team.' : 'Submit your EIN (Employer Identification Number) to get a verified badge on your listings. This helps people trust your organization.'}
+          </p>
+          ${meta.ein_status === 'verified' ? `
+            <p style="font-size:0.78rem;font-weight:600;color:var(--sage-deep);">EIN: ${escHtml(meta.ein || '')} · Verified ✓</p>
+          ` : meta.ein_status === 'pending' ? `
+            <p style="font-size:0.78rem;font-weight:600;color:#7a5c1a;">EIN: ${escHtml(meta.ein || '')} · Under review</p>
+          ` : `
+            <div class="profile-field" style="margin-bottom:0;">
+              <p class="profile-label">EIN (XX-XXXXXXX)</p>
+              <div style="display:flex;gap:8px;">
+                <input class="profile-input" id="profEIN" type="text" placeholder="12-3456789" maxlength="10" style="flex:1;" value="${escHtml(meta.ein || '')}">
+                <button onclick="submitEIN()" style="padding:0.5rem 1.2rem;background:var(--sage);color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;">Submit for review</button>
+              </div>
+              <p style="font-size:0.7rem;font-weight:500;color:var(--text-muted);margin-top:4px;">Found on IRS documents or your organization's tax filing.</p>
+            </div>
+          `}
+        </div>
+
         <div class="profile-save-row">
           <button class="profile-save-btn" onclick="saveProfile()">Save contact info</button>
         </div>
@@ -1160,6 +1185,56 @@ async function saveProfile() {
   currentUser = user;
   document.getElementById('userEmail').textContent = getGreeting(currentUser);
   showToast('🌺 Profile saved!');
+}
+
+async function submitEIN() {
+  const einInput = document.getElementById('profEIN');
+  if (!einInput) return;
+  const ein = einInput.value.trim();
+  const einClean = ein.replace(/[^0-9-]/g, '');
+  if (!/^\d{2}-?\d{7}$/.test(einClean)) {
+    showToast('Please enter a valid EIN in XX-XXXXXXX format');
+    return;
+  }
+  const formatted = einClean.includes('-') ? einClean : einClean.slice(0,2) + '-' + einClean.slice(2);
+
+  // Save to user metadata
+  const { error } = await sb.auth.updateUser({ data: { ein: formatted, ein_status: 'pending', ein_submitted_at: new Date().toISOString() } });
+  if (error) { showToast('Error submitting EIN: ' + error.message); return; }
+
+  // Also insert into verification_requests table for admin review
+  const meta = currentUser.user_metadata || {};
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await sb2.from('verification_requests').upsert({
+    user_id: currentUser.id,
+    email: currentUser.email,
+    org_name: meta.entity_name || meta.org_name || meta.display_name || '',
+    ein: formatted,
+    status: 'pending',
+    submitted_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+
+  const { data: { user } } = await sb.auth.getUser();
+  currentUser = user;
+  showToast('🌺 EIN submitted for review!');
+  renderProfilePage();
+}
+
+async function approveEIN(userId) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // Update verification_requests table
+  await sb2.from('verification_requests').update({ status: 'verified', reviewed_at: new Date().toISOString() }).eq('user_id', userId);
+  // Mark all their listings as verified
+  await sb2.from('listings').update({ verified: true }).eq('user_id', userId);
+  showToast('✅ Organization verified!');
+  setTimeout(renderAdminPage, 600);
+}
+
+async function denyEIN(userId) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await sb2.from('verification_requests').update({ status: 'denied', reviewed_at: new Date().toISOString() }).eq('user_id', userId);
+  showToast('EIN verification denied');
+  setTimeout(renderAdminPage, 600);
 }
 
 function getEntityLabel(type) {
@@ -2788,6 +2863,13 @@ async function renderAdminPage() {
   // Load claim requests
   const { data: claims } = await sb2.from('claim_requests').select('*').eq('status','pending').order('submitted_at', { ascending: false });
 
+  // Load EIN verification requests
+  let einRequests = [];
+  try {
+    const { data: eins } = await sb2.from('verification_requests').select('*').eq('status','pending').order('submitted_at', { ascending: false });
+    einRequests = eins || [];
+  } catch(e) { /* table may not exist yet */ }
+
   const now = new Date();
   const soon = new Date(now.getTime() + 24*60*60*1000); // 24hrs from now
 
@@ -2835,7 +2917,34 @@ async function renderAdminPage() {
         <p class="admin-stat-num" style="color:#7b5ea7;">${claims?.length || 0}</p>
         <p class="admin-stat-label">Pending claims</p>
       </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:#2a6496;">${einRequests.length}</p>
+        <p class="admin-stat-label">EIN reviews</p>
+      </div>
     </div>
+
+    <!-- PENDING EIN VERIFICATIONS -->
+    ${einRequests.length ? `
+    <p class="admin-section-title">🔒 Pending EIN Verifications</p>
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;">
+      <table class="admin-table">
+        <thead><tr>
+          <th>Organization</th><th>Email</th><th>EIN</th><th>Submitted</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${einRequests.map(r => `
+          <tr>
+            <td style="font-weight:700;">${escHtml(r.org_name || '—')}</td>
+            <td><a href="mailto:${r.email}" style="color:var(--blue);text-decoration:none;font-size:0.78rem;">${r.email}</a></td>
+            <td style="font-weight:700;font-family:monospace;font-size:0.85rem;">${escHtml(r.ein)}</td>
+            <td style="color:var(--text-muted);font-size:0.75rem;">${new Date(r.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td>
+            <td>
+              <button class="admin-action-btn" style="color:var(--sage);border-color:var(--sage);" onclick="approveEIN('${r.user_id}')">✓ Verify</button>
+              <button class="admin-action-btn" style="color:var(--text-muted);border-color:#ddd;margin-left:4px;" onclick="denyEIN('${r.user_id}')">Deny</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : ''}
 
     <!-- PENDING CLAIM REQUESTS -->
     ${claims?.length ? `
