@@ -858,7 +858,11 @@ async function loadEditListing(id) {
     const el = document.getElementById('editGivingUrl'); if (el) el.value = data.giving_url;
   }
 
+  // Store original data for edit preservation
   window._editListingId = id;
+  window._editOriginalHours = data.hours || '';
+  window._editOriginalExpiresAt = data.expires_at || '';
+  window._editOriginalAddress = data.address || '';
 }
 
 async function geocodeAddress(address) {
@@ -893,25 +897,29 @@ async function saveListing() {
   const openTime = document.getElementById('editHoursOpen').value;
   const closeTime = document.getElementById('editHoursClose').value;
   let hours = '';
-  if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') { hours = openTime; }
-  else if (openTime && closeTime) { hours = openTime + ' – ' + closeTime; }
-  else if (openTime) { hours = 'Opens at ' + openTime; }
-  if (days.length) { const ds = days.includes('Daily') ? 'Every day' : days.join(', '); hours = ds + (hours ? ' · ' + hours : ''); }
-  // Append alternate hours
-  const altHrs = buildAltHoursString();
-  if (altHrs) hours += (hours ? ' | ' : '') + altHrs;
-  const df = document.getElementById('editDateFrom')?.value || '';
-  const ufn = document.getElementById('untilFurtherNotice')?.checked;
-  const du = document.getElementById('editDateUntil')?.value || '';
-  if (ufn) {
-    if (df) { const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); hours += (hours?' · From ':'From ')+fmt(df)+' · Until further notice'; }
-    else { hours += (hours?' · ':'')+'Until further notice'; }
-  } else if (df && du) {
-    const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    hours += (hours?' · ':'')+fmt(df)+' – '+fmt(du);
-  } else if (df) {
-    const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    hours += (hours?' · From ':'From ')+fmt(df);
+  const hoursChanged = openTime || closeTime || days.length || altHoursCount > 0;
+  if (hoursChanged) {
+    if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') { hours = openTime; }
+    else if (openTime && closeTime) { hours = openTime + ' – ' + closeTime; }
+    else if (openTime) { hours = 'Opens at ' + openTime; }
+    if (days.length) { const ds = days.includes('Daily') ? 'Every day' : days.join(', '); hours = ds + (hours ? ' · ' + hours : ''); }
+    const altHrs = buildAltHoursString();
+    if (altHrs) hours += (hours ? ' | ' : '') + altHrs;
+    const df = document.getElementById('editDateFrom')?.value || '';
+    const ufn = document.getElementById('untilFurtherNotice')?.checked;
+    const du = document.getElementById('editDateUntil')?.value || '';
+    if (ufn) {
+      if (df) { const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); hours += (hours?' · From ':'From ')+fmt(df)+' · Until further notice'; }
+      else { hours += (hours?' · ':'')+'Until further notice'; }
+    } else if (df && du) {
+      const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      hours += (hours?' · ':'')+fmt(df)+' – '+fmt(du);
+    } else if (df) {
+      const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      hours += (hours?' · From ':'From ')+fmt(df);
+    }
+  } else if (window._editOriginalHours) {
+    hours = window._editOriginalHours;
   }
 
   let items = [];
@@ -964,6 +972,8 @@ async function saveListing() {
   const editId = window._editListingId;
   let error;
   if (editId) {
+    // Preserve original expires_at and address on edit
+    if (window._editOriginalExpiresAt) payload.expires_at = window._editOriginalExpiresAt;
     // Don't overwrite user_id on edit
     ({ error } = await sb.from('listings').update(payload).eq('id', editId));
   } else {
