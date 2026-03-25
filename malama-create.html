@@ -643,10 +643,53 @@ async function loadEditListing(id) {
   document.getElementById('editNotes').value = data.notes || '';
   document.getElementById('editWebsite').value = data.website || '';
   if (data.status !== undefined) document.getElementById('editStatus').checked = data.status;
-  if (data.type) {
-    const card = document.querySelector(`.type-card[data-type="${data.type}"]`);
-    if (card) toggleType(data.type, card);
+  // Load types — support both types array and single type
+  const typesToLoad = data.types && data.types.length ? data.types : data.type ? [data.type] : [];
+  typesToLoad.forEach(t => {
+    const card = document.querySelector(`.type-card[data-type="${t}"]`);
+    if (card) toggleType(t, card);
+  });
+
+  // Load location
+  if (data.location) {
+    const locInput = document.getElementById('editLocation');
+    if (locInput) locInput.value = data.location;
   }
+
+  // Load hours fields
+  if (data.hours) {
+    const hoursOpen = document.getElementById('editHoursOpen');
+    if (hoursOpen) hoursOpen.value = data.hours.split(' – ')[0] || '';
+  }
+
+  // Load items into checkboxes
+  const items = Array.isArray(data.items) ? data.items : [];
+  items.forEach(item => {
+    if (item.startsWith('GIVING:')) {
+      const val = item.replace('GIVING:','');
+      const cb = document.querySelector(`.giving-item[value="${val}"]`);
+      if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+    } else if (item.startsWith('ACCEPTING:')) {
+      const val = item; // accepting checkboxes have ACCEPTING: in their value
+      const cb = document.querySelector(`.accepting-item[value="${val}"]`);
+      if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+    } else {
+      const cb = document.querySelector(`.item-check[value="${item}"]`) || document.querySelector(`.giving-item[value="${item}"]`);
+      if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+    }
+  });
+
+  // Load other fields
+  if (data.capacity) { const el = document.getElementById('editCapacity'); if (el) el.value = data.capacity; }
+  if (data.pet_friendly) { const el = document.getElementById('editPetFriendly'); if (el) el.value = 'true'; }
+  if (data.event_date) { const el = document.getElementById('editEventDate'); if (el) el.value = data.event_date; }
+  if (data.volunteer_needs) { const el = document.getElementById('editVolunteerNeeds'); if (el) el.value = data.volunteer_needs; }
+  if (data.contact_email) { const el = document.getElementById('editContactEmail'); if (el) el.value = data.contact_email; }
+  if (data.giving_url) {
+    const cb = document.getElementById('givingCheck'); if (cb) cb.checked = true;
+    const el = document.getElementById('editGivingUrl'); if (el) el.value = data.giving_url;
+  }
+
   window._editListingId = id;
 }
 

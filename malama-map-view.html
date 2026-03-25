@@ -387,7 +387,7 @@ function renderMarkers() {
 function buildCard(l, inPopup) {
   const isNeed = NEEDS_TYPES.includes(l.type);
   const typeLabel = TYPE_LABELS[l.type] || l.type;
-  const itemsToShow = l.items.slice(0,5);
+  const itemsToShow = l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')).slice(0,5);
   const moreCount = l.items.length - 5;
   const detailUrl = `malama-listing.html?id=${l.id}`;
 

@@ -224,7 +224,7 @@ function renderList() {
   }
 
   container.innerHTML = filtered.map(l => {
-    const items = (l.items || []).slice(0,5);
+    const items = (l.items || []).map(i => i.replace(/^(GIVING|ACCEPTING):/,'')).slice(0,5);
     const expHrs = Math.max(0, Math.round((new Date(l.expires_at) - new Date()) / 3600000));
     return `
     <div class="listing-card" onclick="window.open('malama-listing.html?id=${l.id}','_self')" style="border-top:4px solid ${l.type==='donation_dropoff'?'var(--gold)':l.type==='volunteer_event'?'#7b5ea7':l.type==='shelter'?'var(--blue)':l.type==='medical_assistance'?'var(--red)':'var(--sage)'};">
