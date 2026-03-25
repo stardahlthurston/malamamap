@@ -153,7 +153,7 @@ const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb = window.supabase.createClient(SURL, SKEY);
 
 const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#d4580a'};
-const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Event',skills_labor:'🔍 Needs Skills & Labor'};
+const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Event',skills_labor:'🔍 Needs Skills & Labor',supply_station:'🛖 Supply Station',shelter:'🏠 Shelter',medical_assistance:'🏥 Medical Aid'};
 
 let allListings = [], filtered = [], activeFilter = 'all';
 let map, markers = [], mapReady = false;
