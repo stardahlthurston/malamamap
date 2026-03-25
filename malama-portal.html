@@ -641,6 +641,13 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 <script>
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const ADMIN_USER_ID = '04e3776b-b75f-4701-888e-511a9cf21382'; // Supabase → Auth → Users → your UUID
+const ADMIN_IDS = [
+  '04e3776b-b75f-4701-888e-511a9cf21382', // Star
+  '2ae9a4ab-d4a2-43b0-8e71-37b0fc60c748',
+  'e11845ab-3a0d-435a-9fc3-1bbfb2fb0ed8',
+  '9ac8e8b6-3c7d-4276-94c1-4a65ecff23b6'
+];
+function isAdmin(uid) { return ADMIN_IDS.includes(uid); }
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Use this instead of creating new clients everywhere
@@ -824,7 +831,7 @@ async function init() {
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
   // Show admin tab for admin user
-  if (currentUser.id === ADMIN_USER_ID || currentUser.email === 'stardahlthurston@gmail.com') {
+  if (isAdmin(currentUser.id) || currentUser.email === 'stardahlthurston@gmail.com') {
     const adminNav = document.getElementById('navAdmin');
     if (adminNav) adminNav.style.display = 'flex';
   }
@@ -2740,7 +2747,7 @@ async function renderAdminPage() {
       .select('user_id')
       .eq('user_id', uid)
       .limit(1);
-    ownerMap[uid] = uid === ADMIN_USER_ID ? '⭐ Mālama Map Admin' : null;
+    ownerMap[uid] = isAdmin(uid) ? '⭐ Mālama Map Team' : null;
   }
   // Build owner display from listing data
   // We can't query auth.users directly, but we can show truncated IDs
@@ -2756,7 +2763,7 @@ async function renderAdminPage() {
     const { data: profiles } = await sb2.from('profiles').select('id, full_name, email');
     if (profiles?.length) {
       profiles.forEach(p => {
-        if (p.id && p.id !== ADMIN_USER_ID) {
+        if (p.id && !isAdmin(p.id)) {
           ownerMap[p.id] = p.full_name || p.email || ownerMap[p.id];
         }
       });
@@ -2778,7 +2785,7 @@ async function renderAdminPage() {
     return exp > now && exp < soon;
   });
   const expired = allListings.filter(l => l.expires_at && new Date(l.expires_at) < now);
-  const unclaimed = allListings.filter(l => l.user_id === ADMIN_USER_ID);
+  const unclaimed = allListings.filter(l => isAdmin(l.user_id));
 
   main.innerHTML = `
     <div class="page-header">
@@ -2885,7 +2892,7 @@ function renderAdminRows(listings, claims, ownerMap={}) {
   return listings.map(l => {
     const isExpiring = l.expires_at && new Date(l.expires_at) > now && new Date(l.expires_at) < new Date(now.getTime()+24*60*60*1000);
     const isExpired = l.expires_at && new Date(l.expires_at) < now;
-    const isUnclaimed = l.user_id === ADMIN_USER_ID;
+    const isUnclaimed = isAdmin(l.user_id);
     const rowClass = isExpired ? 'expired' : isExpiring ? 'expiring-soon' : '';
     const expiresStr = l.expires_at ? new Date(l.expires_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const updatedStr = l.updated_at ? new Date(l.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
