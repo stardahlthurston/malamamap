@@ -642,15 +642,9 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const ADMIN_USER_ID = '04e3776b-b75f-4701-888e-511a9cf21382'; // Supabase → Auth → Users → your UUID
 const SUPER_ADMIN_IDS = [
-  ADMIN_USER_ID,
-  'af107d04-0543-40ac-8808-765e25e6ce13'
+  ADMIN_USER_ID
 ];
-const SUB_ADMIN_IDS = [
-  '2ae9a4ab-d4a2-43b0-8e71-37b0fc60c748',
-  'e11845ab-3a0d-435a-9fc3-1bbfb2fb0ed8',
-  '9ac8e8b6-3c7d-4276-94c1-4a65ecff23b6',
-  'fff15d66-fa50-4348-bc3b-d11b9c5600a0'
-];
+const SUB_ADMIN_IDS = [];
 const ADMIN_IDS = [...SUPER_ADMIN_IDS, ...SUB_ADMIN_IDS];
 function isAdmin(uid) { return ADMIN_IDS.includes(uid); }
 function isSuperAdmin(uid) { return SUPER_ADMIN_IDS.includes(uid); }
@@ -956,7 +950,7 @@ function renderListingCard(l) {
         <p class="expiry-note">⏱ Expires in ${expHrs} hrs — renew to stay visible</p>
         <div class="card-actions">
           <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red);" onclick="deleteListing('${l.id}')">Delete</button>
-          <button class="btn btn-outline btn-sm" onclick="openShareModal('${l.id}')">Share</button>
+          ${isSuperAdmin(currentUser?.id) ? `<button class="btn btn-outline btn-sm" onclick="openShareModal('${l.id}')">Share</button>` : ''}
           <a class="btn btn-outline btn-sm" href="malama-create.html?edit=${l.id}">Edit listing</a>
           <button class="btn btn-primary btn-sm" onclick="renewListing('${l.id}')">Renew</button>
         </div>
