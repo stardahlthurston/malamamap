@@ -891,7 +891,7 @@ function renderListingsPage() {
 
 function renderListingCard(l) {
   const expHrs = Math.max(0, Math.round((new Date(l.expires_at) - new Date()) / 3600000));
-  const items = Array.isArray(l.items) ? l.items : [];
+  const items = Array.isArray(l.items) ? l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')) : [];
   return `
     <div class="card" id="card-${l.id}">
       <div class="card-header">
@@ -1715,7 +1715,7 @@ function closeShareModal() {
 }
 
 function buildShareCard(l) {
-  const items = Array.isArray(l.items) ? l.items : [];
+  const items = Array.isArray(l.items) ? l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')) : [];
   const isNeedsType = NEEDS_TYPES.includes(l.type);
   const sectionLabel = isNeedsType ? 'What we need' : 'What we offer';
   const typeLabel = TYPE_LABELS_SHARE[l.type] || l.type;
@@ -1941,7 +1941,7 @@ async function wrapInStoryCanvas(cardCanvas, l) {
 async function drawShareCardCanvas(l) {
   const SCALE = 2;
   const W = 420, PAD = 28;
-  const items = Array.isArray(l.items) ? l.items : [];
+  const items = Array.isArray(l.items) ? l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')) : [];
   const isNeedsType = ['donation_dropoff','accepting'].includes(l.type);
   const sectionLabel = isNeedsType ? 'WHAT WE NEED' : 'WHAT WE OFFER';
   const typeLabel = TYPE_LABELS_SHARE[l.type] || l.type;

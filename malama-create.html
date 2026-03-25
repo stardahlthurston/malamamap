@@ -767,7 +767,7 @@ async function saveListing() {
   }
 
   const payload = {
-    name, type: primaryType, types: types,
+    name, type: primaryType,
     status: document.getElementById('editStatus').checked,
     location: document.getElementById('editLocation')?.value || '',
     address, lat: coords.lat, lng: coords.lng,
