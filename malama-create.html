@@ -841,12 +841,32 @@ async function saveListing() {
     // Don't overwrite user_id on edit
     ({ error } = await sb.from('listings').update(payload).eq('id', editId));
   } else {
+    // Check for duplicate address
+    const { data: existing } = await sb.from('listings').select('id,name').eq('address', address).limit(1);
+    if (existing && existing.length > 0) {
+      const proceed = confirm(
+        'A listing has already been made for this address ("' + existing[0].name + '").\n\n' +
+        'Would you like to continue? Your listing will not go live until a Mālama Map admin approves it.'
+      );
+      if (!proceed) {
+        btn.disabled = false;
+        btn.textContent = 'Publish listing →';
+        return;
+      }
+      // Mark as pending admin approval
+      payload.status = false;
+      payload.pending_approval = true;
+    }
     payload.user_id = currentUser.id;
     ({ error } = await sb.from('listings').insert(payload));
   }
   if (error) { showToast('Error: '+error.message); btn.disabled=false; btn.textContent=editId?'Save changes →':'Publish listing →'; return; }
   clearDraft();
-  showToast('🌺 Listing is live on the map!');
+  if (payload.pending_approval) {
+    showToast('Listing submitted for admin approval');
+  } else {
+    showToast('🌺 Listing is live on the map!');
+  }
   setTimeout(() => window.location.href='malama-portal.html', 1500);
 }
 
