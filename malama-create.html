@@ -313,7 +313,17 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="giving-item"> Pet food & supplies</label>
           <label class="check-label"><input type="checkbox" value="Work supplies" class="giving-item"> Work supplies</label>
         </div>
-        <div class="field" style="margin-top:0.75rem;"><label>Anything else?</label><input type="text" id="givingCustomItems" placeholder="e.g. Ice, Tarps, Power banks"></div>
+        <div style="margin-top:0.85rem;">
+          <p style="font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Add an item not listed above</p>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+            <input type="text" id="givingCustomInput" placeholder="e.g. Ice" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomItem('giving');}"
+              style="flex:1;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;font-weight:500;">
+            <button type="button" onclick="addCustomItem('giving')"
+              style="width:40px;height:40px;border-radius:100px;background:var(--sage);color:white;border:none;font-size:1.3rem;cursor:pointer;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+          </div>
+          <div id="givingCustomPills" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <input type="hidden" id="givingCustomItems">
+        </div>
       </div>
     </div>
     <div id="acceptingItemsSection" style="display:none;">
@@ -354,7 +364,17 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Pet food & supplies" class="accepting-item"> Pet food & supplies</label>
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Reusable shopping bags" class="accepting-item"> Reusable bags</label>
         </div>
-        <div class="field" style="margin-top:0.75rem;"><label>Anything else?</label><input type="text" id="acceptingCustomItems" placeholder="e.g. Gloves, Safety goggles"></div>
+        <div style="margin-top:0.85rem;">
+          <p style="font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Add an item not listed above</p>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+            <input type="text" id="acceptingCustomInput" placeholder="e.g. Gloves" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomItem('accepting');}"
+              style="flex:1;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;font-weight:500;">
+            <button type="button" onclick="addCustomItem('accepting')"
+              style="width:40px;height:40px;border-radius:100px;background:var(--gold);color:white;border:none;font-size:1.3rem;cursor:pointer;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+          </div>
+          <div id="acceptingCustomPills" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <input type="hidden" id="acceptingCustomItems">
+        </div>
       </div>
     </div>
     <div id="defaultItemsSection" style="display:none;">
@@ -378,7 +398,17 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
           <label class="check-label"><input type="checkbox" value="Batteries" class="item-check"> Batteries</label>
         </div>
-        <div class="field" style="margin-top:0.75rem;"><label>Anything else?</label><input type="text" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks"></div>
+        <div style="margin-top:0.85rem;">
+          <p style="font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Add an item not listed above</p>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+            <input type="text" id="defaultCustomInput" placeholder="e.g. Ice" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomItem('default');}"
+              style="flex:1;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;font-weight:500;">
+            <button type="button" onclick="addCustomItem('default')"
+              style="width:40px;height:40px;border-radius:100px;background:var(--sage);color:white;border:none;font-size:1.3rem;cursor:pointer;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+          </div>
+          <div id="defaultCustomPills" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <input type="hidden" id="editCustomItems">
+        </div>
       </div>
     </div>
   </div>
@@ -520,6 +550,54 @@ function autoFillModalName(type) {
 function smartSplit(str) {
   if (!str) return [];
   return str.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function addCustomItem(type) {
+  const inputMap = { giving: 'givingCustomInput', accepting: 'acceptingCustomInput', default: 'defaultCustomInput' };
+  const pillsMap = { giving: 'givingCustomPills', accepting: 'acceptingCustomPills', default: 'defaultCustomPills' };
+  const hiddenMap = { giving: 'givingCustomItems', accepting: 'acceptingCustomItems', default: 'editCustomItems' };
+  const colorMap = { giving: 'var(--sage)', accepting: 'var(--gold)', default: 'var(--sage)' };
+  const bgMap = { giving: 'var(--sage-pale)', accepting: 'var(--gold-pale)', default: 'var(--sage-pale)' };
+  const textMap = { giving: 'var(--sage-deep)', accepting: '#7a5c1a', default: 'var(--sage-deep)' };
+  const input = document.getElementById(inputMap[type]);
+  const pillsContainer = document.getElementById(pillsMap[type]);
+  const hidden = document.getElementById(hiddenMap[type]);
+  if (!input || !pillsContainer) return;
+  const val = input.value.trim();
+  if (!val) return;
+  const existing = hidden.value ? hidden.value.split(',').map(s=>s.trim()) : [];
+  if (existing.map(s=>s.toLowerCase()).includes(val.toLowerCase())) {
+    input.value = '';
+    input.focus();
+    return;
+  }
+  const pill = document.createElement('div');
+  pill.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:'+bgMap[type]+';color:'+textMap[type]+';border:1.5px solid '+colorMap[type]+';border-radius:100px;padding:5px 12px;font-size:0.82rem;font-weight:700;font-family:Nunito,sans-serif;';
+  pill.innerHTML = '<span>'+val+'</span><button type="button" onclick="removeCustomItem(this,\''+type+'\')" style="background:none;border:none;cursor:pointer;color:'+textMap[type]+';font-size:1rem;line-height:1;padding:0;font-family:Nunito,sans-serif;">\u00d7</button>';
+  pill.dataset.value = val;
+  pillsContainer.appendChild(pill);
+  existing.push(val);
+  hidden.value = existing.join(',');
+  const saved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
+  if (!saved.map(s=>s.toLowerCase()).includes(val.toLowerCase())) {
+    saved.push(val);
+    localStorage.setItem('malama_custom_items', JSON.stringify(saved));
+  }
+  input.value = '';
+  input.focus();
+}
+
+function removeCustomItem(btn, type) {
+  const hiddenMap = { giving: 'givingCustomItems', accepting: 'acceptingCustomItems', default: 'editCustomItems' };
+  const pill = btn.closest('div[data-value]');
+  const val = pill?.dataset.value;
+  if (!val) return;
+  pill.remove();
+  const hidden = document.getElementById(hiddenMap[type]);
+  if (hidden) {
+    const updated = hidden.value.split(',').map(s=>s.trim()).filter(s=>s.toLowerCase()!==val.toLowerCase());
+    hidden.value = updated.join(',');
+  }
 }
 </script>
 
@@ -885,6 +963,34 @@ async function geocodeAddress(address) {
   return { lat: 21.3069, lng: -157.8583 };
 }
 
+function dedupeItems(arr) {
+  const ALIASES = {
+    'hygiene items': 'Hygiene items & kits', 'hygiene kits': 'Hygiene items & kits',
+    'hygiene products': 'Hygiene items & kits', 'personal hygiene': 'Hygiene items & kits',
+    'canned food': 'Canned food & goods', 'canned goods': 'Canned food & goods',
+    'canned foods': 'Canned food & goods',
+    'non-perishable food': 'Non-perishable food', 'non perishable food': 'Non-perishable food',
+    'nonperishable food': 'Non-perishable food',
+    'baby wipes': 'Baby wipes', 'wipes': 'Baby wipes',
+    'first aid': 'First aid supplies', 'first aid supplies': 'First aid supplies',
+    'first aid materials': 'First aid supplies',
+    'cleanup supplies': 'Cleanup supplies', 'cleaning supplies': 'Cleanup supplies',
+    'clean up supplies': 'Cleanup supplies',
+  };
+  const seen = new Set();
+  return arr.map(item => {
+    const prefix = item.startsWith('GIVING:') ? 'GIVING:' : item.startsWith('ACCEPTING:') ? 'ACCEPTING:' : '';
+    const raw = item.replace(/^(GIVING|ACCEPTING):/,'');
+    const normalized = ALIASES[raw.toLowerCase()] || raw;
+    return prefix + normalized;
+  }).filter(item => {
+    const key = item.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 async function saveListing() {
   const type = document.getElementById('editType').value;
   const types = type.split(',').filter(Boolean);
@@ -954,6 +1060,8 @@ async function saveListing() {
     items = [...ci,...cu];
   }
 
+  items = dedupeItems(items);
+
   const addrInput = document.getElementById('editAddress');
   let coords;
   if (addrInput?.dataset.lat && addrInput?.dataset.lng) {
@@ -1015,6 +1123,18 @@ async function saveListing() {
   } else {
     showToast('🌺 Listing is live on the map!');
   }
+  // Save custom items to localStorage for future listings
+  const customGiving = document.getElementById('givingCustomItems')?.value || '';
+  const customAccepting = document.getElementById('acceptingCustomItems')?.value || '';
+  const customDefault = document.getElementById('editCustomItems')?.value || '';
+  const allCustom = [customGiving, customAccepting, customDefault]
+    .join(',').split(',').map(s => s.trim()).filter(Boolean);
+  if (allCustom.length) {
+    const existingSaved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
+    const merged = [...new Set([...existingSaved, ...allCustom])];
+    localStorage.setItem('malama_custom_items', JSON.stringify(merged));
+  }
+
   setTimeout(() => window.location.href='malama-portal.html', 1500);
 }
 
@@ -1091,7 +1211,30 @@ function showToast(msg) {
   setTimeout(()=>t.style.display='none',3500);
 }
 
+function loadCustomItems() {
+  const saved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
+  if (!saved.length) return;
+  const grids = ['givingItemsSection', 'acceptingItemsSection', 'defaultItemsSection'];
+  grids.forEach(sectionId => {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    const grid = section.querySelector('.check-grid');
+    if (!grid) return;
+    const existingVals = [...grid.querySelectorAll('input[type=checkbox]')].map(c => c.value.replace(/^(GIVING|ACCEPTING):/,'').toLowerCase());
+    saved.forEach(item => {
+      if (!existingVals.includes(item.toLowerCase())) {
+        const label = document.createElement('label');
+        label.className = 'check-label';
+        const cls = sectionId.includes('accepting') ? 'accepting-item' : sectionId.includes('giving') ? 'giving-item' : 'item-check';
+        label.innerHTML = '<input type="checkbox" value="' + item + '" class="' + cls + '"> ' + item;
+        grid.appendChild(label);
+      }
+    });
+  });
+}
+
 init();
+loadCustomItems();
 </script>
 </body>
 </html>
