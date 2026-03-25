@@ -3001,6 +3001,8 @@ async function renderAdminPage() {
   });
   const expired = allListings.filter(l => l.expires_at && new Date(l.expires_at) < now);
   const unclaimed = allListings.filter(l => isAdmin(l.user_id));
+  const ownedByOthers = allListings.filter(l => l.user_id && !isAdmin(l.user_id) && l.user_id !== currentUser.id);
+  const ownedByMe = allListings.filter(l => l.user_id === currentUser.id);
 
   main.innerHTML = `
     <div class="page-header">
@@ -3025,6 +3027,10 @@ async function renderAdminPage() {
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:var(--blue);">${unclaimed.length}</p>
         <p class="admin-stat-label">Admin-owned</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:#2e6b6b;">${ownedByOthers.length}</p>
+        <p class="admin-stat-label">Community-owned</p>
       </div>
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:#d4580a;">${pendingApproval.length}</p>
@@ -3130,6 +3136,7 @@ async function renderAdminPage() {
         <option value="closed">Closed</option>
         <option value="expiring">Expiring soon</option>
         <option value="unclaimed">Admin-owned</option>
+        <option value="community">Community-owned</option>
         <option value="need">I Need Help page</option>
         <option value="want">I Want to Help page</option>
       </select>
@@ -3169,7 +3176,7 @@ function renderAdminRows(listings, claims, ownerMap={}) {
     const updatedStr = l.updated_at ? new Date(l.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const hasClaim = claims?.some(c => c.listing_id === l.id);
 
-    return `<tr class="${rowClass}" data-id="${l.id}" data-name="${(l.name||'').toLowerCase()}" data-area="${(l.location||'').toLowerCase()}" data-status="${l.status?'open':'closed'}" data-type="${l.type||''}" data-unclaimed="${isUnclaimed}" data-expiring="${isExpiring}">
+    return `<tr class="${rowClass}" data-id="${l.id}" data-name="${(l.name||'').toLowerCase()}" data-area="${(l.location||'').toLowerCase()}" data-status="${l.status?'open':'closed'}" data-type="${l.type||''}" data-unclaimed="${isUnclaimed}" data-community="${!isUnclaimed && l.user_id !== '04e3776b-b75f-4701-888e-511a9cf21382'}" data-expiring="${isExpiring}">
       <td>
         <span class="${l.status ? 'status-dot-open' : 'status-dot-closed'}"></span>
         <button class="admin-action-btn" style="font-size:0.62rem;color:${l.status?'var(--sage)':'var(--text-muted)'};border-color:${l.status?'var(--sage)':'#ccc'};" onclick="toggleAdminStatus('${l.id}',${l.status},this)">
@@ -3236,6 +3243,7 @@ function filterAdminTable() {
     if (status === 'closed' && rowStatus !== 'closed') show = false;
     if (status === 'expiring' && !isExpiring) show = false;
     if (status === 'unclaimed' && !isUnclaimed) show = false;
+    if (status === 'community' && row.dataset.community !== 'true') show = false;
     if (status === 'need' && !NEED_TYPES.includes(rowType)) show = false;
     if (status === 'want' && !WANT_TYPES.includes(rowType)) show = false;
     row.style.display = show ? '' : 'none';
