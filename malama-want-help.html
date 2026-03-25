@@ -64,6 +64,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .pill-dropoff{background:var(--gold-pale);color:var(--gold-deep);}
 .pill-event{background:var(--purple-pale);color:var(--purple-deep);}
 .pill-skills{background:#fff3ee;color:#8a3010;}
+.pill-supply{background:var(--sage-pale);color:var(--sage-deep);}
+.pill-shelter{background:var(--blue-pale);color:var(--blue-deep);}
+.pill-medical{background:#fdf0ee;color:#c0392b;}
 .lc-body{padding:0 1rem 0.85rem;}
 .lc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem;}
 .lc-tag-gold{font-size:0.67rem;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--gold-pale);color:var(--gold-deep);}
@@ -224,8 +227,11 @@ function renderList() {
 
   container.innerHTML = filtered.map(l => {
     const isEvent = l.type === 'volunteer_event';
-    const items = (l.items || []).map(i => i.replace(/^(GIVING|ACCEPTING):/,'')).slice(0,5);
-    const tagClass = isEvent ? 'lc-tag-purple' : 'lc-tag-gold';
+    const rawItems = l.items || [];
+    const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:','')).slice(0,5);
+    const givingItems = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:','')).slice(0,3);
+    const plainItems = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:')).slice(0,5);
+    const showItems = acceptingItems.length ? acceptingItems : plainItems;
     return `
     <div class="listing-card" onclick="window.open('malama-listing.html?id=${l.id}','_self')" style="border-top:4px solid ${l.type==='donation_dropoff'?'var(--gold)':l.type==='volunteer_event'?'#7b5ea7':l.type==='shelter'?'var(--blue)':l.type==='medical_assistance'?'var(--red)':'var(--sage)'};">
       <div class="lc-header">
@@ -236,14 +242,14 @@ function renderList() {
         </div>
         <div class="lc-badges">
           <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Open' : 'Closed'}</span>
-          <span class="pill ${isEvent ? 'pill-event' : 'pill-dropoff'}">${TYPE_LABELS[l.type]}</span>
+          <span class="pill ${l.type==='volunteer_event'?'pill-event':l.type==='donation_dropoff'?'pill-dropoff':l.type==='supply_station'?'pill-supply':l.type==='shelter'?'pill-shelter':l.type==='medical_assistance'?'pill-medical':l.type==='skills_labor'?'pill-skills':'pill-dropoff'}">${TYPE_LABELS[l.type] || l.type}</span>
           ${l.verified ? `<span class="pill" style="background:var(--blue-pale);color:var(--blue-deep);">✓ Verified</span>` : ''}
         </div>
       </div>
       <div class="lc-body">
         ${isEvent && l.event_date ? `<div class="event-date-badge">📅 ${new Date(l.event_date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}${l.hours ? ' · '+l.hours : ''}</div>` : ''}
         ${isEvent && l.volunteer_needs ? `<p class="lc-notes">Volunteers needed: ${l.volunteer_needs}</p>` : ''}
-        ${!isEvent && items.length ? `<div class="lc-tags">${items.map(i=>`<span class="${tagClass}">${i}</span>`).join('')}${l.items.length>5?`<span class="${tagClass}" style="background:#f0f0ec;color:var(--text-muted);">+${l.items.length-5} more</span>`:''}</div>` : ''}
+        ${!isEvent && showItems.length ? `<div class="lc-tags">${showItems.map(i=>`<span class="lc-tag-gold">${i}</span>`).join('')}${rawItems.length>5?`<span class="lc-tag-gold" style="background:#f0f0ec;color:var(--text-muted);">+${rawItems.length-5} more</span>`:''}</div>` : ''}
         <div class="lc-meta">
           ${!isEvent && l.hours ? `<span class="lc-meta-item">🕐 ${l.hours}</span>` : ''}
           ${l.contact_phone ? `<span class="lc-meta-item">📞 ${l.contact_phone}</span>` : ''}

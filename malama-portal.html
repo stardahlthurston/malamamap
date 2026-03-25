@@ -926,7 +926,7 @@ function renderListingCard(l) {
           <div><p class="field-label">Hours</p><p class="field-value">${l.hours || '—'}</p></div>
           <div><p class="field-label">Type</p><p class="field-value">${TYPE_LABELS[l.type] || l.type}</p></div>
           <div><p class="field-label">Contact</p><p class="field-value">${l.contact_phone || currentUser.email}</p></div>
-          ${givingItems.length ? `<div style="grid-column:1/-1;"><p class="field-label" style="color:var(--sage-deep);">✅ Giving out</p><div class="items-wrap" style="margin-top:6px;">${givingItems.map(i => `<span class="item-tag" style="background:var(--sage-pale);color:var(--sage-deep);">${i}</span>`).join('')}</div></div>` : ''}
+          ${givingItems.length ? `<div style="grid-column:1/-1;"><p class="field-label" style="color:var(--sage-deep);">✅ Giving out</p><div class="items-wrap" style="margin-top:6px;">${givingItems.map(i => `<span class="item-tag" style="background:#eaf3fb;color:#1a4a72;">${i}</span>`).join('')}</div></div>` : ''}
           ${acceptingItems.length ? `<div style="grid-column:1/-1;"><p class="field-label" style="color:#c9983a;">📦 Accepting</p><div class="items-wrap" style="margin-top:6px;">${acceptingItems.map(i => `<span class="item-tag" style="background:#fdf4e3;color:#7a5c1a;">${i}</span>`).join('')}</div></div>` : ''}
           ${plainItems.length ? `<div style="grid-column:1/-1;"><p class="field-label">Items</p><div class="items-wrap" style="margin-top:6px;">${plainItems.map(i => `<span class="item-tag">${i}</span>`).join('')}</div></div>` : ''}
           ${l.notes ? `<div style="grid-column:1/-1;"><p class="field-label">Notes</p><p class="field-value muted">${l.notes}</p></div>` : ''}
