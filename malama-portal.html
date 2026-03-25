@@ -1355,14 +1355,22 @@ async function openEditModal(id) {
       if (found.length) setSelectedDays(found);
     }
 
-    // Item checkboxes
+    // Item checkboxes — match stripped names to checkboxes
     const savedItems = Array.isArray(l.items) ? l.items : [];
+    // Store original items so save can preserve prefixes
+    window._editOriginalItems = savedItems;
     const knownValues = [...document.querySelectorAll('#itemCheckboxGrid input')].map(cb => cb.value);
     document.querySelectorAll('#itemCheckboxGrid input').forEach(cb => {
-      cb.checked = savedItems.includes(cb.value);
+      const stripped = cb.value;
+      const match = savedItems.some(i => i === stripped || i === 'GIVING:'+stripped || i === 'ACCEPTING:'+stripped);
+      cb.checked = match;
       if (cb.checked) cb.closest('label').classList.add('checked');
     });
-    const customItems = savedItems.filter(i => !knownValues.includes(i));
+    // Custom items = anything not matching a checkbox (after stripping prefixes)
+    const customItems = savedItems.filter(i => {
+      const clean = i.replace(/^(GIVING|ACCEPTING):/,'');
+      return !knownValues.includes(clean);
+    });
     document.getElementById('editCustomItems').value = customItems.join(', ');
 
     // Giving link
@@ -1516,10 +1524,29 @@ async function saveListing() {
     hours = existingListing?.hours || '';
   }
 
-  // Items
+  // Items — preserve GIVING:/ACCEPTING: prefixes from original data
   const checked = [...document.querySelectorAll('#itemCheckboxGrid input:checked')].map(cb => cb.value);
   const custom = smartSplit(document.getElementById('editCustomItems').value).filter(Boolean);
-  const items = [...checked, ...custom];
+  const origItems = window._editOriginalItems || [];
+  const hasPrefix = origItems.some(i => i.startsWith('GIVING:') || i.startsWith('ACCEPTING:'));
+  let items;
+  if (id && hasPrefix) {
+    // Editing a listing that uses GIVING:/ACCEPTING: prefixes
+    // For checked items: find their original prefixed version, or keep unprefixed
+    const rebuilt = [];
+    checked.forEach(val => {
+      const origGiving = origItems.find(i => i === 'GIVING:'+val);
+      const origAccepting = origItems.find(i => i === 'ACCEPTING:'+val);
+      if (origGiving) rebuilt.push(origGiving);
+      if (origAccepting) rebuilt.push(origAccepting);
+      if (!origGiving && !origAccepting) rebuilt.push(val);
+    });
+    // Custom items: keep as-is (they already have prefixes if they had them)
+    custom.forEach(val => rebuilt.push(val));
+    items = rebuilt;
+  } else {
+    items = [...checked, ...custom];
+  }
 
   // Use coordinates from Places autocomplete if available (more accurate)
   const addrInput = document.getElementById('editAddress');
@@ -1555,6 +1582,9 @@ async function saveListing() {
 
   let error;
   if (id) {
+    // Don't overwrite user_id or expires_at on edit
+    delete payload.user_id;
+    delete payload.expires_at;
     ({ error } = await sb.from('listings').update(payload).eq('id', id));
   } else {
     ({ error } = await sb.from('listings').insert(payload));
