@@ -175,12 +175,16 @@ let mapReady = false;
 async function init() {
   const { data, error } = await sb.from('listings')
     .select('*')
-    .in('type', ['shelter','supply_station','medical_assistance','skills_labor'])
     .eq('status', true)
     .order('created_at', { ascending: false });
-  const filteredByDir = (data || []).filter(l =>
-    l.type !== 'skills_labor' || l.skills_direction === 'offering' || !l.skills_direction
-  );
+  // Show: shelters, supply stations, medical, skills offering help,
+  // AND any listing that gives out items (has GIVING: items)
+  const filteredByDir = (data || []).filter(l => {
+    if (['shelter','supply_station','medical_assistance'].includes(l.type)) return true;
+    if (l.type === 'skills_labor' && (l.skills_direction === 'offering' || !l.skills_direction)) return true;
+    if (Array.isArray(l.items) && l.items.some(i => i.startsWith('GIVING:'))) return true;
+    return false;
+  });
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';

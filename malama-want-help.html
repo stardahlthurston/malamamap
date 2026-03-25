@@ -161,12 +161,17 @@ let map, markers = [], mapReady = false;
 async function init() {
   const { data } = await sb.from('listings')
     .select('*')
-    .in('type', ['donation_dropoff','volunteer_event','skills_labor'])
     .eq('status', true)
     .order('created_at', { ascending: false });
-  const filteredByDir = (data || []).filter(l =>
-    l.type !== 'skills_labor' || l.skills_direction === 'seeking'
-  );
+  // Show: donation drop-offs, volunteer events, skills seeking help,
+  // AND any listing that accepts donations (has ACCEPTING: items or accepting_dropoffs flag)
+  const filteredByDir = (data || []).filter(l => {
+    if (l.type === 'donation_dropoff' || l.type === 'volunteer_event') return true;
+    if (l.type === 'skills_labor' && l.skills_direction === 'seeking') return true;
+    if (l.accepting_dropoffs) return true;
+    if (Array.isArray(l.items) && l.items.some(i => i.startsWith('ACCEPTING:'))) return true;
+    return false;
+  });
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
   allListings = filteredByDir;
