@@ -789,13 +789,14 @@ async function saveListing() {
   }
 
   let items = [];
-  if (type === 'skills_labor') {
+  const hasType = t => selectedTypes.has(t) || primaryType === t;
+  if (hasType('skills_labor')) {
     items = [...document.querySelectorAll('.skill-check:checked')].map(c => c.value);
-  } else if (type === 'medical_assistance') {
+  } else if (hasType('medical_assistance')) {
     const medItems = [...document.querySelectorAll('.medical-check:checked')].map(c => c.value);
     const medCustom = (document.getElementById('medicalCustom')?.value||'').split(',').map(i=>i.trim()).filter(Boolean);
     items = [...medItems,...medCustom];
-  } else if (type === 'supply_station') {
+  } else if (hasType('supply_station') || hasType('donation_dropoff') || hasType('shelter')) {
     const gi = [...document.querySelectorAll('.giving-item:checked')].map(c=>'GIVING:'+c.value);
     const gc = smartSplit(document.getElementById('givingCustomItems')?.value||'').map(i=>'GIVING:'+i);
     const ai = [...document.querySelectorAll('.accepting-item:checked')].map(c=>'ACCEPTING:'+c.value);
@@ -831,15 +832,16 @@ async function saveListing() {
     pet_friendly: document.getElementById('editPetFriendly')?.value==='true',
     event_date: document.getElementById('editEventDate')?.value||null,
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
-    expires_at: new Date(Date.now()+72*3600000).toISOString(),
-    user_id: currentUser.id
+    expires_at: new Date(Date.now()+72*3600000).toISOString()
   };
 
   const editId = window._editListingId;
   let error;
   if (editId) {
+    // Don't overwrite user_id on edit
     ({ error } = await sb.from('listings').update(payload).eq('id', editId));
   } else {
+    payload.user_id = currentUser.id;
     ({ error } = await sb.from('listings').insert(payload));
   }
   if (error) { showToast('Error: '+error.message); btn.disabled=false; btn.textContent=editId?'Save changes →':'Publish listing →'; return; }
