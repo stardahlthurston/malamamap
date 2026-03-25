@@ -9,6 +9,7 @@
 <title>Mālama Map — My Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 function loadGooglePlaces() {
   const s = document.createElement('script');
@@ -619,8 +620,8 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
     <!-- Live card preview -->
     <div class="share-preview-bg" id="sharePreviewBg">
-      <div class="share-card" id="shareCardEl">
-        <!-- Populated by JS -->
+      <div id="shareCardPreview" style="width:302px;height:538px;overflow:hidden;position:relative;border-radius:16px;">
+        <div id="shareCardHTML" style="width:1080px;height:1920px;transform:scale(0.28);transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none;"></div>
       </div>
     </div>
 
@@ -1921,6 +1922,10 @@ function closeShareModal() {
 }
 
 function buildShareCard(l) {
+  // Use the new HTML-based share card
+  drawShareCard(l);
+  return;
+  /* ── OLD PREVIEW CODE BELOW (unused) ── */
   const items = Array.isArray(l.items) ? l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')) : [];
   const isNeedsType = NEEDS_TYPES.includes(l.type);
   const sectionLabel = isNeedsType ? 'What we need' : 'What we offer';
@@ -2008,66 +2013,7 @@ function buildShareCard(l) {
   `;
 }
 
-async function downloadShareCard() {
-  const btn = document.getElementById('shareDownloadBtn');
-  const l = myListings.find(x => x.id === shareListingId);
-  if (!l) return;
-  btn.disabled = true;
-  btn.textContent = 'Generating…';
-
-  try {
-    // Draw the card, then wrap it in an Instagram Story canvas (1080x1920)
-    const cardCanvas = await drawShareCardCanvas(l);
-    const storyCanvas = await wrapInStoryCanvas(cardCanvas, l);
-
-    const meta = currentUser?.user_metadata || {};
-    const orgName = meta.display_name || meta.org_name || meta.first_name || '';
-    const cleanOrg = orgName ? orgName.replace(/[^a-z0-9 ]/gi,' ').trim() : '';
-    const cleanName = l.name.replace(/[^a-z0-9 ]/gi,' ').trim();
-    const filename = cleanOrg && !cleanName.toLowerCase().startsWith(cleanOrg.toLowerCase())
-      ? 'Malama Map - ' + cleanOrg + ' - ' + cleanName + '.png'
-      : 'Malama Map - ' + cleanName + '.png';
-
-    storyCanvas.toBlob(async (blob) => {
-      // Try Web Share API first (triggers iOS native share sheet)
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
-        try {
-          await navigator.share({
-            files: [new File([blob], filename, { type: 'image/png' })],
-            title: 'Mālama Map — ' + l.name,
-            text: 'Find us on Mālama Map · malamamap.org'
-          });
-          btn.disabled = false;
-          btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
-          return;
-        } catch(shareErr) {
-          if (shareErr.name === 'AbortError') {
-            btn.disabled = false;
-            btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
-            return;
-          }
-          // Fall through to download
-        }
-      }
-      // Fallback: direct download
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = url;
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 3000);
-      btn.disabled = false;
-      btn.innerHTML = '<svg viewBox="0 0 18 18" fill="none" style="width:16px;height:16px;"><path d="M9 2v9M5.5 7.5L9 11l3.5-3.5M3 13h12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Download image';
-      showToast('🌺 Image saved!');
-    }, 'image/png');
-
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Download image';
-    showToast('Could not generate image — try again');
-    console.error(e);
-  }
-}
+// downloadShareCard is defined after drawShareCard below
 
 // ── Wrap card in 1080x1920 Instagram Story canvas ──
 async function wrapInStoryCanvas(cardCanvas, l) {
@@ -2145,220 +2091,81 @@ async function wrapInStoryCanvas(cardCanvas, l) {
 
 // ── Canvas-based card renderer — reliable cross-browser PNG generation ──
 async function drawShareCardCanvas(l) {
-  // ═══ NEW INSTAGRAM STORY CARD ═══
-  return drawShareCard(l);
+  drawShareCard(l);
+  return null; // no canvas needed, using html2canvas now
 }
 
 function drawShareCard(listing) {
-  const canvas = document.getElementById('shareCanvas') || document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = 1080;
-  canvas.height = 1920;
-  // Background
-  const grad = ctx.createLinearGradient(0, 0, 0, 1920);
-  grad.addColorStop(0, '#1a3d2b');
-  grad.addColorStop(0.6, '#2d5a3d');
-  grad.addColorStop(1, '#1a3d2b');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 1080, 1920);
-  // Top logo — small and subtle
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.font = '600 28px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('MĀLAMA MAP', 540, 100);
-  // Floating card with generous margins
-  const cardX = 80;
-  const cardY = 160;
-  const cardW = 920;
-  const cardH = 1580;
-  // Card shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  _roundRect(ctx, cardX+8, cardY+8, cardW, cardH, 48);
-  ctx.fill();
-  // Card background
-  ctx.fillStyle = 'white';
-  _roundRect(ctx, cardX, cardY, cardW, cardH, 48);
-  ctx.fill();
-  const TYPE_COLORS_C = {
-    shelter:'#2a6496',
-    supply_station:'#3a7d5c',
-    donation_dropoff:'#c9983a',
-    volunteer_event:'#7b5ea7',
-    skills_labor:'#2e6b6b',
-    medical_assistance:'#c0392b'
-  };
-  const TYPE_LABELS_C = {
-    shelter:'🏠 Shelter',
-    supply_station:'🛖 Supply Station',
-    donation_dropoff:'📦 Donation Drop-off',
-    volunteer_event:'🙋 Volunteer Needed',
-    skills_labor:'🔧 Skills & Labor',
-    medical_assistance:'🏥 Medical Aid'
-  };
-  const typeColor = TYPE_COLORS_C[listing.type] || '#3a7d5c';
-  const typeLabel = TYPE_LABELS_C[listing.type] || listing.type;
-  // TYPE BADGE — huge, colored, full width banner at top of card
-  ctx.fillStyle = typeColor;
-  _roundRect(ctx, cardX, cardY, cardW, 160, 48);
-  ctx.fill();
-  ctx.fillRect(cardX, cardY+112, cardW, 48);
-  ctx.fillStyle = 'white';
-  ctx.font = 'bold 64px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(typeLabel, 540, cardY+105);
-  // LISTING NAME
-  let y = cardY + 220;
-  ctx.fillStyle = '#1a1a1a';
-  ctx.font = 'bold 76px sans-serif';
-  ctx.textAlign = 'center';
-  const nameLines = _wrapText(ctx, listing.name || '', cardX+60, 0, cardW-120, 88);
-  nameLines.slice(0,3).forEach(line => {
-    ctx.fillText(line, 540, y);
-    y += 96;
-  });
-  y += 30;
-  // Divider
-  ctx.strokeStyle = '#f0ede8';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(cardX+80, y);
-  ctx.lineTo(cardX+cardW-80, y);
-  ctx.stroke();
-  y += 60;
-  // ADDRESS
-  if (listing.address) {
-    ctx.textAlign = 'left';
-    ctx.fillStyle = typeColor;
-    ctx.font = 'bold 30px sans-serif';
-    ctx.fillText('📍  ADDRESS', cardX+80, y);
-    y += 48;
-    ctx.fillStyle = '#2a2a2a';
-    ctx.font = '600 42px sans-serif';
-    const addrLines = _wrapText(ctx, listing.address.replace(', USA',''), cardX+80, 0, cardW-160, 52);
-    addrLines.slice(0,2).forEach(line => {
-      ctx.fillText(line, cardX+80, y);
-      y += 56;
-    });
-    y += 30;
-  }
-  // HOURS
-  if (listing.hours) {
-    ctx.fillStyle = typeColor;
-    ctx.font = 'bold 30px sans-serif';
-    ctx.fillText('🕐  HOURS', cardX+80, y);
-    y += 48;
-    ctx.fillStyle = '#2a2a2a';
-    ctx.font = '600 42px sans-serif';
-    const hLines = _wrapText(ctx, listing.hours, cardX+80, 0, cardW-160, 52);
-    hLines.slice(0,2).forEach(line => {
-      ctx.fillText(line, cardX+80, y);
-      y += 56;
-    });
-    y += 30;
-  }
-  // Divider
-  ctx.strokeStyle = '#f0ede8';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(cardX+80, y);
-  ctx.lineTo(cardX+cardW-80, y);
-  ctx.stroke();
-  y += 50;
-  // WHAT WE OFFER pills
-  const items = (listing.items || []).filter(i => !i.startsWith('ACCEPTING:')).map(i => i.replace('GIVING:','')).slice(0,8);
-  if (items.length) {
-    ctx.fillStyle = typeColor;
-    ctx.font = 'bold 30px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('✅  WHAT WE OFFER', cardX+80, y);
-    y += 52;
-    let pillX = cardX+80;
-    ctx.font = 'bold 32px sans-serif';
-    items.forEach(item => {
-      const pillW = ctx.measureText(item).width + 50;
-      const pillH = 66;
-      if (pillX + pillW > cardX+cardW-80) {
-        pillX = cardX+80;
-        y += pillH + 18;
-      }
-      ctx.fillStyle = typeColor + '18';
-      _roundRect(ctx, pillX, y-44, pillW, pillH, 33);
-      ctx.fill();
-      ctx.fillStyle = typeColor;
-      ctx.fillText(item, pillX+25, y);
-      pillX += pillW + 16;
-    });
-    y += 80;
-  }
-  // ACCEPTING pills
-  const accepting = (listing.items || []).filter(i => i.startsWith('ACCEPTING:')).slice(0,6).map(i=>i.replace('ACCEPTING:',''));
-  if (accepting.length) {
-    ctx.fillStyle = '#c9983a';
-    ctx.font = 'bold 30px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('📦  ACCEPTING DONATIONS', cardX+80, y);
-    y += 52;
-    let pillX = cardX+80;
-    ctx.font = 'bold 32px sans-serif';
-    accepting.forEach(item => {
-      const pillW = ctx.measureText(item).width + 50;
-      const pillH = 66;
-      if (pillX + pillW > cardX+cardW-80) {
-        pillX = cardX+80;
-        y += pillH + 18;
-      }
-      ctx.fillStyle = '#fdf4e3';
-      _roundRect(ctx, pillX, y-44, pillW, pillH, 33);
-      ctx.fill();
-      ctx.fillStyle = '#7a5c1a';
-      ctx.fillText(item, pillX+25, y);
-      pillX += pillW + 16;
-    });
-    y += 80;
-  }
-  // Bottom CTA bar
-  const ctaY = cardY + cardH - 140;
-  ctx.fillStyle = typeColor;
-  ctx.fillRect(cardX, ctaY, cardW, 140);
-  _roundRect(ctx, cardX, ctaY, cardW, 140, 48);
-  ctx.fill();
-  ctx.fillRect(cardX, ctaY, cardW, 48);
-  ctx.fillStyle = 'white';
-  ctx.font = '500 32px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Find more resources at', 540, ctaY+60);
-  ctx.font = 'bold 48px sans-serif';
-  ctx.fillText('malamamap.org', 540, ctaY+115);
-  return canvas;
+  const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
+  const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Needed',skills_labor:'🔧 Skills & Labor',medical_assistance:'🏥 Medical Aid'};
+  const color = TYPE_COLORS[listing.type] || '#3a7d5c';
+  const typeLabel = TYPE_LABELS[listing.type] || listing.type;
+  const items = (listing.items||[]).filter(i=>!i.startsWith('ACCEPTING:')).map(i=>i.replace('GIVING:','')).slice(0,8);
+  const accepting = (listing.items||[]).filter(i=>i.startsWith('ACCEPTING:')).slice(0,6).map(i=>i.replace('ACCEPTING:',''));
+  const pillsHTML = (arr, bg, textColor) => arr.map(item =>
+    '<span style="display:inline-block;background:'+bg+';color:'+textColor+';border-radius:100px;padding:14px 28px;font-size:28px;font-weight:700;margin:8px;">'+item+'</span>'
+  ).join('');
+  const card = document.getElementById('shareCardHTML');
+  card.innerHTML = '<div style="width:1080px;height:1920px;background:linear-gradient(160deg,#1a3d2b,#2d5a3d 60%,#1a3d2b);font-family:Nunito,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;">'
+    + '<div style="width:100%;background:white;border-radius:48px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.3);display:flex;flex-direction:column;">'
+    // Title block
+    + '<div style="padding:70px 80px 50px;text-align:center;border-bottom:3px solid #f0ede8;">'
+    + '<h1 style="font-size:88px;font-weight:800;color:#1a1a1a;line-height:1.1;margin:0 0 40px;">'+listing.name+'</h1>'
+    + '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:16px;">'
+    + '<span style="background:'+color+';color:white;border-radius:100px;padding:18px 48px;font-size:40px;font-weight:800;">'+typeLabel+'</span>'
+    + '</div></div>'
+    // Info block
+    + '<div style="padding:60px 80px;border-bottom:3px solid #f0ede8;">'
+    + (listing.address ? '<div style="margin-bottom:44px;"><p style="font-size:28px;font-weight:800;color:'+color+';letter-spacing:0.12em;text-transform:uppercase;margin:0 0 12px;">📍 Address</p><p style="font-size:48px;font-weight:700;color:#1a1a1a;margin:0;line-height:1.3;">'+listing.address.replace(', USA','')+'</p></div>' : '')
+    + (listing.hours ? '<div><p style="font-size:28px;font-weight:800;color:'+color+';letter-spacing:0.12em;text-transform:uppercase;margin:0 0 12px;">🕐 Hours</p><p style="font-size:48px;font-weight:700;color:#1a1a1a;margin:0;line-height:1.3;">'+listing.hours+'</p></div>' : '')
+    + '</div>'
+    // Items
+    + (items.length ? '<div style="padding:60px 80px;border-bottom:'+(accepting.length?'3px solid #f0ede8':'none')+';"><p style="font-size:28px;font-weight:800;color:'+color+';letter-spacing:0.12em;text-transform:uppercase;margin:0 0 28px;">✅ What we offer</p><div style="display:flex;flex-wrap:wrap;">'+pillsHTML(items, color+'18', color)+'</div></div>' : '')
+    + (accepting.length ? '<div style="padding:60px 80px;"><p style="font-size:28px;font-weight:800;color:#c9983a;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 28px;">📦 Accepting donations</p><div style="display:flex;flex-wrap:wrap;">'+pillsHTML(accepting, '#fdf4e3', '#7a5c1a')+'</div></div>' : '')
+    // CTA footer
+    + '<div style="background:'+color+';padding:60px;text-align:center;">'
+    + '<p style="color:rgba(255,255,255,0.75);font-size:32px;font-weight:600;margin:0 0 8px;">Find more resources at</p>'
+    + '<p style="color:white;font-size:56px;font-weight:800;margin:0;">malamamap.org</p>'
+    + '</div></div></div>';
 }
-function _roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.lineTo(x+w-r, y);
-  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-  ctx.lineTo(x+w, y+h-r);
-  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-  ctx.lineTo(x+r, y+h);
-  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-  ctx.lineTo(x, y+r);
-  ctx.quadraticCurveTo(x, y, x+r, y);
-  ctx.closePath();
-}
-function _wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(' ');
-  const lines = [];
-  let line = '';
-  words.forEach(word => {
-    const test = line + word + ' ';
-    if (ctx.measureText(test).width > maxWidth && line !== '') {
-      lines.push(line.trim());
-      line = word + ' ';
-    } else {
-      line = test;
-    }
-  });
-  if (line) lines.push(line.trim());
-  return lines;
+
+async function downloadShareCard() {
+  const card = document.getElementById('shareCardHTML');
+  // Move off-screen at full size for html2canvas
+  card.style.position = 'fixed';
+  card.style.top = '-9999px';
+  card.style.left = '0';
+  card.style.transform = 'none';
+  document.body.appendChild(card);
+
+  try {
+    const canvas = await html2canvas(card, {
+      width: 1080,
+      height: 1920,
+      scale: 1,
+      useCORS: true,
+      backgroundColor: null
+    });
+
+    const link = document.createElement('a');
+    const name = (shareListingId ? myListings.find(l=>l.id===shareListingId)?.name : 'listing') || 'listing';
+    link.download = 'MalamaMap_' + name.replace(/[^a-z0-9]/gi,'_') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch(e) {
+    console.error('Share card download error:', e);
+    showToast('Error generating image');
+  }
+
+  // Move back to preview container
+  const preview = document.getElementById('shareCardPreview');
+  if (preview) {
+    preview.appendChild(card);
+    card.style.position = 'absolute';
+    card.style.top = '0';
+    card.style.left = '0';
+    card.style.transform = 'scale(0.28)';
+  }
 }
 
 document.getElementById('shareModal').addEventListener('click', e => {
