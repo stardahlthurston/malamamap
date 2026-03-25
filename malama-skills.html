@@ -190,15 +190,12 @@ let allListings = [], filtered = [], activeFilter = 'all';
 async function init() {
   const { data } = await sb.from('listings')
     .select('*')
-    .eq('type', 'skills_labor')
     .order('created_at', { ascending: false });
   document.getElementById('loading').style.display = 'none';
   document.getElementById('resultCount').style.display = 'block';
-  allListings = (data || []).filter(l => l.status !== false);
+  allListings = (data || []).filter(l => l.status !== false && (l.type === 'skills_labor' || (Array.isArray(l.types) && l.types.includes('skills_labor'))));
   applyFilters();
 }
-
-let activeDirFilter = 'all';
 
 let activeDirFilter = 'all';
 
