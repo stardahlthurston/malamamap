@@ -2145,6 +2145,204 @@ async function wrapInStoryCanvas(cardCanvas, l) {
 
 // ── Canvas-based card renderer — reliable cross-browser PNG generation ──
 async function drawShareCardCanvas(l) {
+  // ═══ NEW INSTAGRAM STORY CARD ═══
+  return drawShareCard(l);
+}
+
+function drawShareCard(listing) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 1080;
+  canvas.height = 1920;
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+  grad.addColorStop(0, '#1a3d2b');
+  grad.addColorStop(1, '#2d5a3d');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1080, 1920);
+  // Subtle texture overlay
+  ctx.fillStyle = 'rgba(255,255,255,0.02)';
+  for (let i = 0; i < 1920; i += 40) {
+    ctx.fillRect(0, i, 1080, 1);
+  }
+  // Logo area top
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.font = 'bold 36px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('MĀLAMA MAP', 540, 120);
+  ctx.font = '500 28px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillText("Hawaiʻi helping Hawaiʻi", 540, 165);
+  // Main white card
+  const cardX = 60, cardY = 220, cardW = 960, cardH = 1480;
+  ctx.fillStyle = 'white';
+  shareRoundRect(ctx, cardX, cardY, cardW, cardH, 40);
+  ctx.fill();
+  // Type badge
+  const TYPE_COLORS_CARD = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
+  const TYPE_LABELS_CARD = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Needed',skills_labor:'🔧 Skills & Labor',medical_assistance:'🏥 Medical Aid'};
+  const badgeColor = TYPE_COLORS_CARD[listing.type] || '#3a7d5c';
+  const badgeLabel = TYPE_LABELS_CARD[listing.type] || listing.type;
+  ctx.fillStyle = badgeColor + '18';
+  shareRoundRect(ctx, cardX+50, cardY+50, 340, 60, 30);
+  ctx.fill();
+  ctx.fillStyle = badgeColor;
+  ctx.font = 'bold 28px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(badgeLabel, cardX+80, cardY+90);
+  // Open badge
+  ctx.fillStyle = '#edf7f1';
+  shareRoundRect(ctx, cardX+cardW-200, cardY+50, 150, 60, 30);
+  ctx.fill();
+  ctx.fillStyle = '#3a7d5c';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('● Open', cardX+cardW-175, cardY+90);
+  // Listing name — big and bold
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = 'bold 72px sans-serif';
+  ctx.textAlign = 'left';
+  const nameLines = shareWrapText(ctx, listing.name || '', cardX+50, 0, cardW-100, 80);
+  let nameY = cardY + 180;
+  nameLines.forEach(line => {
+    ctx.fillText(line, cardX+50, nameY);
+    nameY += 90;
+  });
+  // Divider
+  nameY += 20;
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cardX+50, nameY);
+  ctx.lineTo(cardX+cardW-50, nameY);
+  ctx.stroke();
+  nameY += 50;
+  // Address
+  if (listing.address) {
+    ctx.fillStyle = '#8a827a';
+    ctx.font = '500 30px sans-serif';
+    ctx.fillText('📍', cardX+50, nameY);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '600 34px sans-serif';
+    const addrLines = shareWrapText(ctx, listing.address, cardX+100, 0, cardW-160, 42);
+    addrLines.forEach(line => { ctx.fillText(line, cardX+100, nameY); nameY += 48; });
+    nameY += 20;
+  }
+  // Hours
+  if (listing.hours) {
+    ctx.fillStyle = '#8a827a';
+    ctx.font = '500 30px sans-serif';
+    ctx.fillText('🕐', cardX+50, nameY);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '600 34px sans-serif';
+    const hLines = shareWrapText(ctx, listing.hours, cardX+100, 0, cardW-160, 42);
+    hLines.forEach(line => { ctx.fillText(line, cardX+100, nameY); nameY += 48; });
+    nameY += 30;
+  }
+  // Divider
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cardX+50, nameY);
+  ctx.lineTo(cardX+cardW-50, nameY);
+  ctx.stroke();
+  nameY += 50;
+  // Items section — giving
+  const givingItems = (listing.items || []).filter(i => !i.startsWith('ACCEPTING:')).map(i => i.replace('GIVING:','')).slice(0, 8);
+  if (givingItems.length) {
+    ctx.fillStyle = '#8a827a';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText('WHAT WE OFFER', cardX+50, nameY);
+    nameY += 50;
+    let pillX = cardX+50;
+    let pillY = nameY;
+    const pillH = 56;
+    const pillPad = 30;
+    ctx.font = 'bold 26px sans-serif';
+    givingItems.forEach(item => {
+      const pillW = ctx.measureText(item).width + pillPad*2;
+      if (pillX + pillW > cardX+cardW-50) {
+        pillX = cardX+50;
+        pillY += pillH + 16;
+      }
+      ctx.fillStyle = '#eaf3fb';
+      shareRoundRect(ctx, pillX, pillY-38, pillW, pillH, 28);
+      ctx.fill();
+      ctx.fillStyle = '#1a4a72';
+      ctx.fillText(item, pillX+pillPad, pillY);
+      pillX += pillW + 16;
+    });
+    nameY = pillY + pillH + 40;
+  }
+  // Accepting items
+  const accepting = (listing.items || []).filter(i => i.startsWith('ACCEPTING:')).slice(0, 6).map(i => i.replace('ACCEPTING:',''));
+  if (accepting.length) {
+    ctx.fillStyle = '#8a827a';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText('ACCEPTING DONATIONS', cardX+50, nameY);
+    nameY += 50;
+    let pillX = cardX+50;
+    let pillY = nameY;
+    const pillH = 56;
+    const pillPad = 30;
+    ctx.font = 'bold 26px sans-serif';
+    accepting.forEach(item => {
+      const pillW = ctx.measureText(item).width + pillPad*2;
+      if (pillX + pillW > cardX+cardW-50) {
+        pillX = cardX+50;
+        pillY += pillH + 16;
+      }
+      ctx.fillStyle = '#fdf4e3';
+      shareRoundRect(ctx, pillX, pillY-38, pillW, pillH, 28);
+      ctx.fill();
+      ctx.fillStyle = '#7a5c1a';
+      ctx.fillText(item, pillX+pillPad, pillY);
+      pillX += pillW + 16;
+    });
+    nameY = pillY + pillH + 40;
+  }
+  // Bottom CTA
+  const ctaY = cardY + cardH - 120;
+  ctx.fillStyle = '#3a7d5c';
+  ctx.font = 'bold 36px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Find more resources at', 540, ctaY);
+  ctx.font = 'bold 48px sans-serif';
+  ctx.fillStyle = '#1a3d2b';
+  ctx.fillText('malamamap.org', 540, ctaY + 60);
+  return canvas;
+}
+function shareRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+function shareWrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  words.forEach(word => {
+    const test = line + word + ' ';
+    if (ctx.measureText(test).width > maxWidth && line !== '') {
+      lines.push(line.trim());
+      line = word + ' ';
+    } else {
+      line = test;
+    }
+  });
+  if (line) lines.push(line.trim());
+  return lines;
+}
+
+// ═══ LEGACY SHARE CARD CODE (kept for reference) ═══
+function _legacyDrawShareCard_UNUSED(l) {
   const SCALE = 2;
   const W = 420, PAD = 28;
   const items = Array.isArray(l.items) ? l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')) : [];
