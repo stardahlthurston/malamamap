@@ -433,6 +433,12 @@ function toggleType(type, el) {
   document.getElementById('editType').value = [...selectedTypes].join(',');
   updateSections();
 }
+function autoSelectType(type) {
+  if (selectedTypes.has(type)) return;
+  const card = document.querySelector(`.type-card[data-type="${type}"]`);
+  if (card) toggleType(type, card);
+}
+
 function updateSections() {
   const hasSupply = selectedTypes.has('supply_station');
   const hasDonation = selectedTypes.has('donation_dropoff');
@@ -720,6 +726,14 @@ async function init() {
   // Auto-save form on every input/change
   document.addEventListener('input', saveDraft);
   document.addEventListener('change', saveDraft);
+
+  // Auto-select types when giving/accepting items are checked
+  document.querySelectorAll('.giving-item').forEach(cb => {
+    cb.addEventListener('change', () => { if (cb.checked) autoSelectType('supply_station'); });
+  });
+  document.querySelectorAll('.accepting-item').forEach(cb => {
+    cb.addEventListener('change', () => { if (cb.checked) autoSelectType('donation_dropoff'); });
+  });
 }
 
 async function loadEditListing(id) {
