@@ -568,12 +568,14 @@ const ZIP_TO_CITY = {"96701":"Aiea","96706":"Ewa Beach","96707":"Kapolei","96708
 
 // ── ALTERNATE HOURS ──
 let altHoursCount = 0;
+window._userTouchedHours = false;
 const TIME_OPTIONS = '<option value="">Time</option><option>12:00 AM</option><option>12:30 AM</option><option>1:00 AM</option><option>1:30 AM</option><option>2:00 AM</option><option>2:30 AM</option><option>3:00 AM</option><option>3:30 AM</option><option>4:00 AM</option><option>4:30 AM</option><option>5:00 AM</option><option>5:30 AM</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option><option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option><option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option><option>9:30 PM</option><option>10:00 PM</option><option>10:30 PM</option><option>11:00 PM</option><option>11:30 PM</option><option>Midnight</option>';
 const DAY_CHECKBOXES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d =>
   `<label style="display:inline-flex;align-items:center;gap:3px;font-size:0.75rem;font-weight:600;color:var(--text-mid);cursor:pointer;"><input type="checkbox" value="${d}" class="alt-day-${altHoursCount}"> ${d}</label>`
 ).join(' ');
 
 function addAltHours() {
+  window._userTouchedHours = true;
   altHoursCount++;
   const n = altHoursCount;
   const container = document.getElementById('altHoursContainer');
@@ -726,6 +728,15 @@ async function init() {
   // Auto-save form on every input/change
   document.addEventListener('input', saveDraft);
   document.addEventListener('change', saveDraft);
+
+  // Track if user manually changes hours fields
+  ['editHoursOpen','editHoursClose','editDateFrom','editDateUntil','untilFurtherNotice'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => { window._userTouchedHours = true; });
+  });
+  document.querySelectorAll('.day-check').forEach(cb => {
+    cb.addEventListener('change', () => { window._userTouchedHours = true; });
+  });
 
   // Auto-select types when giving/accepting items are checked
   document.querySelectorAll('.giving-item').forEach(cb => {
@@ -897,8 +908,9 @@ async function saveListing() {
   const openTime = document.getElementById('editHoursOpen').value;
   const closeTime = document.getElementById('editHoursClose').value;
   let hours = '';
-  const hoursChanged = openTime || closeTime || days.length || altHoursCount > 0;
-  if (hoursChanged) {
+  const isEdit = !!window._editListingId;
+  const userTouchedHours = window._userTouchedHours;
+  if (!isEdit || userTouchedHours) {
     if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') { hours = openTime; }
     else if (openTime && closeTime) { hours = openTime + ' – ' + closeTime; }
     else if (openTime) { hours = 'Opens at ' + openTime; }
