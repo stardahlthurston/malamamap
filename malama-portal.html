@@ -1198,26 +1198,97 @@ async function submitEIN() {
   }
   const formatted = einClean.includes('-') ? einClean : einClean.slice(0,2) + '-' + einClean.slice(2);
 
-  // Save to user metadata
-  const { error } = await sb.auth.updateUser({ data: { ein: formatted, ein_status: 'pending', ein_submitted_at: new Date().toISOString() } });
-  if (error) { showToast('Error submitting EIN: ' + error.message); return; }
+  // Show checking state
+  showToast('🔍 Checking EIN with IRS records…');
 
-  // Also insert into verification_requests table for admin review
-  const meta = currentUser.user_metadata || {};
-  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  await sb2.from('verification_requests').upsert({
-    user_id: currentUser.id,
-    email: currentUser.email,
-    org_name: meta.entity_name || meta.org_name || meta.display_name || '',
-    ein: formatted,
-    status: 'pending',
-    submitted_at: new Date().toISOString()
-  }, { onConflict: 'user_id' });
+  try {
+    // Call our Vercel API to check against IRS / ProPublica
+    const res = await fetch('/api/verify-ein', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ein: formatted })
+    });
+    const result = await res.json();
 
-  const { data: { user } } = await sb.auth.getUser();
-  currentUser = user;
-  showToast('🌺 EIN submitted for review!');
-  renderProfilePage();
+    if (result.verified) {
+      // Auto-verify! EIN found in IRS records
+      const { error } = await sb.auth.updateUser({ data: {
+        ein: formatted,
+        ein_status: 'verified',
+        ein_org_name: result.org_name,
+        ein_verified_at: new Date().toISOString()
+      }});
+      if (error) { showToast('Error saving: ' + error.message); return; }
+
+      // Mark all their listings as verified
+      const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      await sb2.from('listings').update({ verified: true }).eq('user_id', currentUser.id);
+
+      // Save to verification_requests for record keeping
+      await sb2.from('verification_requests').upsert({
+        user_id: currentUser.id,
+        email: currentUser.email,
+        org_name: result.org_name || (currentUser.user_metadata||{}).entity_name || '',
+        ein: formatted,
+        status: 'verified',
+        submitted_at: new Date().toISOString(),
+        reviewed_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+      const { data: { user } } = await sb.auth.getUser();
+      currentUser = user;
+      showToast('✅ Verified! ' + (result.org_name || 'Organization') + ' found in IRS records.');
+      renderProfilePage();
+    } else {
+      // Not found — save as pending for manual admin review
+      const { error } = await sb.auth.updateUser({ data: {
+        ein: formatted,
+        ein_status: 'pending',
+        ein_submitted_at: new Date().toISOString()
+      }});
+      if (error) { showToast('Error saving: ' + error.message); return; }
+
+      const meta = currentUser.user_metadata || {};
+      const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      await sb2.from('verification_requests').upsert({
+        user_id: currentUser.id,
+        email: currentUser.email,
+        org_name: meta.entity_name || meta.org_name || meta.display_name || '',
+        ein: formatted,
+        status: 'pending',
+        submitted_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+      const { data: { user } } = await sb.auth.getUser();
+      currentUser = user;
+      showToast('⏳ EIN not found in IRS records — submitted for manual review.');
+      renderProfilePage();
+    }
+  } catch(e) {
+    // API unavailable — fall back to manual review
+    const { error } = await sb.auth.updateUser({ data: {
+      ein: formatted,
+      ein_status: 'pending',
+      ein_submitted_at: new Date().toISOString()
+    }});
+    if (error) { showToast('Error saving: ' + error.message); return; }
+
+    const meta = currentUser.user_metadata || {};
+    const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    await sb2.from('verification_requests').upsert({
+      user_id: currentUser.id,
+      email: currentUser.email,
+      org_name: meta.entity_name || meta.org_name || meta.display_name || '',
+      ein: formatted,
+      status: 'pending',
+      submitted_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    const { data: { user } } = await sb.auth.getUser();
+    currentUser = user;
+    showToast('🌺 EIN submitted for manual review.');
+    renderProfilePage();
+  }
 }
 
 async function approveEIN(userId) {
