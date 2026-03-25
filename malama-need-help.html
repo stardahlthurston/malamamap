@@ -259,7 +259,6 @@ function renderList() {
           ${l.pet_friendly ? `<span class="shelter-badge">🐾 Pet friendly</span>` : ''}
         </div>` : ''}
         ${showItems.length ? `<div class="lc-tags">${showItems.map(i=>`<span class="lc-tag">${i}</span>`).join('')}${rawItems.length > 5 ? `<span class="lc-tag" style="background:#f0f0ec;color:var(--text-muted);">+${rawItems.length-5} more</span>` : ''}</div>` : ''}
-        ${acceptingItems.length ? `<div class="lc-tags" style="margin-top:4px;">${acceptingItems.slice(0,3).map(i=>`<span class="lc-tag-accept">${i}</span>`).join('')}${acceptingItems.length > 3 ? `<span class="lc-tag-accept" style="background:#f0f0ec;color:var(--text-muted);">+${acceptingItems.length-3} more</span>` : ''}</div>` : ''}
         <div class="lc-meta">
           ${l.hours ? `<span class="lc-meta-item">🕐 ${l.hours}</span>` : ''}
           ${l.contact_phone ? `<span class="lc-meta-item">📞 ${l.contact_phone}</span>` : ''}
