@@ -102,6 +102,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
   <div class="section">
     <p class="section-title">What are you offering?</p>
+    <p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.85rem;line-height:1.5;">If your location serves multiple roles, select all that apply — e.g. a supply station that also accepts donations.</p>
     <div class="type-grid" id="typeGrid">
       <div class="type-card" data-type="shelter" onclick="toggleType('shelter',this)" ontouchstart="">
         <span class="emoji">🏠</span><span class="type-name">Shelter</span><span class="type-desc">Housing displaced people</span>
@@ -211,9 +212,18 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     </div>
     <div class="field">
       <label>Full address <span style="color:var(--red);">*</span></label>
-      <input type="text" id="editAddress" placeholder="Start typing your address…" autocomplete="off"
+      <input type="text" id="editAddress" placeholder="Street address (e.g. 123 Main St)" autocomplete="off"
         oninput="onAddressInput(this.value)">
-      <p class="hint">Type your address — your neighborhood will auto-detect below.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+      <div class="field">
+        <label>City / Town</label>
+        <input type="text" id="editCity" placeholder="Auto-fills from zip" readonly style="background:#f9f9f7;">
+      </div>
+      <div class="field">
+        <label>Zip code <span style="color:var(--red);">*</span></label>
+        <input type="text" id="editZip" placeholder="96XXX" maxlength="5" oninput="onZipInput(this.value)">
+      </div>
     </div>
     <input type="hidden" id="editLocation">
     <div id="areaSuggestion" style="display:none;margin-bottom:1rem;">
@@ -433,7 +443,7 @@ function updateSections() {
   document.getElementById('skillsExtras').style.display = hasSkills ? 'block' : 'none';
   document.getElementById('medicalExtras').style.display = hasMedical ? 'block' : 'none';
   document.getElementById('givingItemsSection').style.display = (hasSupply || hasShelter) ? 'block' : 'none';
-  document.getElementById('acceptingItemsSection').style.display = (hasDonation || hasSupply || hasShelter) ? 'block' : 'none';
+  document.getElementById('acceptingItemsSection').style.display = hasDonation ? 'block' : 'none';
   document.getElementById('defaultItemsSection').style.display = (!hasSupply && !hasShelter && !hasDonation && !hasSkills && !hasMedical) ? 'block' : 'none';
   if (selectedTypes.size > 0) autoFillListingName([...selectedTypes][0]);
 }
@@ -546,15 +556,43 @@ function initAddressAutocomplete() {
 // ── ZIP → AREA LOOKUP ──
 const ZIP_TO_AREA = {"96701": "ʻAiea", "96706": "ʻEwa Beach", "96707": "Kapolei", "96708": "Makakilo", "96712": "Haleʻiwa", "96720": "Hawaiʻi Island — Hilo", "96730": "Kahuku", "96731": "Kahuku / Turtle Bay", "96734": "Kailua", "96740": "Hawaiʻi Island — Kona", "96744": "Kāneʻohe", "96748": "Molokaʻi", "96761": "Maui — Lahaina", "96762": "Lāʻie", "96763": "Lānaʻi", "96766": "Kauaʻi — Līhuʻe", "96768": "Maui — Wailuku", "96782": "Pearl City", "96786": "Wahiawā", "96789": "Mililani", "96791": "Waialua", "96792": "Waiʻanae / Māʻili / Nānākuli", "96793": "Maui — Kahului", "96795": "Waimānalo", "96797": "Waipahu / Waipiʻo", "96813": "Downtown Honolulu", "96814": "Makiki / Punchbowl", "96815": "Waikīkī", "96816": "Kaimukī", "96817": "Nuuanu / Pauoa / Liliha", "96818": "Āliamanu / Salt Lake", "96819": "Kalihi", "96821": "Aina Haina / Wailupe", "96822": "Mānoa / Makiki / Pauoa", "96825": "Hawaiʻi Kai", "96826": "Mōʻiliʻili / Kaimukī", "96853": "Diamond Head / Kahala", "96862": "Royal Kunia"};
 
+const ZIP_TO_CITY = {"96701":"Aiea","96706":"Ewa Beach","96707":"Kapolei","96708":"Kapolei","96712":"Haleiwa","96720":"Hilo","96730":"Kahuku","96731":"Kahuku","96734":"Kailua","96740":"Kailua-Kona","96744":"Kaneohe","96748":"Kaunakakai","96761":"Lahaina","96762":"Laie","96763":"Lanai City","96766":"Lihue","96768":"Wailuku","96782":"Pearl City","96786":"Wahiawa","96789":"Mililani","96791":"Waialua","96792":"Waianae","96793":"Kahului","96795":"Waimanalo","96797":"Waipahu","96813":"Honolulu","96814":"Honolulu","96815":"Honolulu","96816":"Honolulu","96817":"Honolulu","96818":"Honolulu","96819":"Honolulu","96821":"Honolulu","96822":"Honolulu","96825":"Honolulu","96826":"Honolulu","96853":"Honolulu","96862":"Kunia"};
+
+function onZipInput(val) {
+  val = val.replace(/\D/g,'');
+  if (val.length === 5) {
+    const city = ZIP_TO_CITY[val];
+    const cityField = document.getElementById('editCity');
+    if (city && cityField) cityField.value = city;
+    // Also trigger area detection
+    const area = ZIP_TO_AREA[val];
+    const sug = document.getElementById('areaSuggestion');
+    const bubbles = document.getElementById('areaBubbles');
+    if (area && sug && bubbles) {
+      const areas = area.split(' / ').map(a => a.trim());
+      if (areas.length === 1) {
+        selectArea(areas[0]);
+        bubbles.innerHTML = `<button type="button" class="area-bubble selected" onclick="selectArea('${areas[0]}')">${areas[0]}</button>`;
+      } else {
+        bubbles.innerHTML = areas.map(a => `<button type="button" class="area-bubble" onclick="selectArea('${a}')">${a}</button>`).join('');
+        document.getElementById('editLocation').value = '';
+      }
+      sug.style.display = 'block';
+    }
+  }
+}
+
 function onAddressInput(val) {
   const zipMatch = val.match(/96\d{3}/);
   if (!zipMatch) {
-    // Clear suggestions if no zip detected yet
     const sug = document.getElementById('areaSuggestion');
     if (sug) sug.style.display = 'none';
     return;
   }
   const zip = zipMatch[0];
+  // Auto-fill zip field if typed in address
+  const zipField = document.getElementById('editZip');
+  if (zipField && !zipField.value) { zipField.value = zip; onZipInput(zip); }
   const area = ZIP_TO_AREA[zip];
   const sug = document.getElementById('areaSuggestion');
   const bubbles = document.getElementById('areaBubbles');
@@ -638,7 +676,20 @@ async function loadEditListing(id) {
   const nameField = document.getElementById('editName');
   nameField.value = data.name || '';
   nameField.dataset.userEdited = 'true';
-  document.getElementById('editAddress').value = data.address || '';
+  // Parse address into street, city, zip
+  const fullAddr = data.address || '';
+  const zipMatch = fullAddr.match(/\b(96\d{3})\b/);
+  const editZip = document.getElementById('editZip');
+  const editCity = document.getElementById('editCity');
+  if (zipMatch && editZip) {
+    editZip.value = zipMatch[1];
+    onZipInput(zipMatch[1]);
+    // Remove city/state/zip from street address for the street field
+    const street = fullAddr.replace(/,?\s*([\w\sʻāēīōū]+),?\s*HI\s*96\d{3}/i, '').replace(/,\s*$/, '').trim();
+    document.getElementById('editAddress').value = street || fullAddr;
+  } else {
+    document.getElementById('editAddress').value = fullAddr;
+  }
   document.getElementById('editPhone').value = data.contact_phone || '';
   document.getElementById('editNotes').value = data.notes || '';
   document.getElementById('editWebsite').value = data.website || '';
@@ -756,11 +807,15 @@ async function saveListing() {
   const types = type.split(',').filter(Boolean);
   const primaryType = types[0];
   const name = document.getElementById('editName').value.trim();
-  const address = document.getElementById('editAddress').value.trim();
+  const streetAddr = document.getElementById('editAddress').value.trim();
+  const zip = document.getElementById('editZip')?.value.trim() || '';
+  const city = document.getElementById('editCity')?.value.trim() || '';
   if (!type) { showToast('Please select a listing type'); return; }
+  if (!streetAddr) { showToast('Please enter an address'); return; }
+  if (!zip || zip.length !== 5) { showToast('Please enter a valid 5-digit zip code'); return; }
   const location = document.getElementById('editLocation')?.value || '';
-  if (!address) { showToast('Please enter an address'); return; }
-  if (!location) { showToast('Please select a neighborhood — type your address first'); return; }
+  if (!location) { showToast('Please select a neighborhood — enter your zip code'); return; }
+  const address = city ? `${streetAddr}, ${city}, HI ${zip}` : `${streetAddr}, HI ${zip}`;
   if (!name) { showToast('Please enter a listing name'); return; }
 
   const btn = document.getElementById('submitBtn');
@@ -872,7 +927,7 @@ async function saveListing() {
 
 // ── DRAFT AUTO-SAVE / RESTORE ──
 const DRAFT_KEY = 'malama_create_draft';
-const DRAFT_FIELDS = ['editType','editName','editAddress','editLocation','editPhone','editNotes','editWebsite',
+const DRAFT_FIELDS = ['editType','editName','editAddress','editZip','editCity','editLocation','editPhone','editNotes','editWebsite',
   'editHoursOpen','editHoursClose','editDateFrom','editDateUntil','editCapacity','editPetFriendly',
   'editEventDate','editEventTime','editVolunteerNeeds','editContactEmail','editCustomItems',
   'givingCustomItems','acceptingCustomItems','editGivingUrl'];
