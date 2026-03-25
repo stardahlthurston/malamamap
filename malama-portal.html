@@ -896,7 +896,10 @@ function renderListingsPage() {
 
 function renderListingCard(l) {
   const expHrs = Math.max(0, Math.round((new Date(l.expires_at) - new Date()) / 3600000));
-  const items = Array.isArray(l.items) ? l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')) : [];
+  const rawItems = Array.isArray(l.items) ? l.items : [];
+  const givingItems = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
+  const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
+  const plainItems = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
   return `
     <div class="card" id="card-${l.id}">
       <div class="card-header">
@@ -923,7 +926,9 @@ function renderListingCard(l) {
           <div><p class="field-label">Hours</p><p class="field-value">${l.hours || '—'}</p></div>
           <div><p class="field-label">Type</p><p class="field-value">${TYPE_LABELS[l.type] || l.type}</p></div>
           <div><p class="field-label">Contact</p><p class="field-value">${l.contact_phone || currentUser.email}</p></div>
-          ${items.length ? `<div style="grid-column:1/-1;"><p class="field-label">Items</p><div class="items-wrap" style="margin-top:6px;">${items.map(i => `<span class="item-tag">${i}</span>`).join('')}</div></div>` : ''}
+          ${givingItems.length ? `<div style="grid-column:1/-1;"><p class="field-label" style="color:var(--sage-deep);">✅ Giving out</p><div class="items-wrap" style="margin-top:6px;">${givingItems.map(i => `<span class="item-tag" style="background:var(--sage-pale);color:var(--sage-deep);">${i}</span>`).join('')}</div></div>` : ''}
+          ${acceptingItems.length ? `<div style="grid-column:1/-1;"><p class="field-label" style="color:#c9983a;">📦 Accepting</p><div class="items-wrap" style="margin-top:6px;">${acceptingItems.map(i => `<span class="item-tag" style="background:#fdf4e3;color:#7a5c1a;">${i}</span>`).join('')}</div></div>` : ''}
+          ${plainItems.length ? `<div style="grid-column:1/-1;"><p class="field-label">Items</p><div class="items-wrap" style="margin-top:6px;">${plainItems.map(i => `<span class="item-tag">${i}</span>`).join('')}</div></div>` : ''}
           ${l.notes ? `<div style="grid-column:1/-1;"><p class="field-label">Notes</p><p class="field-value muted">${l.notes}</p></div>` : ''}
           ${l.website ? `<div><p class="field-label">Website</p><a href="${l.website}" target="_blank" class="field-link">${l.website.replace('https://','')}</a></div>` : ''}
           ${l.giving_url ? `<div><p class="field-label">Giving link</p><a href="${l.giving_url}" target="_blank" class="field-link giving-link">Donate online</a></div>` : ''}

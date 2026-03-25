@@ -799,8 +799,8 @@ async function saveListing() {
   } else if (hasType('supply_station') || hasType('donation_dropoff') || hasType('shelter')) {
     const gi = [...document.querySelectorAll('.giving-item:checked')].map(c=>'GIVING:'+c.value);
     const gc = smartSplit(document.getElementById('givingCustomItems')?.value||'').map(i=>'GIVING:'+i);
-    const ai = [...document.querySelectorAll('.accepting-item:checked')].map(c=>'ACCEPTING:'+c.value);
-    const ac = smartSplit(document.getElementById('acceptingCustomItems')?.value||'').map(i=>'ACCEPTING:'+i);
+    const ai = [...document.querySelectorAll('.accepting-item:checked')].map(c => c.value.startsWith('ACCEPTING:') ? c.value : 'ACCEPTING:'+c.value);
+    const ac = smartSplit(document.getElementById('acceptingCustomItems')?.value||'').map(i => i.startsWith('ACCEPTING:') ? i : 'ACCEPTING:'+i);
     items = [...gi,...gc,...ai,...ac];
   } else {
     const ci = [...document.querySelectorAll('.item-check:checked')].map(c=>c.value);
