@@ -656,28 +656,77 @@ async function loadEditListing(id) {
     if (locInput) locInput.value = data.location;
   }
 
-  // Load hours fields
+  // Load hours — try to parse back into dropdowns
   if (data.hours) {
+    const h = data.hours;
     const hoursOpen = document.getElementById('editHoursOpen');
-    if (hoursOpen) hoursOpen.value = data.hours.split(' – ')[0] || '';
+    const hoursClose = document.getElementById('editHoursClose');
+    if (h.includes('Open 24 hours')) { if (hoursOpen) hoursOpen.value = 'Open 24 hours'; }
+    else if (h.includes('Sunrise')) { if (hoursOpen) hoursOpen.value = 'Sunrise – Sunset'; }
+    else {
+      // Try to extract time range like "10:00 AM – 5:00 PM"
+      const timeMatch = h.match(/(\d{1,2}:\d{2}\s*[AP]M)\s*[–-]\s*(\d{1,2}:\d{2}\s*[AP]M)/i);
+      if (timeMatch && hoursOpen) {
+        hoursOpen.value = timeMatch[1].trim();
+        if (hoursClose) hoursClose.value = timeMatch[2].trim();
+      } else if (h.match(/\d{1,2}:\d{2}\s*[AP]M/) && hoursOpen) {
+        const singleTime = h.match(/(\d{1,2}:\d{2}\s*[AP]M)/i);
+        if (singleTime) hoursOpen.value = singleTime[1].trim();
+      }
+    }
+    // Check "until further notice"
+    if (h.includes('Until further notice')) {
+      const ufn = document.getElementById('untilFurtherNotice');
+      if (ufn) ufn.checked = true;
+    }
   }
 
-  // Load items into checkboxes
+  // Load date fields
+  if (data.hours) {
+    // Try to extract dates from hours string
+    const dateFromMatch = data.hours.match(/From\s+(\w+\s+\d+)/);
+    // Dates are hard to parse back — leave for user to re-enter if needed
+  }
+
+  // Show area suggestion if location is set
+  if (data.location) {
+    const sug = document.getElementById('areaSuggestion');
+    const bubbles = document.getElementById('areaBubbles');
+    if (sug && bubbles) {
+      bubbles.innerHTML = '<button type="button" class="area-bubble selected" onclick="selectArea(\'' + data.location + '\')">' + data.location + '</button>';
+      sug.style.display = 'block';
+    }
+  }
+
+  // Store lat/lng on address input
+  if (data.lat && data.lng) {
+    const addrInput = document.getElementById('editAddress');
+    if (addrInput) { addrInput.dataset.lat = data.lat; addrInput.dataset.lng = data.lng; }
+  }
+
+  // Load items into checkboxes — collect unmatched for custom fields
   const items = Array.isArray(data.items) ? data.items : [];
+  const unmatchedGiving = [], unmatchedAccepting = [], unmatchedDefault = [];
   items.forEach(item => {
     if (item.startsWith('GIVING:')) {
       const val = item.replace('GIVING:','');
       const cb = document.querySelector(`.giving-item[value="${val}"]`);
       if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+      else unmatchedGiving.push(val);
     } else if (item.startsWith('ACCEPTING:')) {
-      const val = item; // accepting checkboxes have ACCEPTING: in their value
-      const cb = document.querySelector(`.accepting-item[value="${val}"]`);
+      const cb = document.querySelector(`.accepting-item[value="${item}"]`);
       if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+      else unmatchedAccepting.push(item.replace('ACCEPTING:',''));
     } else {
       const cb = document.querySelector(`.item-check[value="${item}"]`) || document.querySelector(`.giving-item[value="${item}"]`);
       if (cb) { cb.checked = true; const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked'); }
+      else unmatchedDefault.push(item);
     }
   });
+  // Put unmatched items into custom text fields
+  if (unmatchedGiving.length) { const el = document.getElementById('givingCustomItems'); if (el) el.value = unmatchedGiving.join(', '); }
+  if (unmatchedAccepting.length) { const el = document.getElementById('acceptingCustomItems'); if (el) el.value = unmatchedAccepting.join(', '); }
+  if (unmatchedDefault.length) { const el = document.getElementById('editCustomItems'); if (el) el.value = unmatchedDefault.join(', '); }
 
   // Load other fields
   if (data.capacity) { const el = document.getElementById('editCapacity'); if (el) el.value = data.capacity; }
