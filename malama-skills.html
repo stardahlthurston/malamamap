@@ -20,8 +20,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;}
 .topbar-back{font-size:0.75rem;font-weight:700;color:white;text-decoration:none;display:flex;align-items:center;gap:4px;}
 .topbar-back:hover{color:rgba(255,255,255,0.8);}
-.add-btn{font-size:0.72rem;font-weight:700;color:white;background:var(--teal);border:none;padding:0.38rem 0.9rem;border-radius:100px;cursor:pointer;text-decoration:none;transition:background 0.2s;}
-.add-btn:hover{background:var(--teal-deep);}
+.topbar-right{display:flex;align-items:center;gap:0.5rem;}
+.topbar-btn{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.35rem 0.75rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.9);text-decoration:none;transition:all 0.2s;white-space:nowrap;}
+.topbar-btn:hover{background:rgba(255,255,255,0.1);}
+.topbar-btn.btn-add{background:rgba(255,255,255,0.12);}
+@media(max-width:600px){.topbar-btn{font-size:0.6rem;padding:0.3rem 0.6rem;}}
 
 .hero-bar{background:var(--teal);padding:1.25rem 1.5rem;color:white;}
 .hero-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;margin-bottom:0.25rem;color:white;}
@@ -99,10 +102,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     Back
   </a>
   <a href="index.html" class="topbar-logo"><img src="logo.png" alt="" style="height:28px;width:auto;margin-right:6px;vertical-align:middle;">Mālama Map</a>
-  <div style="display:flex;gap:0.5rem;align-items:center;">
-<a href="malama-need-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🆘 I need help</a>
-    <a href="malama-want-help.html" style="font-size:0.65rem;font-weight:700;color:white;text-decoration:none;padding:0.32rem 0.7rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);">🤝 I want to help</a>
-    <a href="malama-auth.html" class="add-btn" style="font-size:0.65rem;">+ Add myself</a>
+  <div class="topbar-right">
+    <a href="malama-auth.html" class="topbar-btn btn-add">+ Add listing</a>
+    <a href="malama-auth.html" class="topbar-btn">Log in</a>
   </div>
 </div>
 

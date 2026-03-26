@@ -20,6 +20,11 @@ body{font-family:'Nunito',sans-serif;background:#0d2a3d;color:var(--text-dark);m
 .topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;}
 .topbar-back{font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-decoration:none;display:flex;align-items:center;gap:4px;}
 .topbar-back:hover{color:white;}
+.topbar-right{display:flex;align-items:center;gap:0.5rem;}
+.topbar-btn{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.35rem 0.75rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.9);text-decoration:none;transition:all 0.2s;white-space:nowrap;}
+.topbar-btn:hover{background:rgba(255,255,255,0.1);}
+.topbar-btn.btn-add{background:rgba(255,255,255,0.12);}
+@media(max-width:600px){.topbar-btn{font-size:0.6rem;padding:0.3rem 0.6rem;}}
 .hero{padding:4rem 1.5rem 3rem;text-align:center;}
 .hero-eyebrow{font-size:0.72rem;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.75rem;}
 .hero-title{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:800;color:white;line-height:1.15;margin-bottom:0.75rem;}
@@ -69,7 +74,10 @@ body{font-family:'Nunito',sans-serif;background:#0d2a3d;color:var(--text-dark);m
     Home
   </a>
   <a href="index.html" class="topbar-logo"><img src="logo.png" alt="" style="height:28px;width:auto;margin-right:6px;vertical-align:middle;">Mālama Map</a>
-  <div style="width:60px;"></div>
+  <div class="topbar-right">
+    <a href="malama-auth.html" class="topbar-btn btn-add">+ Add listing</a>
+    <a href="malama-auth.html" class="topbar-btn">Log in</a>
+  </div>
 </div>
 <div class="hero">
   <p class="hero-eyebrow">Live impact</p>

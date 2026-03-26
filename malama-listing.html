@@ -24,6 +24,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .topbar-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:white;text-decoration:none;}
 .topbar-back{font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.85);text-decoration:none;display:flex;align-items:center;gap:5px;}
 .topbar-back:hover{color:white;}
+.topbar-right{display:flex;align-items:center;gap:0.5rem;}
+.topbar-btn{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.35rem 0.75rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.9);text-decoration:none;transition:all 0.2s;white-space:nowrap;}
+.topbar-btn:hover{background:rgba(255,255,255,0.1);}
+.topbar-btn.btn-add{background:rgba(255,255,255,0.12);}
+@media(max-width:600px){.topbar-btn{font-size:0.6rem;padding:0.3rem 0.6rem;}}
 
 /* LAYOUT */
 .page{max-width:680px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
@@ -138,7 +143,10 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     Back
   </a>
   <a href="index.html" class="topbar-logo"><img src="logo.png" alt="" style="height:28px;width:auto;margin-right:6px;vertical-align:middle;">Mālama Map</a>
-  <div style="width:60px;"></div>
+  <div class="topbar-right">
+    <a href="malama-auth.html" class="topbar-btn btn-add">+ Add listing</a>
+    <a href="malama-auth.html" class="topbar-btn">Log in</a>
+  </div>
 </div>
 
 <div class="page" id="pageContent">
