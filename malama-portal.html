@@ -364,6 +364,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <a class="sidebar-link" id="navProfile" href="#" onclick="event.preventDefault();showPage('profile')">Profile & Contact</a>
       <a class="sidebar-link" id="navInquiries" href="#" onclick="event.preventDefault();showPage('inquiries')" style="display:none;color:var(--sage);">📬 Inquiries</a>
       <a class="sidebar-link" id="navIssues" href="#" onclick="event.preventDefault();showPage('issues')" style="display:none;color:var(--red);">🚨 Issues</a>
+      <a class="sidebar-link" id="navCommunityNeeds" href="#" onclick="event.preventDefault();showPage('communityNeeds')" style="display:none;color:var(--sage);">📋 Community Needs</a>
       <a class="sidebar-link" id="navAdmin" href="#" onclick="event.preventDefault();showPage('admin')" style="display:none;color:var(--gold);">⭐ Admin Dashboard</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
@@ -758,6 +759,11 @@ function showPage(page) {
     renderIssuesPage();
     return;
   }
+  if (page === 'communityNeeds') {
+    document.getElementById('navCommunityNeeds').classList.add('active');
+    renderCommunityNeedsPage();
+    return;
+  }
   if (page === 'admin') {
     document.getElementById('navAdmin').classList.add('active');
     renderAdminPage();
@@ -909,6 +915,8 @@ async function init() {
   if (isAdmin(currentUser.id) || currentUser.email === 'stardahlthurston@gmail.com') {
     const adminNav = document.getElementById('navAdmin');
     if (adminNav) adminNav.style.display = 'flex';
+    const communityNeedsNav = document.getElementById('navCommunityNeeds');
+    if (communityNeedsNav) communityNeedsNav.style.display = 'flex';
     const inquiriesNav = document.getElementById('navInquiries');
     if (inquiriesNav) inquiriesNav.style.display = 'flex';
     const issuesNav = document.getElementById('navIssues');
@@ -3364,16 +3372,11 @@ async function renderAdminPage() {
       </table>
     </div>
 
-    <!-- COMMUNITY NEEDS SECTION -->
-    <div id="communityNeedsSection"><p style="color:var(--text-muted);font-size:0.85rem;">Loading community needs…</p></div>
   `;
 
   // Store listings globally for filtering
   window._adminAllListings = allListings;
   window._adminClaims = claims;
-
-  // Load community needs
-  loadAdminCommunityNeeds(sb2);
 }
 
 function renderAdminRows(listings, claims, ownerMap={}) {
@@ -3605,6 +3608,17 @@ function selectSkillsDir(dir) {
     seEl.style.cssText = 'padding:0.85rem;border:2px solid #7b5ea7;border-radius:12px;cursor:pointer;background:#f5f0ff;text-align:center;';
     ofEl.style.cssText = 'padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;';
   }
+}
+
+// ─── COMMUNITY NEEDS PAGE ───
+function renderCommunityNeedsPage() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.25rem;">Community Needs</h2>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">Manage posts from the community needs board.</p>
+    <div id="communityNeedsSection"><p style="color:var(--text-muted);font-size:0.85rem;">Loading community needs…</p></div>
+  `;
+  loadAdminCommunityNeeds(sb2);
 }
 
 // ─── COMMUNITY NEEDS ADMIN ───
