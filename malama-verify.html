@@ -182,6 +182,13 @@ async function submitVerification() {
       submitted_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
 
+    // Notify admin
+    fetch('/api/notify-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ org_name: orgName, org_link: orgLink, org_role: orgRole, email: currentUser.email })
+    }).catch(() => {});
+
     document.getElementById('verifyForm').style.display = 'none';
     document.getElementById('successCard').style.display = 'block';
   } catch(e) {
