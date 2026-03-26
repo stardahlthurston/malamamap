@@ -6,6 +6,8 @@
 <title>Mālama Map — I Want to Help</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="scripts/share-card.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -262,22 +264,28 @@ function renderList() {
           ${l.website ? `<a href="${l.website.startsWith('http')?l.website:'https://'+l.website}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
           ${l.giving_url ? `<a href="${l.giving_url.startsWith('http')?l.giving_url:'https://'+l.giving_url}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
         </div>
+        <button class="share-card-btn" data-id="${l.id}" onclick="event.preventDefault();event.stopPropagation();handleShare(this,'${l.id}')">
+          <svg viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M15 7l-5-5-5 5M10 2v11M4 13v3a2 2 0 002 2h8a2 2 0 002-2v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Share this listing
+        </button>
       </div>
     </div>`;
   }).join('');
 }
 
-function shareListing(id, name) {
-  const url = 'https://malamamap.org/malama-listing.html?id=' + id;
-  const text = name + ' — Find disaster relief resources at malamamap.org';
-  if (navigator.share) {
-    navigator.share({ title: name + ' — Mālama Map', text, url }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = event.target.closest('.share-card-btn');
-      if (btn) { const orig = btn.innerHTML; btn.textContent = 'Link copied!'; setTimeout(() => btn.innerHTML = orig, 2000); }
-    });
+async function handleShare(btn, id) {
+  const l = filtered.find(x => x.id === id) || allListings.find(x => x.id === id);
+  if (!l) return;
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Generating image…';
+  try {
+    await shareListingCard(l);
+  } catch(e) {
+    const url = 'https://malamamap.org/malama-listing.html?id=' + id;
+    navigator.clipboard.writeText(url).then(() => { btn.textContent = 'Link copied!'; });
   }
+  setTimeout(() => { btn.disabled = false; btn.innerHTML = orig; }, 2000);
 }
 
 function switchView(v, el) {
