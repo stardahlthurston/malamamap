@@ -37,10 +37,13 @@ export default async function handler(req, res) {
             <td style="padding:36px;">
               <p style="margin:0 0 16px;font-size:16px;color:#111;">Aloha!</p>
               <p style="margin:0 0 16px;font-size:15px;color:#333;line-height:1.6;">
-                Mahalo for submitting your claim request on Mālama Map. Before we transfer the listing to you, we need to quickly verify your organization.
+                We received your request to claim a listing on Mālama Map — mahalo for stepping up to manage your resource listing for our community.
+              </p>
+              <p style="margin:0 0 16px;font-size:15px;color:#333;line-height:1.6;">
+                We sincerely apologize — we are fixing bugs in real time as we build this platform during the relief effort, and some information from your original submission did not come through correctly on our end. This was entirely our mistake, not yours.
               </p>
               <p style="margin:0 0 28px;font-size:15px;color:#333;line-height:1.6;">
-                This takes less than 2 minutes — just click below and fill out a short form.
+                We need a bit of additional information to confirm your organization. This takes less than 2 minutes — just click below, log in to your portal, and fill out a short verification form.
               </p>
 
               <!-- Button -->
@@ -88,7 +91,7 @@ export default async function handler(req, res) {
       await resend.emails.send({
         from: 'Mālama Map <noreply@malamamap.org>',
         to: email,
-        subject: 'Verify your organization — Mālama Map',
+        subject: 'Action needed — please resubmit your listing claim 🌺',
         html: emailHtml
       });
       results.push({ email, success: true });
