@@ -80,6 +80,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .btn-go:hover{background:var(--sage);color:white;}
 .btn-volunteer{color:var(--purple);background:var(--purple-pale);border-color:#b8a0d8;}
 .btn-volunteer:hover{background:var(--purple);color:white;}
+.share-card-btn{width:100%;margin-top:0.6rem;padding:0.6rem;background:var(--sage-pale);color:var(--sage-deep);border:1.5px solid rgba(58,125,92,0.15);border-radius:10px;font-size:0.75rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.18s;}
+.share-card-btn:hover{background:var(--sage);color:white;border-color:var(--sage);}
 
 .event-date-badge{display:inline-flex;align-items:center;gap:5px;background:var(--purple-pale);color:var(--purple-deep);font-size:0.75rem;font-weight:700;padding:5px 12px;border-radius:100px;margin-bottom:0.6rem;}
 
@@ -260,10 +262,26 @@ function renderList() {
           ${l.website ? `<a href="${l.website.startsWith('http')?l.website:'https://'+l.website}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
           ${l.giving_url ? `<a href="${l.giving_url.startsWith('http')?l.giving_url:'https://'+l.giving_url}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
         </div>
-        
+        <button class="share-card-btn" onclick="event.preventDefault();event.stopPropagation();shareListing('${l.id}','${l.name.replace(/'/g,"\\'")}')">
+          <svg viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M15 7l-5-5-5 5M10 2v11M4 13v3a2 2 0 002 2h8a2 2 0 002-2v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Share this listing
+        </button>
       </div>
     </div>`;
   }).join('');
+}
+
+function shareListing(id, name) {
+  const url = 'https://malamamap.org/malama-listing.html?id=' + id;
+  const text = name + ' — Find disaster relief resources at malamamap.org';
+  if (navigator.share) {
+    navigator.share({ title: name + ' — Mālama Map', text, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = event.target.closest('.share-card-btn');
+      if (btn) { const orig = btn.innerHTML; btn.textContent = 'Link copied!'; setTimeout(() => btn.innerHTML = orig, 2000); }
+    });
+  }
 }
 
 function switchView(v, el) {
