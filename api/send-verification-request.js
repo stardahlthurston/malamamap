@@ -8,8 +8,7 @@ export default async function handler(req, res) {
   const verificationUrl = 'https://malamamap.org/malama-verify.html';
 
   const emails = [
-    'makyakane808@gmail.com',
-    'james@hoilinastrategies.com'
+    'dahlthurstonstar@gmail.com'
   ];
 
   const emailHtml = `
