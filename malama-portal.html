@@ -960,6 +960,7 @@ function renderListingsPage() {
   }
 
   const expiringListing = myListings.find(l => {
+    if (!l.status) return false;
     const hrs = (new Date(l.expires_at) - new Date()) / 3600000;
     return hrs < 24 && hrs > 0;
   });
@@ -3118,11 +3119,11 @@ async function renderAdminPage() {
   const inactive = allListings.filter(l => !l.status);
   const pendingApproval = allListings.filter(l => l.pending_approval);
   const expiringSoon = allListings.filter(l => {
-    if (!l.expires_at) return false;
+    if (!l.expires_at || !l.status) return false;
     const exp = new Date(l.expires_at);
     return exp > now && exp < soon;
   });
-  const expired = allListings.filter(l => l.expires_at && new Date(l.expires_at) < now);
+  const expired = allListings.filter(l => l.status && l.expires_at && new Date(l.expires_at) < now);
   const unclaimed = allListings.filter(l => isAdmin(l.user_id));
   const ownedByOthers = allListings.filter(l => l.user_id && !isAdmin(l.user_id) && l.user_id !== currentUser.id);
   const ownedByMe = allListings.filter(l => l.user_id === currentUser.id);
