@@ -326,7 +326,7 @@ async function submitNeed() {
   const area = document.getElementById('needArea').value;
   if (!area) { alert('Please select your neighborhood.'); return; }
   const firstName = document.getElementById('needFirstName').value.trim();
-  if (!firstName) { alert('Please enter your first name.'); return; }
+  if (contactPreference === 'email' && !firstName) { alert('Please enter your first name.'); return; }
 
   const contactEmail = document.getElementById('needEmail').value.trim();
   const dropoff = document.getElementById('needDropoff').value.trim();
