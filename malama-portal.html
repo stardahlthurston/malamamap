@@ -3356,7 +3356,7 @@ async function renderAdminPage() {
       <table class="admin-table" id="adminListingsTable">
         <thead><tr>
           <th>Status</th><th>Listing name</th><th>Area</th><th>Type</th><th>Shows on</th>
-          <th>Owner</th><th>Last updated</th><th>Expires</th><th>Contact log</th><th>Actions</th>
+          <th>Owner</th><th style="width:65px;">Updated</th><th style="width:65px;">Expires</th><th>Actions</th>
         </tr></thead>
         <tbody id="adminTableBody">
           ${renderAdminRows(allListings, claims, ownerMap)}
@@ -3420,10 +3420,6 @@ function renderAdminRows(listings, claims, ownerMap={}) {
       </td>
       <td style="color:var(--text-muted);font-size:0.75rem;">${updatedStr}</td>
       <td style="font-size:0.75rem;color:${isExpiring?'#c9983a':isExpired?'var(--red)':'var(--text-muted)'};">${expiresStr}</td>
-      <td>
-        <input class="contact-log-input" placeholder="Add note…" value="${(l.admin_notes||'')}"
-          onblur="saveAdminNote('${l.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
-      </td>
       <td style="white-space:nowrap;">
         <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);" onclick="openEditModal('${l.id}')">Edit</button>
         <button class="admin-action-btn" style="color:var(--gold);border-color:var(--gold);margin-left:3px;" onclick="extendListing('${l.id}')">+7d</button>
