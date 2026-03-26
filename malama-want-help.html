@@ -262,10 +262,6 @@ function renderList() {
           ${l.website ? `<a href="${l.website.startsWith('http')?l.website:'https://'+l.website}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
           ${l.giving_url ? `<a href="${l.giving_url.startsWith('http')?l.giving_url:'https://'+l.giving_url}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
         </div>
-        <button class="share-card-btn" onclick="event.preventDefault();event.stopPropagation();shareListing('${l.id}','${l.name.replace(/'/g,"\\'")}')">
-          <svg viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M15 7l-5-5-5 5M10 2v11M4 13v3a2 2 0 002 2h8a2 2 0 002-2v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Share this listing
-        </button>
       </div>
     </div>`;
   }).join('');
