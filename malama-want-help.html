@@ -280,7 +280,7 @@ async function handleShare(btn, id) {
   btn.disabled = true;
   btn.innerHTML = 'Generating image…';
   try {
-    await shareListingCard(l);
+    await shareListingCard(l, 'give');
   } catch(e) {
     const url = 'https://malamamap.org/malama-listing.html?id=' + id;
     navigator.clipboard.writeText(url).then(() => { btn.textContent = 'Link copied!'; });
