@@ -5,7 +5,7 @@ export default async function handler(req, res) {
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
-  const verificationUrl = 'https://malamamap.org/malama-portal.html';
+  const verificationUrl = 'https://malamamap.org/malama-verify.html';
 
   const emails = [
     'dahlthurstonstar@gmail.com'
