@@ -455,15 +455,19 @@ async function submitClaim() {
     console.warn('claim_requests table may not exist yet:', error.message);
   }
 
-  // Trigger notification email to admin via Supabase Edge Function (or just log)
-  // For now we also send via a simple fetch to a notification endpoint
-  try {
-    await fetch('https://wvplmqmqlnftlpyrqnle.supabase.co/functions/v1/notify-claim', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify(claimData)
-    });
-  } catch(e) { /* notification endpoint may not be set up yet — claim is saved to DB */ }
+  // Send notification email to admin
+  fetch('/api/notify-claim', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      listing_name: claimData.listing_name || listingName,
+      requester_first: claimData.requester_first,
+      requester_last: claimData.requester_last || '',
+      requester_email: claimData.requester_email,
+      requester_phone: claimData.requester_phone,
+      requester_role: claimData.requester_role || ''
+    })
+  }).catch(e => console.log('Notify error:', e));
 
   document.getElementById('claimFormInner').style.display = 'none';
   document.getElementById('claimSuccess').style.display = 'block';
