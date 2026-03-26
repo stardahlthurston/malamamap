@@ -138,15 +138,10 @@ async function init() {
   currentUser = session.user;
   const meta = currentUser.user_metadata || {};
 
-  // If they have an old EIN-based pending submission (has ein but no org_role),
-  // treat as not yet submitted on the new form
-  const hasOldEinOnly = meta.ein_status === 'pending' && meta.ein && !meta.org_role;
-
   if (meta.ein_status === 'verified') {
     document.getElementById('alreadyVerified').style.display = 'block';
-  } else if (meta.ein_status === 'pending' && !hasOldEinOnly) {
-    document.getElementById('pendingState').style.display = 'block';
   } else {
+    // Always show the form — even if pending, let them resubmit
     document.getElementById('verifyForm').style.display = 'block';
     // Pre-fill org name if available
     if (meta.entity_name) document.getElementById('orgName').value = meta.entity_name;
