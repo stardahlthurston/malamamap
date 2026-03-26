@@ -192,8 +192,24 @@ async function shareListingCard(listing, context) {
       + (listing.location ? '\n📍 ' + listing.location : '')
       + '\n\nTo see more or get in contact:\n' + listingUrl;
 
+    // Detect Instagram in-app browser — it can't handle file shares or blob downloads
+    const isInstagram = /Instagram/i.test(navigator.userAgent);
+
     canvas.toBlob(async (blob) => {
       const file = new File([blob], 'MalamaMap_' + safeName + '.png', { type: 'image/png' });
+
+      // Instagram in-app browser: just share the URL, not the image
+      if (isInstagram) {
+        const url = 'https://malamamap.org/malama-listing.html?id=' + listing.id;
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: listing.name + ' — Mālama Map', text: shareText, url: url });
+            return;
+          } catch(e) { if (e.name === 'AbortError') return; }
+        }
+        try { await navigator.clipboard.writeText(url); alert('Link copied! Paste it to share.'); } catch(e) { prompt('Copy this link:', url); }
+        return;
+      }
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
@@ -207,7 +223,7 @@ async function shareListingCard(listing, context) {
       link.download = 'MalamaMap_' + safeName + '.png';
       link.href = URL.createObjectURL(blob);
       link.click();
-      URL.revokeObjectURL(link.href);
+      setTimeout(() => URL.revokeObjectURL(link.href), 5000);
     }, 'image/png');
   } catch(e) {
     const url = 'https://malamamap.org/malama-listing.html?id=' + listing.id;
