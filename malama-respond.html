@@ -276,6 +276,7 @@ async function submitResponse() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        need_id: needData.id,
         need_type: (needData.needs || []).join(', '),
         need_area: needData.area,
         need_urgency: needData.urgency,

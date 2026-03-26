@@ -8,10 +8,12 @@ export default async function handler(req, res) {
 
   try {
     const {
-      need_type, need_area, need_urgency, need_note,
+      need_id, need_type, need_area, need_urgency, need_note,
       poster_name, poster_contact_preference, poster_email, dropoff_location,
       helper_name, helper_contact, helper_message
     } = req.body;
+
+    const metUrl = need_id ? `https://www.malamamap.org/malama-requests.html?met=${need_id}` : null;
 
     const urgencyLabel = need_urgency === 'urgent' ? '🔴 Urgent'
       : need_urgency === 'this_week' ? '🟡 This week'
@@ -51,6 +53,13 @@ export default async function handler(req, res) {
                 <a href="mailto:${helper_contact}" style="display:inline-block;background:#3a7d5c;color:white;text-decoration:none;padding:12px 28px;border-radius:100px;font-weight:700;font-size:14px;">Reply to ${helper_name}</a>
               </div>
             </div>
+
+            ${metUrl ? `
+            <div style="background:white;border-radius:14px;padding:20px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.06);text-align:center;">
+              <p style="font-size:13px;color:#8a827a;line-height:1.6;margin:0 0 12px;">If your need has been met, you can remove your post from the board:</p>
+              <a href="${metUrl}" style="display:inline-block;background:#3a7d5c;color:white;text-decoration:none;padding:12px 28px;border-radius:100px;font-weight:700;font-size:14px;">My need was met — remove from board</a>
+            </div>
+            ` : ''}
 
             <p style="color:#8a827a;font-size:12px;text-align:center;margin:0;">Mālama Map · malamamap.org</p>
           </div>
