@@ -1135,27 +1135,27 @@ function renderProfilePage() {
           <input class="profile-input" id="profWebsite" type="url" placeholder="https://yourchurch.org" value="${escHtml(meta.website || '')}">
         </div>
 
-        <!-- EIN Verification -->
+        <!-- Organization Verification -->
         <div style="margin-top:1rem;padding:1rem;background:${meta.ein_status === 'verified' ? '#edf7f1' : meta.ein_status === 'pending' ? '#fdf4e3' : '#f9f9f7'};border:1.5px solid ${meta.ein_status === 'verified' ? 'rgba(58,125,92,0.3)' : meta.ein_status === 'pending' ? 'rgba(201,152,58,0.3)' : 'var(--border)'};border-radius:12px;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;">
             <p style="font-size:0.85rem;font-weight:800;color:var(--text-dark);">${meta.ein_status === 'verified' ? '✅ Verified Organization' : meta.ein_status === 'pending' ? '⏳ Verification Pending' : '🔒 Get Verified'}</p>
             ${meta.ein_status === 'verified' ? '<span class="verified-badge">✓ Verified</span>' : ''}
           </div>
           <p style="font-size:0.75rem;font-weight:500;color:var(--text-mid);line-height:1.5;margin-bottom:0.75rem;">
-            ${meta.ein_status === 'verified' ? 'Your organization has been verified. A verified badge appears on all your listings.' : meta.ein_status === 'pending' ? 'Your EIN has been submitted and is awaiting review by the Mālama Map team.' : 'Submit your EIN (Employer Identification Number) to get a verified badge on your listings. This helps people trust your organization.'}
+            ${meta.ein_status === 'verified' ? 'Your organization has been verified. A verified badge appears on all your listings.' : meta.ein_status === 'pending' ? 'Your verification request has been submitted and is awaiting review by the Mālama Map team.' : 'Get a verified badge on your listings so people know your organization is legit.'}
           </p>
           ${meta.ein_status === 'verified' ? `
-            <p style="font-size:0.78rem;font-weight:600;color:var(--sage-deep);">EIN: ${escHtml(meta.ein || '')} · Verified ✓</p>
+            <p style="font-size:0.78rem;font-weight:600;color:var(--sage-deep);">${escHtml(meta.ein_org_name || meta.entity_name || '')} · Verified ✓</p>
           ` : meta.ein_status === 'pending' ? `
-            <p style="font-size:0.78rem;font-weight:600;color:#7a5c1a;">EIN: ${escHtml(meta.ein || '')} · Under review</p>
+            <p style="font-size:0.78rem;font-weight:600;color:#7a5c1a;">${escHtml(meta.entity_name || '')} · Under review</p>
           ` : `
             <div class="profile-field" style="margin-bottom:0;">
-              <p class="profile-label">EIN (XX-XXXXXXX)</p>
-              <div style="display:flex;gap:8px;">
-                <input class="profile-input" id="profEIN" type="text" placeholder="12-3456789" maxlength="10" style="flex:1;" value="${escHtml(meta.ein || '')}">
-                <button onclick="submitEIN()" style="padding:0.5rem 1.2rem;background:var(--sage);color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;">Submit for review</button>
-              </div>
-              <p style="font-size:0.7rem;font-weight:500;color:var(--text-muted);margin-top:4px;">Found on IRS documents or your organization's tax filing.</p>
+              <p class="profile-label">Organization name <span style="color:var(--red);">*</span></p>
+              <input class="profile-input" id="profOrgVerify" type="text" placeholder="e.g. Kaimana Community Church" style="margin-bottom:8px;" value="${escHtml(meta.entity_name || '')}">
+              <p style="font-size:0.7rem;font-weight:500;color:var(--text-muted);margin-bottom:8px;">We verify organizations through the Hawaii Business Registry. Make sure your org name matches your official registration.</p>
+              <p class="profile-label">Instagram or website (optional)</p>
+              <input class="profile-input" id="profOrgLink" type="text" placeholder="@yourorg or https://yourorg.com" style="margin-bottom:10px;" value="${escHtml(meta.org_link || '')}">
+              <button onclick="submitVerification()" style="padding:0.5rem 1.2rem;background:var(--sage);color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;">Submit for verification</button>
             </div>
           `}
         </div>
@@ -1362,6 +1362,37 @@ async function submitEIN() {
     showToast('🌺 EIN submitted for manual review.');
     renderProfilePage();
   }
+}
+
+async function submitVerification() {
+  const orgName = document.getElementById('profOrgVerify')?.value.trim();
+  const orgLink = document.getElementById('profOrgLink')?.value.trim();
+  if (!orgName) { showToast('Please enter your organization name'); return; }
+
+  showToast('Submitting for verification…');
+
+  const { error } = await sb.auth.updateUser({ data: {
+    entity_name: orgName,
+    org_link: orgLink,
+    ein_status: 'pending',
+    ein_submitted_at: new Date().toISOString()
+  }});
+  if (error) { showToast('Error: ' + error.message); return; }
+
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await sb2.from('verification_requests').upsert({
+    user_id: currentUser.id,
+    email: currentUser.email,
+    org_name: orgName,
+    ein: orgLink || 'N/A',
+    status: 'pending',
+    submitted_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+
+  const { data: { user } } = await sb.auth.getUser();
+  currentUser = user;
+  showToast('Submitted for verification! We\'ll review it soon.');
+  renderProfilePage();
 }
 
 async function approveEIN(userId) {
