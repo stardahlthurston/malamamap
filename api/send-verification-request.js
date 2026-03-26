@@ -5,9 +5,81 @@ export default async function handler(req, res) {
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
+  const verificationUrl = 'https://malamamap.org/malama-portal.html';
+
   const emails = [
     'dahlthurstonstar@gmail.com'
   ];
+
+  const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#0a7ea4;padding:28px 36px;">
+              <p style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">Mālama Map</p>
+              <p style="margin:6px 0 0;color:#cceeff;font-size:13px;">Community Relief Resources</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px;">
+              <p style="margin:0 0 16px;font-size:16px;color:#111;">Aloha!</p>
+              <p style="margin:0 0 16px;font-size:15px;color:#333;line-height:1.6;">
+                Mahalo for submitting your claim request on Mālama Map. Before we transfer the listing to you, we need to quickly verify your organization.
+              </p>
+              <p style="margin:0 0 28px;font-size:15px;color:#333;line-height:1.6;">
+                This takes less than 2 minutes — just click below and fill out a short form.
+              </p>
+
+              <!-- Button -->
+              <table cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+                <tr>
+                  <td style="background:#0a7ea4;border-radius:8px;">
+                    <a href="${verificationUrl}"
+                       style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">
+                      Verify My Organization
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.6;">
+                We verify all organizations through the Hawaii Business Registry to make sure our community resources stay in trusted hands.
+              </p>
+              <p style="margin:0;font-size:14px;color:#555;line-height:1.6;">
+                Mahalo for your patience as we build this platform in real time during the relief effort.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f0f0f0;padding:20px 36px;">
+              <p style="margin:0;font-size:12px;color:#999;text-align:center;">
+                — The Mālama Map Team &nbsp;&middot;&nbsp; <a href="https://malamamap.org" style="color:#0a7ea4;text-decoration:none;">malamamap.org</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
 
   const results = [];
 
@@ -16,47 +88,8 @@ export default async function handler(req, res) {
       await resend.emails.send({
         from: 'Mālama Map <noreply@malamamap.org>',
         to: email,
-        subject: 'Action needed — please resubmit your listing claim 🌺',
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f6f4;padding:32px 24px;">
-
-            <div style="background:linear-gradient(135deg,#1a3d2b,#3a7d5c);border-radius:16px;padding:28px 24px;text-align:center;margin-bottom:24px;">
-              <h1 style="color:white;font-size:24px;margin:0 0 6px;font-family:Georgia,serif;">Mālama Map</h1>
-              <p style="color:rgba(255,255,255,0.65);font-size:12px;margin:0;letter-spacing:0.1em;text-transform:uppercase;">Hawaiʻi helping Hawaiʻi</p>
-            </div>
-
-            <div style="background:white;border-radius:14px;padding:28px 24px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.06);">
-              <h2 style="color:#1a3d2b;font-size:20px;margin:0 0 12px;font-family:Georgia,serif;">Aloha!</h2>
-
-              <p style="color:#4a453f;font-size:15px;line-height:1.7;margin:0 0 16px;">We received your request to claim a listing on Mālama Map — mahalo for stepping up to manage your resource listing for our community.</p>
-
-              <p style="color:#4a453f;font-size:15px;line-height:1.7;margin:0 0 16px;">We sincerely apologize — we are fixing bugs in real time as we build this platform during the relief effort, and some information from your original submission did not come through correctly on our end. This was entirely our mistake, not yours.</p>
-
-              <div style="background:#fdf4e3;border-left:4px solid #c9983a;border-radius:0 10px 10px 0;padding:16px 18px;margin-bottom:24px;">
-                <p style="font-weight:700;color:#1a1a1a;margin:0 0 6px;font-size:14px;">What we need from you:</p>
-                <p style="color:#4a453f;font-size:14px;line-height:1.6;margin:0;">Please resubmit your claim request with your organization name, Instagram handle or website, and how you are connected to the listing. This helps us verify and transfer it to you quickly.</p>
-              </div>
-
-              <p style="color:#4a453f;font-size:15px;line-height:1.7;margin:0 0 20px;">If you already created a Mālama Map account, please log in — no need to create a new one. Your portal is waiting for you. Find the listing you want to claim and tap the claim button to resubmit.</p>
-
-              <div style="text-align:center;margin-bottom:16px;">
-                <a href="https://malamamap.org/malama-portal.html" style="display:inline-block;background:#3a7d5c;color:white;text-decoration:none;padding:14px 36px;border-radius:100px;font-weight:700;font-size:15px;">Go to my portal</a>
-              </div>
-
-              <div style="text-align:center;">
-                <a href="https://malamamap.org/malama-need-help.html" style="display:inline-block;background:white;color:#3a7d5c;text-decoration:none;padding:12px 28px;border-radius:100px;font-weight:700;font-size:14px;border:1.5px solid #3a7d5c;">Find my listing to claim</a>
-              </div>
-            </div>
-
-            <div style="background:white;border-radius:14px;padding:20px 24px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.06);">
-              <p style="color:#4a453f;font-size:14px;line-height:1.7;margin:0 0 8px;">Questions? Reply to this email or reach out directly:</p>
-              <p style="color:#3a7d5c;font-weight:700;font-size:14px;margin:0;">Instagram: <a href="https://instagram.com/stardahlthurston" style="color:#3a7d5c;">@stardahlthurston</a></p>
-            </div>
-
-            <p style="color:#8a827a;font-size:12px;text-align:center;margin:0 0 4px;">Mālama Map · malamamap.org</p>
-            <p style="color:#8a827a;font-size:12px;text-align:center;margin:0;">Hawaiʻi helping Hawaiʻi</p>
-          </div>
-        `
+        subject: 'Verify your organization — Mālama Map',
+        html: emailHtml
       });
       results.push({ email, success: true });
     } catch(err) {
