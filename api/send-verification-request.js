@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   const emails = [
-    'stardahlthurston@gmail.com'
+    'dahlthurstonstar@gmail.com'
   ];
 
   const results = [];
