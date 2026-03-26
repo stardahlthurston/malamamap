@@ -355,7 +355,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <div class="sidebar-section">
       <p class="sidebar-label">My Listings</p>
       <a class="sidebar-link active" id="navListings" href="#" onclick="event.preventDefault();showPage('listings')">My Listings</a>
-      <a class="sidebar-link" href="malama-create.html">+ Add new listing</a>
+      <a class="sidebar-link" href="malama-create.html?new=1">+ Add new listing</a>
     </div>
     <hr class="sidebar-divider">
     <div class="sidebar-section">
@@ -1027,13 +1027,13 @@ function renderListingsPage() {
     main.innerHTML = `
       <div class="page-header">
         <div><h1 class="page-title">My Listings</h1><p class="page-subtitle">You don't have any listings yet</p></div>
-        <a class="btn btn-primary" href="malama-create.html">+ Add your first listing</a>
+        <a class="btn btn-primary" href="malama-create.html?new=1">+ Add your first listing</a>
       </div>
       <div class="empty-state">
         <div style="font-size:2.5rem;margin-bottom:1rem;">🗺️</div>
         <h3>Add your first listing</h3>
         <p>Create a listing to appear on the Mālama Map so people know where to go.</p>
-        <a class="btn btn-primary" href="malama-create.html">+ Add listing</a>
+        <a class="btn btn-primary" href="malama-create.html?new=1">+ Add listing</a>
       </div>`;
     return;
   }
@@ -1048,7 +1048,7 @@ function renderListingsPage() {
     <div class="page-header">
       <div><h1 class="page-title">My Listings</h1>
       <p class="page-subtitle">${getDisplayName(currentUser)} · ${myListings.length} listing${myListings.length > 1 ? 's' : ''} · ${myListings.filter(l => l.status).length} open</p></div>
-      <a class="btn btn-primary" href="malama-create.html">+ Add new listing</a>
+      <a class="btn btn-primary" href="malama-create.html?new=1">+ Add new listing</a>
     </div>
     ${expiringListing ? `<div class="expiry-banner"><div style="font-size:1.4rem;">⏳</div><p class="expiry-text"><strong>A listing expires soon.</strong> Renew it to keep your pin active on the map.</p></div>` : ''}
     <div class="stats-row">

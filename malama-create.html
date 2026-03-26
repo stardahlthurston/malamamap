@@ -178,7 +178,12 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       <div class="field"><label>Describe your event</label><input type="text" id="otherEventText" placeholder="e.g. Community garden restoration"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Event date</label><input type="date" id="editEventDate"></div>
+      <div class="field"><label>Event date</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="date" id="editEventDate" style="flex:1;">
+          <button type="button" id="ongoingToggle" onclick="toggleOngoing()" style="padding:0.5rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid #ddd;background:white;color:var(--text-muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
+        </div>
+      </div>
       <div class="field"><label>Start time</label>
         <select id="editEventTime"><option value="">Select time</option><option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option></select>
       </div>
@@ -476,6 +481,29 @@ const TYPE_LABELS_CREATE = {
 };
 
 const selectedTypes = new Set();
+function toggleOngoing() {
+  const dateInput = document.getElementById('editEventDate');
+  const btn = document.getElementById('ongoingToggle');
+  const isActive = btn.dataset.active === 'true';
+  if (isActive) {
+    btn.dataset.active = 'false';
+    btn.style.borderColor = '#ddd';
+    btn.style.background = 'white';
+    btn.style.color = 'var(--text-muted)';
+    dateInput.disabled = false;
+    dateInput.style.opacity = '';
+    dateInput.value = '';
+  } else {
+    btn.dataset.active = 'true';
+    btn.style.borderColor = '#3a7d5c';
+    btn.style.background = '#edf7f1';
+    btn.style.color = '#3a7d5c';
+    dateInput.disabled = true;
+    dateInput.style.opacity = '0.4';
+    dateInput.value = 'ongoing';
+  }
+}
+
 function toggleType(type, el) {
   if (selectedTypes.has(type)) {
     selectedTypes.delete(type);
@@ -900,6 +928,7 @@ async function init() {
   // Check for edit mode
   const params = new URLSearchParams(window.location.search);
   const editId = params.get('edit');
+  const forceNew = params.get('new');
   if (editId) {
     loadEditListing(editId);
     // Clear any saved draft so "Add new listing" starts fresh next time
@@ -907,7 +936,12 @@ async function init() {
   } else {
     // New listing — make sure no edit ID is lingering
     window._editListingId = null;
-    restoreFormDraft();
+    // If ?new=1 or coming from "Add new listing" button, clear any stale draft
+    if (forceNew) {
+      try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+    } else {
+      restoreFormDraft();
+    }
     // Auto-save form on every input/change (only for new listings, not edits)
     document.addEventListener('input', saveDraft);
     document.addEventListener('change', saveDraft);
@@ -1045,7 +1079,7 @@ async function loadEditListing(id) {
   // Load other fields
   if (data.capacity) { const el = document.getElementById('editCapacity'); if (el) el.value = data.capacity; }
   if (data.pet_friendly) { const el = document.getElementById('editPetFriendly'); if (el) el.value = 'true'; }
-  if (data.event_date) { const el = document.getElementById('editEventDate'); if (el) el.value = data.event_date; }
+  if (data.event_date === 'ongoing') { toggleOngoing(); } else if (data.event_date) { const el = document.getElementById('editEventDate'); if (el) el.value = data.event_date; }
   if (data.volunteer_needs) { const el = document.getElementById('editVolunteerNeeds'); if (el) el.value = data.volunteer_needs; }
   if (data.contact_email) { const el = document.getElementById('editContactEmail'); if (el) el.value = data.contact_email; }
   if (data.giving_url) {
@@ -1228,7 +1262,7 @@ async function saveListing() {
     accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked||false,
     capacity: document.getElementById('editCapacity')?.value||null,
     pet_friendly: document.getElementById('editPetFriendly')?.value==='true',
-    event_date: document.getElementById('editEventDate')?.value||null,
+    event_date: document.getElementById('ongoingToggle')?.dataset.active === 'true' ? 'ongoing' : (document.getElementById('editEventDate')?.value||null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
     expires_at: new Date(Date.now()+72*3600000).toISOString()
   };
