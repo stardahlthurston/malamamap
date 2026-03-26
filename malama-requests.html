@@ -251,10 +251,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <div class="success-msg" id="successMsg">
     <h3>🌺 Thank you for posting</h3>
     <p>Your need has been added to the board. Helpers and supply stations can now see what's needed in your area.</p>
-    <div id="metLinkWrap" style="margin-top:0.85rem;padding:0.75rem;background:white;border-radius:10px;border:1.5px solid rgba(58,125,92,0.2);">
-      <p style="font-size:0.72rem;font-weight:700;color:var(--sage-deep);margin-bottom:4px;">📌 Save this link</p>
-      <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">If your need gets met, use this link to remove it from the board right away.</p>
-      <a id="metLink" href="#" style="font-size:0.75rem;font-weight:700;color:var(--blue);word-break:break-all;"></a>
+    <div id="metLinkWrap" style="margin-top:0.85rem;padding:1rem 1.1rem;background:#fdf4e3;border:1.5px solid rgba(201,152,58,0.35);border-radius:12px;text-align:left;">
+      <p style="font-size:0.82rem;font-weight:800;color:#7a5c1a;margin-bottom:4px;">⚠️ Screenshot this before you leave</p>
+      <p style="font-size:0.75rem;font-weight:500;color:#9a7430;margin-bottom:10px;line-height:1.5;">This is the only way to remove your post early if your need gets met. There's no account — this link is your only key.</p>
+      <div style="background:white;border-radius:8px;padding:0.6rem 0.85rem;border:1px solid rgba(201,152,58,0.2);font-size:0.72rem;font-weight:700;color:#2a6496;word-break:break-all;margin-bottom:8px;" id="metLinkDisplay"></div>
+      <button onclick="copyMetLink()" id="copyBtn" style="width:100%;padding:0.6rem;background:#c9983a;color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;">Copy link</button>
     </div>
     <button onclick="resetForm()" style="margin-top:0.75rem;font-size:0.8rem;font-weight:700;color:var(--sage);background:none;border:none;cursor:pointer;">Post another need</button>
   </div>
@@ -380,12 +381,26 @@ async function submitNeed() {
 
   // Show met link
   const metUrl = `${window.location.origin}${window.location.pathname}?met=${inserted.id}`;
-  document.getElementById('metLink').href = metUrl;
-  document.getElementById('metLink').textContent = metUrl;
+  document.getElementById('metLinkDisplay').textContent = metUrl;
+  window._metUrl = metUrl;
 
   document.getElementById('postForm').style.display = 'none';
   document.getElementById('successMsg').style.display = 'block';
   await loadNeeds();
+}
+
+function copyMetLink() {
+  const url = window._metUrl;
+  if (!url) return;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied!';
+    btn.style.background = '#3a7d5c';
+    setTimeout(() => {
+      btn.textContent = 'Copy link';
+      btn.style.background = '#c9983a';
+    }, 2000);
+  });
 }
 
 function resetForm() {
