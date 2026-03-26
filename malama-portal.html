@@ -406,36 +406,45 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <input type="hidden" id="editType" value="">
 
     <div id="eventExtras" style="display:none;">
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7b5ea7;margin-bottom:0.4rem;margin-top:0.5rem;">🙋 Volunteer Event Details</p>
       <p class="modal-label">Event date</p>
-      <input type="date" class="modal-input" id="editEventDate">
-      <p class="modal-label">What kind of volunteers are needed?</p>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:0.5rem;">
+        <input type="date" class="modal-input" id="editEventDate" style="flex:1;margin-bottom:0;">
+        <button type="button" id="ongoingToggle" onclick="toggleOngoing()" style="padding:0.5rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid #ddd;background:white;color:var(--text-muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
+      </div>
+    </div>
+    <div id="volunteerNeedsExtras" style="display:none;">
+      <p class="modal-label" id="volunteerNeedsLabel">What kind of volunteers are needed?</p>
       <input type="text" class="modal-input" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing">
     </div>
     <div id="shelterExtras" style="display:none;">
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2a6496;margin-bottom:0.4rem;margin-top:0.5rem;">🏠 Shelter Details</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
         <div><p class="modal-label">Capacity</p><input type="number" class="modal-input" id="editCapacity" placeholder="50"></div>
         <div><p class="modal-label">Pet friendly?</p><select class="modal-input" id="editPetFriendly"><option value="false">No pets</option><option value="true">Yes</option></select></div>
       </div>
     </div>
     <div id="dropoffToggle" style="display:none;">
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#3a7d5c;margin-bottom:0.4rem;margin-top:0.5rem;">🛖 Supply Station Details</p>
       <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;cursor:pointer;">
         <input type="checkbox" id="acceptingDropoffs" style="accent-color:var(--sage);width:15px;height:15px;"> Also accepting donation drop-offs
       </label>
     </div>
     <div id="skillsExtras" style="display:none;">
-      <p class="modal-label">Are you offering or looking for skills?</p>
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2e6b6b;margin-bottom:0.4rem;margin-top:0.5rem;">🔧 Skills & Labor Details</p>
+      <p class="modal-label">Are you providing or looking for skills?</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.85rem;">
         <div id="dirOffering" onclick="selectSkillsDir('offering')"
           style="padding:0.85rem;border:2px solid var(--sage);border-radius:12px;cursor:pointer;background:var(--sage-pale);text-align:center;">
           <div style="font-size:1.3rem;margin-bottom:4px;">🙌</div>
-          <p style="font-size:0.82rem;font-weight:700;color:var(--sage-deep);">I'm offering</p>
-          <p style="font-size:0.68rem;color:var(--sage);margin-top:2px;">I have skills to give</p>
+          <p style="font-size:0.82rem;font-weight:700;color:var(--sage-deep);">I have skills</p>
+          <p style="font-size:0.68rem;color:var(--sage);margin-top:2px;">I can help with labor</p>
         </div>
         <div id="dirSeeking" onclick="selectSkillsDir('seeking')"
           style="padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;">
           <div style="font-size:1.3rem;margin-bottom:4px;">🔍</div>
-          <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);">I'm looking for</p>
-          <p style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">I need skilled help</p>
+          <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);">I need help</p>
+          <p style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">Looking for skilled help</p>
         </div>
       </div>
       <input type="hidden" id="editSkillsDirection" value="offering">
@@ -781,31 +790,92 @@ function showPage(page) {
 // ══════════════════════════════════════
 // TYPE SELECTION
 // ══════════════════════════════════════
+let selectedTypes = [];
+
 function selectType(type) {
-  document.getElementById('editType').value = type;
   const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#fff3ee',medical_assistance:'#fdf0ee'};
   const colorMap = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
+
+  // If called with a comma-separated string (loading existing), set all at once
+  if (type.includes(',')) {
+    selectedTypes = type.split(',').map(t => t.trim()).filter(Boolean);
+  } else {
+    // Toggle this type
+    const idx = selectedTypes.indexOf(type);
+    if (idx >= 0) selectedTypes.splice(idx, 1);
+    else selectedTypes.push(type);
+  }
+
+  document.getElementById('editType').value = selectedTypes.join(',');
+
+  // Highlight selected cards
   document.querySelectorAll('.type-card').forEach(c => {
-    const sel = c.dataset.type === type;
-    c.style.borderColor = sel ? (colorMap[type] || '#3a7d5c') : '#ddd';
-    c.style.background = sel ? (bgMap[type] || 'white') : 'white';
+    const t = c.dataset.type;
+    const sel = selectedTypes.includes(t);
+    c.style.borderColor = sel ? (colorMap[t] || '#3a7d5c') : '#ddd';
+    c.style.background = sel ? (bgMap[t] || 'white') : 'white';
   });
-  document.getElementById('eventExtras').style.display = type === 'volunteer_event' ? 'block' : 'none';
-  document.getElementById('shelterExtras').style.display = type === 'shelter' ? 'block' : 'none';
-  document.getElementById('dropoffToggle').style.display = type === 'supply_station' ? 'block' : 'none';
-  document.getElementById('skillsExtras').style.display = type === 'skills_labor' ? 'block' : 'none';
+
+  // Show extras if any selected type needs them
+  document.getElementById('eventExtras').style.display = selectedTypes.includes('volunteer_event') ? 'block' : 'none';
+  document.getElementById('volunteerNeedsExtras').style.display = (selectedTypes.includes('volunteer_event') || selectedTypes.includes('skills_labor')) ? 'block' : 'none';
+  document.getElementById('shelterExtras').style.display = selectedTypes.includes('shelter') ? 'block' : 'none';
+  document.getElementById('dropoffToggle').style.display = selectedTypes.includes('supply_station') ? 'block' : 'none';
+  document.getElementById('skillsExtras').style.display = selectedTypes.includes('skills_labor') ? 'block' : 'none';
   const itemsSection = document.getElementById('itemsSection');
-  if (itemsSection) itemsSection.style.display = (type === 'skills_labor' || type === 'medical_assistance') ? 'none' : 'block';
+  const allSkillsMedical = selectedTypes.every(t => t === 'skills_labor' || t === 'medical_assistance');
+  if (itemsSection) itemsSection.style.display = (selectedTypes.length && allSkillsMedical) ? 'none' : 'block';
   // Show/hide volunteer toggle
-  showVolToggle(type);
+  const primaryType = selectedTypes[selectedTypes.length - 1] || '';
+  showVolToggle(primaryType);
   // Dynamic items section title
   const itemsTitle = document.getElementById('itemsSectionTitle');
   if (itemsTitle) {
     const ACCEPTING_TYPES = ['donation_dropoff','accepting'];
-    itemsTitle.textContent = ACCEPTING_TYPES.includes(type) ? "What you're accepting" : "What you're offering";
+    const hasAccepting = selectedTypes.some(t => ACCEPTING_TYPES.includes(t));
+    itemsTitle.textContent = hasAccepting ? "What you're accepting" : "What you're offering";
+  }
+  // Update volunteer needs label based on selected types
+  const volLabel = document.getElementById('volunteerNeedsLabel');
+  if (volLabel) {
+    if (selectedTypes.includes('skills_labor') && selectedTypes.includes('volunteer_event')) {
+      volLabel.textContent = 'What skills do you need?';
+      document.getElementById('editVolunteerNeeds').placeholder = 'e.g. Plumbing, electrical, construction';
+    } else if (selectedTypes.includes('skills_labor')) {
+      volLabel.textContent = 'What skills do you need?';
+      document.getElementById('editVolunteerNeeds').placeholder = 'e.g. Plumbing, electrical, construction';
+    } else {
+      volLabel.textContent = 'What kind of volunteers are needed?';
+      document.getElementById('editVolunteerNeeds').placeholder = 'e.g. Mud removal, debris clearing';
+    }
   }
   // Auto-fill name if not user-edited
-  autoFillModalName(type);
+  autoFillModalName(primaryType);
+}
+
+function toggleOngoing() {
+  const dateInput = document.getElementById('editEventDate');
+  const btn = document.getElementById('ongoingToggle');
+  const isOngoing = btn.dataset.active === 'true';
+  if (isOngoing) {
+    // Turn off ongoing
+    btn.dataset.active = 'false';
+    btn.style.borderColor = '#ddd';
+    btn.style.background = 'white';
+    btn.style.color = 'var(--text-muted)';
+    dateInput.disabled = false;
+    dateInput.style.opacity = '1';
+    dateInput.value = '';
+  } else {
+    // Turn on ongoing
+    btn.dataset.active = 'true';
+    btn.style.borderColor = '#3a7d5c';
+    btn.style.background = '#edf7f1';
+    btn.style.color = '#3a7d5c';
+    dateInput.value = 'ongoing';
+    dateInput.disabled = true;
+    dateInput.style.opacity = '0.4';
+  }
 }
 
 const MODAL_TYPE_LABELS = {
@@ -1530,9 +1600,15 @@ async function openEditModal(id) {
   document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor = '#ddd'; c.style.background = 'white'; });
   // Hide all extras
   document.getElementById('eventExtras').style.display = 'none';
+  document.getElementById('volunteerNeedsExtras').style.display = 'none';
   document.getElementById('shelterExtras').style.display = 'none';
   document.getElementById('dropoffToggle').style.display = 'none';
   document.getElementById('skillsExtras').style.display = 'none';
+  // Reset ongoing toggle
+  const ongoingBtn = document.getElementById('ongoingToggle');
+  if (ongoingBtn) { ongoingBtn.dataset.active = 'false'; ongoingBtn.style.borderColor = '#ddd'; ongoingBtn.style.background = 'white'; ongoingBtn.style.color = 'var(--text-muted)'; }
+  const dateInput = document.getElementById('editEventDate');
+  if (dateInput) { dateInput.disabled = false; dateInput.style.opacity = '1'; dateInput.value = ''; }
   document.getElementById('itemsSection').style.display = 'none';
   // Clear day pills
   clearDayPills();
@@ -1679,16 +1755,21 @@ async function openEditModal(id) {
       document.getElementById('editGivingUrl').value = '';
     }
 
-    // Type-specific extras
-    if (l.type === 'volunteer_event') {
-      if (l.event_date) document.getElementById('editEventDate').value = l.event_date;
+    // Type-specific extras (support comma-separated multi-type)
+    const typeStr = l.type || '';
+    if (typeStr.includes('volunteer_event')) {
+      if (l.event_date === 'ongoing') {
+        toggleOngoing(); // sets the toggle to active
+      } else if (l.event_date) {
+        document.getElementById('editEventDate').value = l.event_date;
+      }
       if (l.volunteer_needs) document.getElementById('editVolunteerNeeds').value = l.volunteer_needs;
     }
-    if (l.type === 'shelter') {
+    if (typeStr.includes('shelter')) {
       if (l.capacity) document.getElementById('editCapacity').value = l.capacity;
       document.getElementById('editPetFriendly').value = String(l.pet_friendly || false);
     }
-    if (l.type === 'supply_station' && l.accepting_dropoffs) {
+    if (typeStr.includes('supply_station') && l.accepting_dropoffs) {
       document.getElementById('acceptingDropoffs').checked = true;
     }
 
@@ -1706,6 +1787,8 @@ async function openEditModal(id) {
     nameFieldReset.dataset.autoFilled = 'false';
     nameFieldReset.placeholder = 'Auto-fills after selecting type & address';
     document.getElementById('editType').value = '';
+    selectedTypes = [];
+    document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor = '#ddd'; c.style.background = 'white'; });
     clearAreaSuggestion();
     // Reset volunteer toggle
     const volCb = document.getElementById('needsVolunteers');
@@ -1869,7 +1952,7 @@ async function saveListing() {
     accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked || false,
     capacity: document.getElementById('editCapacity')?.value || null,
     pet_friendly: document.getElementById('editPetFriendly')?.value === 'true',
-    event_date: document.getElementById('editEventDate')?.value || null,
+    event_date: document.getElementById('ongoingToggle')?.dataset.active === 'true' ? 'ongoing' : (document.getElementById('editEventDate')?.value || null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim() || null,
     expires_at: new Date(Date.now() + 72 * 3600000).toISOString(),
     user_id: currentUser.id

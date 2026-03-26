@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "malama-preview",
-      "runtimeExecutable": "/usr/bin/ruby",
-      "runtimeArgs": ["-run", "-e", "httpd", ".", "-p", "8080"],
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["/Users/stardahl-thurston/Desktop/MALAMA_MAP_CODE/.claude/worktrees/wizardly-cori/.claude/serve.sh"],
       "port": 8080
     }
   ]
