@@ -41,6 +41,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--sage-light);}
 .type-badge{display:inline-block;font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:100px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);}
 .verified-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(42,100,150,0.3);border:1px solid rgba(90,159,212,0.4);color:#9dd4f5;}
+.nonprofit-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(91,62,138,0.25);border:1px solid rgba(123,94,167,0.4);color:#c9b3f0;}
 .admin-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(201,152,58,0.25);border:1px solid rgba(201,152,58,0.4);color:#ffd98a;}
 
 /* INFO SECTION */
@@ -343,7 +344,7 @@ function renderListing(l) {
           ${l.status ? '<div class="status-dot"></div> Open now' : 'Closed'}
         </span>
         <span class="type-badge">${typeLabel}</span>
-        ${l.verified ? '<span class="verified-badge">✓ Verified</span>' : ''}
+        ${l.verified ? '<span class="verified-badge">✓ Verified Org</span>' : ''}${l.nonprofit ? '<span class="nonprofit-badge">✦ Certified Nonprofit</span>' : ''}
         ${isAdmin ? '<span class="admin-badge">⭐ Mālama Map</span>' : ''}
       </div>
       ${ownerActions}

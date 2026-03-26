@@ -252,7 +252,7 @@ function renderList() {
         <div class="lc-badges">
           <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Open' : 'Closed'}</span>
           <span class="pill ${l.type==='volunteer_event'?'pill-event':l.type==='donation_dropoff'?'pill-dropoff':l.type==='supply_station'?'pill-supply':l.type==='shelter'?'pill-shelter':l.type==='medical_assistance'?'pill-medical':l.type==='skills_labor'?'pill-skills':'pill-dropoff'}">${TYPE_LABELS[l.type] || l.type}</span>
-          ${l.verified ? `<span class="pill" style="background:var(--blue-pale);color:var(--blue-deep);">✓ Verified</span>` : ''}
+          ${l.verified ? `<span class="pill" style="background:var(--blue-pale);color:var(--blue-deep);">✓ Verified Org</span>` : ''}${l.nonprofit ? `<span class="pill" style="background:#f3eeff;color:#5b3e8a;">✦ Nonprofit</span>` : ''}
         </div>
       </div>
       <div class="lc-body">
