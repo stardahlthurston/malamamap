@@ -24,12 +24,12 @@ function detectContext(listing) {
 function getTheme(context, listingType) {
   if (context === 'need') {
     return {
-      bg1: '#1e3d2f', bg2: '#132b20',       // outer background gradient — deep forest
-      header1: '#1a3d2b', header2: '#275c42', // card header gradient — rich sage
+      bg1: '#142d42', bg2: '#0d1f30',         // outer background — deep ocean blue
+      header1: '#153550', header2: '#1a4a72',  // card header — rich blue
       headline: 'Looking for help?',
-      ctaBg: '#edf7f1', ctaText: '#275c42',   // bottom CTA box
-      pillBg: 'rgba(106,185,138,0.3)', pillColor: '#a8f0c8', pillBorder: 'rgba(106,185,138,0.4)',
-      accentLight: '#e3f4f7', accentDeep: '#0d4d5a',
+      ctaBg: '#eaf3fb', ctaText: '#1a4a72',    // bottom CTA box — soft blue
+      pillBg: 'rgba(77,160,212,0.3)', pillColor: '#a8daf5', pillBorder: 'rgba(77,160,212,0.4)',
+      accentLight: '#eaf3fb', accentDeep: '#1a4a72',
     };
   }
   // 'give' context
@@ -167,7 +167,7 @@ async function shareListingCard(listing, context) {
 
   await new Promise(r => setTimeout(r, 300));
 
-  const bgColor = context === 'need' ? '#132b20' : '#2a1c10';
+  const bgColor = context === 'need' ? '#0d1f30' : '#2a1c10';
 
   try {
     const canvas = await html2canvas(container, {
