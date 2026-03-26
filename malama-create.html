@@ -135,7 +135,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
         <span class="emoji">📦</span><span class="type-name">Donation Drop-off</span><span class="type-desc">Collecting community donations</span>
       </div>
       <div class="type-card" data-type="volunteer_event" onclick="toggleType('volunteer_event',this)" ontouchstart="">
-        <span class="emoji">🙋</span><span class="type-name">Volunteer Event</span><span class="type-desc">Cleanup day or community drive</span>
+        <span class="emoji">🙋</span><span class="type-name">Volunteers Needed</span><span class="type-desc">Cleanup days, community drives, group efforts</span>
+        <span class="type-hint" style="display:block;font-size:0.65rem;color:#999;margin-top:2px;line-height:1.3;">For specialized skills or labor (electricians, hauling, drainage, etc.) also select Skills &amp; Labor below.</span>
       </div>
       <div class="type-card type-full" data-type="skills_labor" onclick="toggleType('skills_labor',this)" ontouchstart="">
         <span class="emoji">🔧</span><span class="type-name">Skills & Labor</span><span class="type-desc">Offering skills, equipment or labor</span>
@@ -471,7 +472,7 @@ const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf
 
 const TYPE_LABELS_CREATE = {
   shelter:'Shelter', supply_station:'Supply Station', donation_dropoff:'Donation Drop-off',
-  volunteer_event:'Volunteer Event', skills_labor:'Skills & Labor', medical_assistance:'Medical Aid Station'
+  volunteer_event:'Volunteers Needed', skills_labor:'Skills & Labor', medical_assistance:'Medical Aid Station'
 };
 
 const selectedTypes = new Set();
@@ -901,13 +902,16 @@ async function init() {
   const editId = params.get('edit');
   if (editId) {
     loadEditListing(editId);
+    // Clear any saved draft so "Add new listing" starts fresh next time
+    try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
   } else {
+    // New listing — make sure no edit ID is lingering
+    window._editListingId = null;
     restoreFormDraft();
+    // Auto-save form on every input/change (only for new listings, not edits)
+    document.addEventListener('input', saveDraft);
+    document.addEventListener('change', saveDraft);
   }
-
-  // Auto-save form on every input/change
-  document.addEventListener('input', saveDraft);
-  document.addEventListener('change', saveDraft);
 
   // Track if user manually changes hours fields
   ['editHoursOpen','editHoursClose','editDateFrom','editDateUntil','untilFurtherNotice'].forEach(id => {

@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
   const typeLabels = {
     shelter: 'Shelter', supply_station: 'Supply Station',
-    donation_dropoff: 'Donation Drop-off', volunteer_event: 'Volunteer Event',
+    donation_dropoff: 'Donation Drop-off', volunteer_event: 'Volunteers Needed',
     skills_labor: 'Skills & Labor', medical_assistance: 'Medical Aid'
   };
 

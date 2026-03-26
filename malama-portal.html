@@ -399,14 +399,14 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <div class="type-card" data-type="shelter" onclick="selectType('shelter')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🏠</div><p style="font-size:0.82rem;font-weight:700;">Shelter</p></div>
       <div class="type-card" data-type="supply_station" onclick="selectType('supply_station')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🛖</div><p style="font-size:0.82rem;font-weight:700;">Supply Station</p></div>
       <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">📦</div><p style="font-size:0.82rem;font-weight:700;">Donation Drop-off</p></div>
-      <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🙋</div><p style="font-size:0.82rem;font-weight:700;">Volunteer Event</p></div>
+      <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🙋</div><p style="font-size:0.82rem;font-weight:700;">Volunteers Needed</p></div>
       <div class="type-card" data-type="skills_labor" onclick="selectType('skills_labor')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🔧</div><p style="font-size:0.82rem;font-weight:700;">Skills & Labor</p></div>
       <div class="type-card" data-type="medical_assistance" onclick="selectType('medical_assistance')" style="padding:0.9rem;border:2px solid #fcc;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🏥</div><p style="font-size:0.82rem;font-weight:700;">Medical Aid Station</p></div>
     </div>
     <input type="hidden" id="editType" value="">
 
     <div id="eventExtras" style="display:none;">
-      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7b5ea7;margin-bottom:0.4rem;margin-top:0.5rem;">🙋 Volunteer Event Details</p>
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7b5ea7;margin-bottom:0.4rem;margin-top:0.5rem;">🙋 Volunteers Needed Details</p>
       <p class="modal-label">Event date</p>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:0.5rem;">
         <input type="date" class="modal-input" id="editEventDate" style="flex:1;margin-bottom:0;">
@@ -723,7 +723,7 @@ const TYPE_LABELS = {
   shelter: '🏠 Shelter',
   supply_station: '🛖 Supply Station',
   donation_dropoff: '📦 Drop-off',
-  volunteer_event: '🙋 Volunteer Event',
+  volunteer_event: '🙋 Volunteers Needed',
   skills_labor: '🔧 Skills & Labor',
   medical_assistance: '🏥 Medical Aid',
   giving: 'Giving',
@@ -880,7 +880,7 @@ function toggleOngoing() {
 
 const MODAL_TYPE_LABELS = {
   shelter:'Shelter', supply_station:'Supply Station', donation_dropoff:'Donation Drop-off',
-  volunteer_event:'Volunteer Event', skills_labor:'Skills & Labor', medical_assistance:'Medical Aid Station'
+  volunteer_event:'Volunteers Needed', skills_labor:'Skills & Labor', medical_assistance:'Medical Aid Station'
 };
 
 function autoFillModalName(type) {
@@ -2044,7 +2044,7 @@ const TYPE_LABELS_SHARE = {
   shelter: '🏠 Shelter',
   supply_station: '🛖 Supply Station',
   donation_dropoff: '📦 Donation Drop-off',
-  volunteer_event: '🙋 Volunteer Event',
+  volunteer_event: '🙋 Volunteers Needed',
   skills_labor: '🔧 Skills & Labor',
   medical_assistance: '🏥 Medical Aid Station',
   giving: '🤝 Giving',

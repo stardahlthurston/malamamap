@@ -161,7 +161,7 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
   <button class="filter-chip" data-filter="shelter" onclick="setFilter('shelter',this)">🏠 Shelter</button>
   <button class="filter-chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">🛖 Supply Station</button>
   <button class="filter-chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Drop-Off</button>
-  <button class="filter-chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteer</button>
+  <button class="filter-chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteers Needed</button>
   <div class="filter-divider"></div>
   <!-- Area filter dropdown -->
   <select class="area-select" id="areaFilter" onchange="filterListings()">
@@ -307,7 +307,7 @@ const TYPE_COLORS = {
 };
 const TYPE_LABELS = {
   shelter:'🏠 Shelter', supply_station:'🛖 Supply Station', donation_dropoff:'📦 Drop-Off',
-  volunteer_event:'🙋 Volunteer', medical_assistance:'🏥 Medical',
+  volunteer_event:'🙋 Volunteers Needed', medical_assistance:'🏥 Medical',
   skills_labor:'🔧 Skills', giving:'Giving', accepting:'Accepting'
 };
 const NEEDS_TYPES = ['donation_dropoff','accepting'];
