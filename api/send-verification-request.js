@@ -26,9 +26,10 @@ export default async function handler(req, res) {
 
           <!-- Header -->
           <tr>
-            <td style="background:#0a7ea4;padding:28px 36px;">
-              <p style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">Mālama Map</p>
-              <p style="margin:6px 0 0;color:#cceeff;font-size:13px;">Community Relief Resources</p>
+            <td style="background:linear-gradient(135deg,#1a3d2b,#3a7d5c);padding:28px 36px;text-align:center;">
+              <img src="https://malamamap.org/logo.png" alt="Mālama Map" style="height:40px;width:auto;margin-bottom:8px;">
+              <p style="margin:0;color:#ffffff;font-size:22px;font-weight:700;font-family:Georgia,serif;">Mālama Map</p>
+              <p style="margin:6px 0 0;color:rgba(255,255,255,0.6);font-size:13px;letter-spacing:0.08em;">Community Relief Resources</p>
             </td>
           </tr>
 
@@ -49,9 +50,9 @@ export default async function handler(req, res) {
               <!-- Button -->
               <table cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
                 <tr>
-                  <td style="background:#0a7ea4;border-radius:8px;">
+                  <td style="background:#3a7d5c;border-radius:100px;">
                     <a href="${verificationUrl}"
-                       style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">
+                       style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">
                       Verify My Organization
                     </a>
                   </td>
@@ -69,9 +70,9 @@ export default async function handler(req, res) {
 
           <!-- Footer -->
           <tr>
-            <td style="background:#f0f0f0;padding:20px 36px;">
-              <p style="margin:0;font-size:12px;color:#999;text-align:center;">
-                — The Mālama Map Team &nbsp;&middot;&nbsp; <a href="https://malamamap.org" style="color:#0a7ea4;text-decoration:none;">malamamap.org</a>
+            <td style="background:#f0f7f4;padding:20px 36px;">
+              <p style="margin:0;font-size:12px;color:#8a827a;text-align:center;">
+                — The Mālama Map Team &nbsp;&middot;&nbsp; <a href="https://malamamap.org" style="color:#3a7d5c;text-decoration:none;font-weight:700;">malamamap.org</a>
               </p>
             </td>
           </tr>
