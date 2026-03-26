@@ -2,6 +2,28 @@
 // Generates a 1080x1920 share image for any listing, with native share + download fallback
 // Accepts context: 'need' (calming sage) or 'give' (warm amber/urgency)
 
+function showInAppBrowserOverlay() {
+  // Remove existing overlay if any
+  const existing = document.getElementById('inAppOverlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'inAppOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:2rem 1.5rem;max-width:340px;width:100%;text-align:center;font-family:Nunito,sans-serif;">
+      <div style="width:52px;height:52px;background:#edf7f1;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="#3a7d5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3 style="font-family:Georgia,serif;font-size:1.2rem;font-weight:800;color:#1a3d2b;margin:0 0 0.5rem;">Open in your browser</h3>
+      <p style="font-size:0.85rem;color:#8a827a;line-height:1.6;margin:0 0 1.25rem;">Sharing works best outside of Instagram. Tap the menu icon <strong style="font-size:1.1em;">⋯</strong> at the top right, then choose <strong>"Open in Safari"</strong> or <strong>"Open in Browser"</strong>.</p>
+      <button onclick="this.closest('#inAppOverlay').remove()" style="width:100%;padding:0.75rem;background:#3a7d5c;color:white;border:none;border-radius:100px;font-size:0.88rem;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">Got it</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+}
+
 const SHARE_TYPE_LABELS = {
   shelter:'Shelter', supply_station:'Supply Station',
   donation_dropoff:'Donation Drop-off', volunteer_event:'Volunteer Needed',
@@ -198,16 +220,9 @@ async function shareListingCard(listing, context) {
     canvas.toBlob(async (blob) => {
       const file = new File([blob], 'MalamaMap_' + safeName + '.png', { type: 'image/png' });
 
-      // Instagram in-app browser: just share the URL, not the image
+      // Instagram in-app browser: show overlay prompting to open in real browser
       if (isInstagram) {
-        const url = 'https://malamamap.org/malama-listing.html?id=' + listing.id;
-        if (navigator.share) {
-          try {
-            await navigator.share({ title: listing.name + ' — Mālama Map', text: shareText, url: url });
-            return;
-          } catch(e) { if (e.name === 'AbortError') return; }
-        }
-        try { await navigator.clipboard.writeText(url); alert('Link copied! Paste it to share.'); } catch(e) { prompt('Copy this link:', url); }
+        showInAppBrowserOverlay();
         return;
       }
 
