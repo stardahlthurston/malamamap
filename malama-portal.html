@@ -361,6 +361,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <p class="sidebar-label">Account</p>
       <a class="sidebar-link" id="navVolunteers" href="#" onclick="event.preventDefault();showPage('volunteers')">🙋 Volunteers</a>
       <a class="sidebar-link" id="navProfile" href="#" onclick="event.preventDefault();showPage('profile')">Profile & Contact</a>
+      <a class="sidebar-link" id="navInquiries" href="#" onclick="event.preventDefault();showPage('inquiries')" style="display:none;color:var(--sage);">📬 Inquiries</a>
       <a class="sidebar-link" id="navAdmin" href="#" onclick="event.preventDefault();showPage('admin')" style="display:none;color:var(--gold);">⭐ Admin Dashboard</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
@@ -742,6 +743,11 @@ function showPage(page) {
     loadVolunteerDashboard();
     return;
   }
+  if (page === 'inquiries') {
+    document.getElementById('navInquiries').classList.add('active');
+    renderInquiriesPage();
+    return;
+  }
   if (page === 'admin') {
     document.getElementById('navAdmin').classList.add('active');
     renderAdminPage();
@@ -893,6 +899,8 @@ async function init() {
   if (isAdmin(currentUser.id) || currentUser.email === 'stardahlthurston@gmail.com') {
     const adminNav = document.getElementById('navAdmin');
     if (adminNav) adminNav.style.display = 'flex';
+    const inquiriesNav = document.getElementById('navInquiries');
+    if (inquiriesNav) inquiriesNav.style.display = 'flex';
   }
   document.getElementById('userEmail').textContent = getGreeting(currentUser);
   collaborators = currentUser.user_metadata?.collaborators || [];
@@ -2941,6 +2949,38 @@ async function autoExpireListings(sb2) {
     return toClose.length;
   }
   return 0;
+}
+
+async function renderInquiriesPage() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);">Loading inquiries…</div>';
+
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: inquiries } = await sb2.from('contact_inquiries').select('*').order('submitted_at', { ascending: false });
+  const items = inquiries || [];
+
+  main.innerHTML = `
+    <div style="padding:1.5rem;">
+      <h1 class="page-title">📬 Inquiries</h1>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">${items.length} message${items.length !== 1 ? 's' : ''} received</p>
+      ${items.length === 0 ? '<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">No inquiries yet. When someone uses the contact form, their messages will appear here.</div>' : ''}
+      ${items.map(i => `
+      <div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:0.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+          <div>
+            <p style="font-weight:800;font-size:0.95rem;color:var(--sage-deep);margin:0;">${escHtml(i.first_name)} ${escHtml(i.last_name || '')}</p>
+            <a href="mailto:${escHtml(i.email)}" style="font-size:0.8rem;color:var(--blue);text-decoration:none;">${escHtml(i.email)}</a>
+          </div>
+          <span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">${new Date(i.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>
+        </div>
+        <div style="background:#f8f8f6;border-radius:10px;padding:0.85rem 1rem;">
+          <p style="font-size:0.85rem;color:var(--text-dark);line-height:1.65;margin:0;white-space:pre-wrap;">${escHtml(i.message)}</p>
+        </div>
+        <div style="margin-top:0.75rem;display:flex;gap:8px;">
+          <a href="mailto:${escHtml(i.email)}" class="admin-action-btn" style="color:white;background:var(--sage);border-color:var(--sage);padding:8px 18px;font-size:0.78rem;text-decoration:none;display:inline-block;">Reply</a>
+        </div>
+      </div>`).join('')}
+    </div>`;
 }
 
 async function renderAdminPage() {
