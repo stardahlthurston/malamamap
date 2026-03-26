@@ -3477,6 +3477,16 @@ async function saveAdminNote(id, note) {
 }
 
 async function toggleBadge(listingId, field, value, btn) {
+  // Instant visual toggle
+  if (field === 'verified') {
+    btn.style.color = value ? 'var(--blue)' : '#bbb';
+    btn.style.borderColor = value ? 'var(--blue)' : '#ddd';
+  } else {
+    btn.style.color = value ? '#5b3e8a' : '#bbb';
+    btn.style.borderColor = value ? '#5b3e8a' : '#ddd';
+  }
+  // Update onclick for next click
+  btn.setAttribute('onclick', `toggleBadge('${listingId}','${field}',${!value},this)`);
   try {
     const res = await fetch('/api/admin-action', {
       method: 'POST',
@@ -3486,8 +3496,16 @@ async function toggleBadge(listingId, field, value, btn) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
     showToast(value ? (field === 'nonprofit' ? '✦ Nonprofit badge added' : '✓ Verified badge added') : 'Badge removed');
-    setTimeout(renderAdminPage, 600);
   } catch(e) {
+    // Revert on failure
+    if (field === 'verified') {
+      btn.style.color = !value ? 'var(--blue)' : '#bbb';
+      btn.style.borderColor = !value ? 'var(--blue)' : '#ddd';
+    } else {
+      btn.style.color = !value ? '#5b3e8a' : '#bbb';
+      btn.style.borderColor = !value ? '#5b3e8a' : '#ddd';
+    }
+    btn.setAttribute('onclick', `toggleBadge('${listingId}','${field}',${value},this)`);
     showToast('Error: ' + e.message);
   }
 }
