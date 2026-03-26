@@ -140,8 +140,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
         <input type="text" id="helperName" placeholder="Kai">
       </div>
       <div class="field">
-        <label>Phone or email <span class="req">*</span></label>
-        <input type="text" id="helperContact" placeholder="808-555-1234 or kai@email.com">
+        <label>Your email <span class="req">*</span></label>
+        <input type="email" id="helperContact" placeholder="kai@email.com">
         <p class="hint">This will be shared with the person who posted the need.</p>
       </div>
       <div class="field">
@@ -261,7 +261,7 @@ async function submitResponse() {
     });
   } catch(e) { /* table may not exist yet */ }
 
-  // Send email notification to admin
+  // Send email notification — to poster directly if they chose email, otherwise to admin
   try {
     await fetch('/api/notify-help-offer', {
       method: 'POST',
@@ -272,7 +272,8 @@ async function submitResponse() {
         need_urgency: needData.urgency,
         need_note: needData.note,
         poster_name: needData.first_name,
-        poster_phone: needData.phone,
+        poster_contact_preference: needData.contact_preference || 'anonymous',
+        poster_email: needData.contact_email || null,
         helper_name: name,
         helper_contact: contact,
         helper_message: message
