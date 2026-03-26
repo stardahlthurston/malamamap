@@ -84,6 +84,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .area-bubble.selected { background:var(--sage); border-color:var(--sage); color:white; }
 
 .toast{display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--sage-deep);color:white;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.88rem;font-weight:700;z-index:900;white-space:nowrap;}
+.field-error{font-size:0.75rem;font-weight:700;color:var(--red);margin-bottom:6px;display:none;}
+.field-error.show{display:block;}
+.input-error{border-color:var(--red) !important;}
 @media(max-width:480px){
   .content{padding:1rem 0.85rem 3rem;}
   .page-title{font-size:1.3rem;}
@@ -224,14 +227,14 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     <p class="section-title">📍 Location & name</p>
     <div class="field">
       <label>Listing name</label>
-      <input type="text" id="editName" placeholder="Select a listing type above first">
+      <input type="text" id="editName" placeholder="Select a listing type above first" oninput="clearFieldError(this)">
       <div class="name-preview" id="namePreview"></div>
       <p class="hint" id="nameHint">Once you pick a type above, your name auto-fills as <strong>[Your name] — [Type]</strong>. You can always edit it.</p>
     </div>
     <div class="field">
       <label>Full address <span style="color:var(--red);">*</span></label>
       <input type="text" id="editAddress" placeholder="Street address (e.g. 123 Main St)" autocomplete="off"
-        oninput="onAddressInput(this.value)">
+        oninput="onAddressInput(this.value);clearFieldError(this)">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
       <div class="field">
@@ -240,13 +243,17 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       </div>
       <div class="field">
         <label>Zip code <span style="color:var(--red);">*</span></label>
-        <input type="text" id="editZip" placeholder="96XXX" maxlength="5" oninput="onZipInput(this.value)">
+        <input type="text" id="editZip" placeholder="96XXX" maxlength="5" oninput="onZipInput(this.value);clearFieldError(this)">
       </div>
     </div>
     <input type="hidden" id="editLocation">
     <div id="areaSuggestion" style="display:none;margin-bottom:1rem;">
       <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Neighborhood</p>
       <div id="areaBubbles" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      <button type="button" id="customAreaToggle" onclick="showCustomArea()" style="background:none;border:none;font-size:0.72rem;font-weight:600;color:var(--sage);cursor:pointer;margin-top:6px;font-family:'Nunito',sans-serif;padding:0;">Not seeing yours? Type it manually</button>
+      <div id="customAreaWrap" style="display:none;margin-top:8px;">
+        <input type="text" id="customAreaInput2" placeholder="Type your neighborhood or area" style="width:100%;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:10px;font-size:16px;font-family:'Nunito',sans-serif;" oninput="selectArea(this.value)">
+      </div>
     </div>
     <div class="field">
       <label>Contact phone</label>
@@ -641,7 +648,7 @@ function initAddressAutocomplete() {
   const ac = new google.maps.places.Autocomplete(input, {
     componentRestrictions: { country: 'us' },
     fields: ['formatted_address','geometry','address_components'],
-    types: ['address']
+    types: ['geocode']
   });
   ac.addListener('place_changed', function() {
     const place = ac.getPlace();
@@ -653,6 +660,14 @@ function initAddressAutocomplete() {
     }
     const city = getCity(place.address_components);
     if (city) input.dataset.city = city;
+    // Clear any error
+    clearFieldError(input);
+  });
+  // Allow users to just type without selecting from dropdown
+  input.addEventListener('blur', function() {
+    // If they typed something but didn't pick from dropdown, that's fine
+    // geocoding fallback will handle coordinates
+    if (input.value.trim()) clearFieldError(input);
   });
 }
 
@@ -837,6 +852,18 @@ function selectArea(area) {
   });
   const type = document.getElementById('editType')?.value;
   if (type) autoFillListingName(type);
+}
+
+function showCustomArea() {
+  const wrap = document.getElementById('customAreaWrap');
+  const toggle = document.getElementById('customAreaToggle');
+  if (wrap) wrap.style.display = 'block';
+  if (toggle) toggle.style.display = 'none';
+  // Deselect any bubble
+  document.querySelectorAll('.area-bubble').forEach(b => b.classList.remove('selected'));
+  document.getElementById('editLocation').value = '';
+  const input = document.getElementById('customAreaInput2');
+  if (input) input.focus();
 }
 
 function clearAreaSuggestion() {
@@ -1074,13 +1101,37 @@ async function saveListing() {
   const streetAddr = document.getElementById('editAddress').value.trim();
   const zip = document.getElementById('editZip')?.value.trim() || '';
   const city = document.getElementById('editCity')?.value.trim() || '';
-  if (!type) { showToast('Please select a listing type'); return; }
-  if (!streetAddr) { showToast('Please enter an address'); return; }
-  if (!zip || zip.length !== 5) { showToast('Please enter a valid 5-digit zip code'); return; }
-  const location = document.getElementById('editLocation')?.value || '';
-  if (!location) { showToast('Please select a neighborhood — enter your zip code'); return; }
+  clearAllErrors();
+  let hasError = false;
+  if (!type) {
+    showToast('Please select a listing type');
+    document.getElementById('typeGrid').scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+  const nameInput = document.getElementById('editName');
+  const addrField = document.getElementById('editAddress');
+  const zipField = document.getElementById('editZip');
+  if (!name) { showFieldError(nameInput, 'Please enter a listing name'); hasError = true; }
+  if (!streetAddr) { showFieldError(addrField, 'Please enter an address'); hasError = true; }
+  if (!zip || zip.length !== 5) { showFieldError(zipField, 'Please enter a valid 5-digit zip code'); hasError = true; }
+  let location = document.getElementById('editLocation')?.value || '';
+  // If no neighborhood set, try custom inputs
+  if (!location) {
+    const customInput = document.getElementById('customAreaInput');
+    const customInput2 = document.getElementById('customAreaInput2');
+    const customVal = customInput?.value.trim() || customInput2?.value.trim() || '';
+    if (customVal) {
+      location = customVal;
+      document.getElementById('editLocation').value = location;
+    }
+  }
+  if (!location && !hasError) {
+    const zipEl = document.getElementById('editZip');
+    showFieldError(zipEl, 'Please enter your zip code so we can detect your neighborhood');
+    hasError = true;
+  }
+  if (hasError) return;
   const address = city ? `${streetAddr}, ${city}, HI ${zip}` : `${streetAddr}, HI ${zip}`;
-  if (!name) { showToast('Please enter a listing name'); return; }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Publishing…';
@@ -1289,6 +1340,33 @@ function clearDraft() {
 function showToast(msg) {
   const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block';
   setTimeout(()=>t.style.display='none',3500);
+}
+
+function showFieldError(input, msg) {
+  if (!input) return;
+  // Find or create error element above the input
+  let err = input.parentElement.querySelector('.field-error');
+  if (!err) {
+    err = document.createElement('p');
+    err.className = 'field-error';
+    input.parentElement.insertBefore(err, input);
+  }
+  err.textContent = msg;
+  err.classList.add('show');
+  input.classList.add('input-error');
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function clearFieldError(input) {
+  if (!input) return;
+  input.classList.remove('input-error');
+  const err = input.parentElement.querySelector('.field-error');
+  if (err) err.classList.remove('show');
+}
+
+function clearAllErrors() {
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
 }
 
 function loadCustomItems() {
