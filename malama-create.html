@@ -658,9 +658,61 @@ function initAddressAutocomplete() {
 
 
 // ── ZIP → AREA LOOKUP ──
-const ZIP_TO_AREA = {"96701": "ʻAiea", "96706": "ʻEwa Beach", "96707": "Kapolei", "96708": "Makakilo", "96712": "Haleʻiwa", "96720": "Hawaiʻi Island — Hilo", "96730": "Kahuku", "96731": "Kahuku / Turtle Bay", "96734": "Kailua", "96740": "Hawaiʻi Island — Kona", "96744": "Kāneʻohe", "96748": "Molokaʻi", "96761": "Maui — Lahaina", "96762": "Lāʻie", "96763": "Lānaʻi", "96766": "Kauaʻi — Līhuʻe", "96768": "Maui — Wailuku", "96782": "Pearl City", "96786": "Wahiawā", "96789": "Mililani", "96791": "Waialua", "96792": "Waiʻanae / Māʻili / Nānākuli", "96793": "Maui — Kahului", "96795": "Waimānalo", "96797": "Waipahu / Waipiʻo", "96813": "Downtown Honolulu", "96814": "Makiki / Punchbowl", "96815": "Waikīkī", "96816": "Kaimukī", "96817": "Nuuanu / Pauoa / Liliha", "96818": "Āliamanu / Salt Lake", "96819": "Kalihi", "96821": "Aina Haina / Wailupe", "96822": "Mānoa / Makiki / Pauoa", "96825": "Hawaiʻi Kai", "96826": "Mōʻiliʻili / Kaimukī", "96853": "Diamond Head / Kahala", "96862": "Royal Kunia"};
+const ZIP_TO_AREA = {
+  // Oʻahu
+  "96701":"ʻAiea","96706":"ʻEwa Beach","96707":"Kapolei","96708":"Makakilo","96709":"Kapolei",
+  "96712":"Haleʻiwa","96717":"Hauʻula","96730":"Kahuku","96731":"Kahuku / Turtle Bay",
+  "96734":"Kailua","96744":"Kāneʻohe","96762":"Lāʻie","96782":"Pearl City",
+  "96786":"Wahiawā","96789":"Mililani","96791":"Waialua","96792":"Waiʻanae / Māʻili / Nānākuli",
+  "96795":"Waimānalo","96797":"Waipahu / Waipiʻo","96813":"Downtown Honolulu",
+  "96814":"Makiki / Punchbowl","96815":"Waikīkī","96816":"Kaimukī",
+  "96817":"Nuʻuanu / Pauoa / Liliha","96818":"Āliamanu / Salt Lake","96819":"Kalihi",
+  "96821":"Aina Haina / Wailupe","96822":"Mānoa / Makiki / Pauoa","96825":"Hawaiʻi Kai",
+  "96826":"Mōʻiliʻili / Kaimukī","96853":"Diamond Head / Kahala","96862":"Royal Kunia",
+  // Maui
+  "96708":"Makakilo","96732":"Maui — Haʻikū","96753":"Maui — Kīhei","96761":"Maui — Lahaina",
+  "96768":"Maui — Wailuku","96779":"Maui — Pāʻia","96790":"Maui — Kula",
+  "96793":"Maui — Kahului",
+  // Hawaiʻi Island (Big Island)
+  "96720":"Hawaiʻi Island — Hilo","96721":"Hawaiʻi Island — Hilo","96725":"Hawaiʻi Island — Holualoa",
+  "96726":"Hawaiʻi Island — Captain Cook","96727":"Hawaiʻi Island — Pāpaikou",
+  "96728":"Hawaiʻi Island — Honomū","96738":"Hawaiʻi Island — Waikoloa",
+  "96740":"Hawaiʻi Island — Kailua-Kona","96743":"Hawaiʻi Island — Kohala",
+  "96749":"Hawaiʻi Island — Keaʻau","96750":"Hawaiʻi Island — Kealakekua",
+  "96755":"Hawaiʻi Island — Hāwī","96760":"Hawaiʻi Island — Kurtistown",
+  "96770":"Hawaiʻi Island — Nāʻālehu","96771":"Hawaiʻi Island — Pāhoa",
+  "96772":"Hawaiʻi Island — Volcano","96773":"Hawaiʻi Island — Pāpaʻaloa",
+  "96774":"Hawaiʻi Island — Pepeʻekeo","96776":"Hawaiʻi Island — Paʻauilo",
+  "96777":"Hawaiʻi Island — Pāhala","96778":"Hawaiʻi Island — Pāhoa",
+  "96783":"Hawaiʻi Island — Pepeʻekeo","96785":"Hawaiʻi Island — Volcano",
+  // Kauaʻi
+  "96705":"Kauaʻi — Eleʻele","96714":"Kauaʻi — Princeville","96716":"Kauaʻi — Hanapēpē",
+  "96722":"Kauaʻi — Princeville","96741":"Kauaʻi — Kōloa","96746":"Kauaʻi — Kapaʻa",
+  "96747":"Kauaʻi — Kekaha","96751":"Kauaʻi — Keālia","96752":"Kauaʻi — Kekaha",
+  "96754":"Kauaʻi — Kīlauea","96756":"Kauaʻi — Kōloa","96765":"Kauaʻi — Lawai",
+  "96766":"Kauaʻi — Līhuʻe","96769":"Kauaʻi — Waimea",
+  // Molokaʻi & Lānaʻi
+  "96748":"Molokaʻi","96757":"Molokaʻi — Kaunakakai","96763":"Lānaʻi"
+};
 
-const ZIP_TO_CITY = {"96701":"Aiea","96706":"Ewa Beach","96707":"Kapolei","96708":"Kapolei","96712":"Haleiwa","96720":"Hilo","96730":"Kahuku","96731":"Kahuku","96734":"Kailua","96740":"Kailua-Kona","96744":"Kaneohe","96748":"Kaunakakai","96761":"Lahaina","96762":"Laie","96763":"Lanai City","96766":"Lihue","96768":"Wailuku","96782":"Pearl City","96786":"Wahiawa","96789":"Mililani","96791":"Waialua","96792":"Waianae","96793":"Kahului","96795":"Waimanalo","96797":"Waipahu","96813":"Honolulu","96814":"Honolulu","96815":"Honolulu","96816":"Honolulu","96817":"Honolulu","96818":"Honolulu","96819":"Honolulu","96821":"Honolulu","96822":"Honolulu","96825":"Honolulu","96826":"Honolulu","96853":"Honolulu","96862":"Kunia"};
+const ZIP_TO_CITY = {
+  "96701":"Aiea","96706":"Ewa Beach","96707":"Kapolei","96708":"Kapolei","96709":"Kapolei",
+  "96712":"Haleiwa","96717":"Hauula","96720":"Hilo","96721":"Hilo","96725":"Holualoa",
+  "96726":"Captain Cook","96727":"Papaikou","96728":"Honomu","96730":"Kahuku","96731":"Kahuku",
+  "96732":"Haiku","96734":"Kailua","96738":"Waikoloa","96740":"Kailua-Kona","96741":"Koloa",
+  "96743":"Kohala","96744":"Kaneohe","96746":"Kapaa","96747":"Kekaha","96748":"Kaunakakai",
+  "96749":"Keaau","96750":"Kealakekua","96751":"Kealia","96752":"Kekaha","96753":"Kihei",
+  "96754":"Kilauea","96755":"Hawi","96756":"Koloa","96757":"Kaunakakai","96760":"Kurtistown",
+  "96761":"Lahaina","96762":"Laie","96763":"Lanai City","96765":"Lawai","96766":"Lihue",
+  "96768":"Wailuku","96769":"Waimea","96770":"Naalehu","96771":"Pahoa","96772":"Volcano",
+  "96773":"Papaloa","96774":"Pepeekeo","96776":"Paauilo","96777":"Pahala","96778":"Pahoa",
+  "96779":"Paia","96782":"Pearl City","96783":"Pepeekeo","96785":"Volcano","96786":"Wahiawa",
+  "96789":"Mililani","96790":"Kula","96791":"Waialua","96792":"Waianae","96793":"Kahului",
+  "96795":"Waimanalo","96797":"Waipahu","96705":"Eleele","96714":"Princeville","96716":"Hanapepe",
+  "96722":"Princeville","96813":"Honolulu","96814":"Honolulu","96815":"Honolulu","96816":"Honolulu",
+  "96817":"Honolulu","96818":"Honolulu","96819":"Honolulu","96821":"Honolulu","96822":"Honolulu",
+  "96825":"Honolulu","96826":"Honolulu","96853":"Honolulu","96862":"Kunia"
+};
 
 // ── ALTERNATE HOURS ──
 let altHoursCount = 0;
@@ -722,17 +774,22 @@ function onZipInput(val) {
     const city = ZIP_TO_CITY[val];
     const cityField = document.getElementById('editCity');
     if (city && cityField) cityField.value = city;
-    // Also trigger area detection
     const area = ZIP_TO_AREA[val];
     const sug = document.getElementById('areaSuggestion');
     const bubbles = document.getElementById('areaBubbles');
-    if (area && sug && bubbles) {
-      const areas = area.split(' / ').map(a => a.trim());
-      if (areas.length === 1) {
-        selectArea(areas[0]);
-        bubbles.innerHTML = `<button type="button" class="area-bubble selected" onclick="selectArea('${areas[0]}')">${areas[0]}</button>`;
-      } else {
-        bubbles.innerHTML = areas.map(a => `<button type="button" class="area-bubble" onclick="selectArea('${a}')">${a}</button>`).join('');
+    if (sug && bubbles) {
+      if (area) {
+        const areas = area.split(' / ').map(a => a.trim());
+        if (areas.length === 1) {
+          selectArea(areas[0]);
+          bubbles.innerHTML = `<button type="button" class="area-bubble selected" onclick="selectArea('${areas[0]}')">${areas[0]}</button>`;
+        } else {
+          bubbles.innerHTML = areas.map(a => `<button type="button" class="area-bubble" onclick="selectArea('${a}')">${a}</button>`).join('');
+          document.getElementById('editLocation').value = '';
+        }
+      } else if (val.startsWith('96')) {
+        // Valid Hawaii zip but not in our map — let them type it
+        bubbles.innerHTML = `<input type="text" id="customAreaInput" placeholder="Type your neighborhood or area" style="width:100%;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:10px;font-size:16px;font-family:'Nunito',sans-serif;" oninput="selectArea(this.value)">`;
         document.getElementById('editLocation').value = '';
       }
       sug.style.display = 'block';
