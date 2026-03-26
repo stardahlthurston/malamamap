@@ -16,8 +16,9 @@ function showInAppBrowserOverlay() {
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="#3a7d5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <h3 style="font-family:Georgia,serif;font-size:1.2rem;font-weight:800;color:#1a3d2b;margin:0 0 0.5rem;">Open in your browser</h3>
-      <p style="font-size:0.85rem;color:#8a827a;line-height:1.6;margin:0 0 1.25rem;">Sharing works best outside of Instagram. Tap the menu icon <strong style="font-size:1.1em;">⋯</strong> at the top right, then choose <strong>"Open in Safari"</strong> or <strong>"Open in Browser"</strong>.</p>
-      <button onclick="this.closest('#inAppOverlay').remove()" style="width:100%;padding:0.75rem;background:#3a7d5c;color:white;border:none;border-radius:100px;font-size:0.88rem;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">Got it</button>
+      <p style="font-size:0.85rem;color:#8a827a;line-height:1.6;margin:0 0 1.25rem;">Sharing works best outside of Instagram. Tap below to open this page in your browser, or use the menu icon <strong style="font-size:1.1em;">⋯</strong> at the top right.</p>
+      <a href="${window.location.href}" target="_blank" rel="noopener" style="display:block;width:100%;padding:0.75rem;background:#3a7d5c;color:white;border:none;border-radius:100px;font-size:0.88rem;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;text-decoration:none;text-align:center;margin-bottom:0.6rem;box-sizing:border-box;">Open in browser</a>
+      <button onclick="this.closest('#inAppOverlay').remove()" style="width:100%;padding:0.75rem;background:transparent;color:#8a827a;border:1.5px solid rgba(0,0,0,0.1);border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:Nunito,sans-serif;">Dismiss</button>
     </div>
   `;
   document.body.appendChild(overlay);
