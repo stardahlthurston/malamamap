@@ -27,6 +27,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .topbar-right{display:flex;align-items:center;gap:0.75rem;}
 .topbar-link{font-size:0.72rem;font-weight:700;color:white;text-decoration:none;padding:0.38rem 0.85rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.5);transition:all 0.2s;}
 .topbar-link:hover{background:rgba(255,255,255,0.15);}
+.topbar-logo-img{height:28px;width:auto;margin-right:6px;vertical-align:middle;}
+@media(max-width:768px){.topbar-right{display:none !important;}}
 .add-btn{font-size:0.72rem;font-weight:700;color:white;background:var(--sage);border:none;padding:0.38rem 0.9rem;border-radius:100px;cursor:pointer;text-decoration:none;transition:background 0.2s;}
 .add-btn:hover{background:#275c42;}
 
@@ -109,7 +111,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Back
   </a>
-  <a href="index.html" class="topbar-logo">Mālama Map</a>
+  <a href="index.html" class="topbar-logo"><img src="logo.png" alt="" class="topbar-logo-img">Mālama Map</a>
   <div class="topbar-right" style="gap:0.5rem;">
     <a href="malama-map-view.html" class="topbar-link" style="font-size:0.68rem;">🗺️ All listings</a>
     <a href="malama-need-help.html" class="topbar-link" style="font-size:0.68rem;">🆘 I need help</a>
