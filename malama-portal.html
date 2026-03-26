@@ -3204,7 +3204,15 @@ async function renderAdminPage() {
       </div>
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:#2a6496;">${einRequests.length}</p>
-        <p class="admin-stat-label">EIN reviews</p>
+        <p class="admin-stat-label">Verification reviews</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:var(--blue);">${allListings.filter(l => l.verified && !l.nonprofit).length}</p>
+        <p class="admin-stat-label">Verified orgs</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:#5b3e8a;">${allListings.filter(l => l.nonprofit).length}</p>
+        <p class="admin-stat-label">Certified nonprofits</p>
       </div>
     </div>
 
