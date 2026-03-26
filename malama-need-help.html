@@ -6,8 +6,8 @@
 <title>Mālama Map — Find Help</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="scripts/share-card.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script defer src="scripts/share-card.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -127,8 +127,10 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .map-popup-btns .btn-secondary{background:white;color:var(--blue);border:1.5px solid var(--blue);}
 
 /* LOADING */
-.loading{text-align:center;padding:3rem;color:var(--text-muted);}
-.loading p{font-size:0.9rem;font-weight:600;}
+.loading{text-align:center;padding:4rem 2rem;color:var(--text-muted);}
+.loading p{font-size:0.9rem;font-weight:600;margin-top:1rem;}
+.spinner{width:36px;height:36px;border:3px solid rgba(42,100,150,0.15);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -177,7 +179,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <div id="listView">
   <div class="content">
-    <div class="loading" id="loading"><p>Finding resources near you… 🌺</p></div>
+    <div class="loading" id="loading"><div class="spinner"></div><p>Finding resources near you…</p></div>
     <div id="resultCount" class="result-count" style="display:none;"></div>
     <div id="listingsContainer"></div>
   </div>
@@ -348,8 +350,9 @@ function renderMarkers() {
       <text x="${w/2}" y="17" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="700" fill="white">${l.status ? label : 'Closed'}</text>
       <polygon points="${w/2-5},25 ${w/2},32 ${w/2+5},25" fill="${color}"/>
     </svg>`;
+    el.title = l.name + (l.location ? ' — ' + l.location : '');
     const marker = new window._AME({position:{lat:l.lat,lng:l.lng},map,title:l.name,content:el,zIndex:l.status?10:5});
-    marker.addListener('click', () => { switchView('list',document.querySelectorAll('.view-btn')[0]); });
+    marker.addListener('click', () => { window.location.href = 'malama-listing.html?id=' + l.id; });
     markers.push(marker);
   });
 }
