@@ -3017,8 +3017,18 @@ async function renderAdminPage() {
         <p class="admin-stat-label">Active listings</p>
       </div>
       <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:var(--sage-deep);">${allListings.length}</p>
+        <p class="admin-stat-label">Total listings</p>
+      </div>
+      <div class="admin-stat-card">
+        <p class="admin-stat-num" style="color:#2e6b6b;">${ownedByOthers.length}</p>
+        <p class="admin-stat-label">User-created</p>
+        <p style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Not admin-owned</p>
+      </div>
+      <div class="admin-stat-card" style="cursor:pointer;transition:border-color 0.2s;" onclick="document.getElementById('adminExpiringSoon')?.scrollIntoView({behavior:'smooth'})">
         <p class="admin-stat-num" style="color:var(--gold);">${expiringSoon.length}</p>
         <p class="admin-stat-label">Expiring soon</p>
+        <p style="font-size:0.62rem;color:var(--gold);margin-top:3px;">↓ View below</p>
       </div>
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:var(--red);">${expired.length}</p>
@@ -3027,10 +3037,6 @@ async function renderAdminPage() {
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:var(--blue);">${unclaimed.length}</p>
         <p class="admin-stat-label">Admin-owned</p>
-      </div>
-      <div class="admin-stat-card">
-        <p class="admin-stat-num" style="color:#2e6b6b;">${ownedByOthers.length}</p>
-        <p class="admin-stat-label">Community-owned</p>
       </div>
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:#d4580a;">${pendingApproval.length}</p>
@@ -3045,6 +3051,35 @@ async function renderAdminPage() {
         <p class="admin-stat-label">EIN reviews</p>
       </div>
     </div>
+
+    <!-- EXPIRING SOON -->
+    ${expiringSoon.length ? `
+    <div id="adminExpiringSoon">
+      <p class="admin-section-title">⏰ Expiring within 24 hours</p>
+      <div style="background:white;border:1.5px solid rgba(201,152,58,0.3);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Name</th><th>Location</th><th>Expires</th><th>Owner</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${expiringSoon.map(l => {
+            const exp = new Date(l.expires_at);
+            const hrsLeft = Math.round((exp - now) / (1000*60*60));
+            return `
+            <tr class="expiring-soon">
+              <td style="font-weight:700;">${escHtml(l.name)}</td>
+              <td style="color:var(--text-muted);font-size:0.78rem;">${escHtml(l.location || l.address || '—')}</td>
+              <td style="font-size:0.78rem;font-weight:700;color:var(--gold);">${hrsLeft}hr${hrsLeft!==1?'s':''} left</td>
+              <td style="font-size:0.75rem;color:var(--text-muted);">${ownerMap[l.user_id] || '—'}</td>
+              <td>
+                <button class="admin-action-btn" style="color:var(--sage);border-color:var(--sage);" onclick="extendListing('${l.id}')">+7 days</button>
+                <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);margin-left:4px;" onclick="editListing('${l.id}')">Edit</button>
+              </td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>` : '<div id="adminExpiringSoon"></div>'}
 
     <!-- PENDING EIN VERIFICATIONS -->
     ${einRequests.length ? `
