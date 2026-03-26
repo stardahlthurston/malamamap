@@ -129,6 +129,10 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       <div id="needNoteWrap" style="display:none;">
         <p class="need-note" id="needNote"></p>
       </div>
+      <div id="needDropoffWrap" style="display:none;margin-top:0.75rem;">
+        <p class="need-info-label">Where to bring resources</p>
+        <p class="need-note" id="needDropoff" style="font-style:normal;font-weight:600;"></p>
+      </div>
     </div>
 
     <!-- Response form -->
@@ -234,6 +238,11 @@ async function loadNeed() {
     document.getElementById('needNoteWrap').style.display = 'block';
   }
 
+  if (data.dropoff_location) {
+    document.getElementById('needDropoff').textContent = '📍 ' + data.dropoff_location;
+    document.getElementById('needDropoffWrap').style.display = 'block';
+  }
+
   document.getElementById('mainContent').style.display = 'block';
 }
 
@@ -274,6 +283,7 @@ async function submitResponse() {
         poster_name: needData.first_name,
         poster_contact_preference: needData.contact_preference || 'anonymous',
         poster_email: needData.contact_email || null,
+        dropoff_location: needData.dropoff_location || null,
         helper_name: name,
         helper_contact: contact,
         helper_message: message

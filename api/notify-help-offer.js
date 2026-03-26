@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     const {
       need_type, need_area, need_urgency, need_note,
-      poster_name, poster_contact_preference, poster_email,
+      poster_name, poster_contact_preference, poster_email, dropoff_location,
       helper_name, helper_contact, helper_message
     } = req.body;
 
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         from: 'Mālama Map <noreply@malamamap.org>',
         to: poster_email,
         replyTo: helper_contact,
-        subject: `Someone wants to help with your ${need_type || 'community need'} request`,
+        subject: `Someone wants to help! Contact them to connect`,
         html: `
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f6f4;padding:32px 24px;">
             <div style="background:linear-gradient(135deg,#1a3d2b,#3a7d5c);border-radius:16px;padding:24px;text-align:center;margin-bottom:24px;">
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     await resend.emails.send({
       from: 'Mālama Map <noreply@malamamap.org>',
       to: ADMIN_EMAIL,
-      subject: `${sendDirectToPostr ? '[Auto-sent] ' : '[Relay needed] '}Help offer: ${need_type || 'Community need'} in ${need_area || 'Hawaiʻi'}`,
+      subject: `${sendDirectToPostr ? '[Auto-sent] ' : '[Relay needed] '}Someone wants to help! ${need_type || 'Community need'} in ${need_area || 'Hawaiʻi'}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f6f4;padding:32px 24px;">
           <div style="background:linear-gradient(135deg,#1a3d2b,#3a7d5c);border-radius:16px;padding:24px;text-align:center;margin-bottom:24px;">
@@ -84,6 +84,7 @@ export default async function handler(req, res) {
               ${need_note ? `<tr><td style="padding:6px 0;color:#8a827a;vertical-align:top;">Note</td><td style="padding:6px 0;color:#4a453f;line-height:1.5;">"${need_note}"</td></tr>` : ''}
               <tr><td style="padding:6px 0;color:#8a827a;">Posted by</td><td style="padding:6px 0;font-weight:700;color:#1a1a1a;">${poster_name || 'Anonymous'}</td></tr>
               <tr><td style="padding:6px 0;color:#8a827a;">Preference</td><td style="padding:6px 0;font-weight:700;color:#1a1a1a;">${sendDirectToPostr ? '📧 Email (' + poster_email + ')' : '🔒 Anonymous'}</td></tr>
+              ${dropoff_location ? `<tr><td style="padding:6px 0;color:#8a827a;vertical-align:top;">Drop-off</td><td style="padding:6px 0;font-weight:700;color:#1a1a1a;">📍 ${dropoff_location}</td></tr>` : ''}
             </table>
 
             <div style="height:1px;background:#eee;margin:16px 0;"></div>

@@ -228,14 +228,20 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
         <label>Contact preference <span style="color:var(--red);">*</span></label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
           <button type="button" class="pref-chip active" data-pref="email" onclick="setContactPref('email',this)">📧 Email me</button>
-          <button type="button" class="pref-chip" data-pref="anonymous" onclick="setContactPref('anonymous',this)">🔒 Keep me anonymous</button>
+          <button type="button" class="pref-chip" data-pref="anonymous" onclick="setContactPref('anonymous',this)">🔒 Stay anonymous</button>
         </div>
       </div>
 
       <div class="field" id="emailFieldWrap" style="margin-top:0.75rem;">
         <label>Your email <span style="color:var(--red);">*</span></label>
         <input type="email" id="needEmail" placeholder="kai@email.com">
-        <p style="font-size:0.68rem;color:var(--text-muted);margin-top:3px;">Helpers' info will be sent here so you can decide who to connect with.</p>
+        <p style="font-size:0.68rem;color:var(--text-muted);margin-top:3px;">No one sees this publicly. Helpers' info will be sent here so you can decide who to connect with.</p>
+      </div>
+
+      <div class="field" id="anonFieldWrap" style="margin-top:0.75rem;display:none;">
+        <label>Where can resources go? <span style="color:var(--red);">*</span></label>
+        <input type="text" id="needDropoff" placeholder="e.g. Waiʻanae Community Center parking lot, behind the church on Farrington Hwy">
+        <p style="font-size:0.68rem;color:var(--text-muted);margin-top:3px;">Share a location where helpers can bring supplies or connect with people who need help. No personal info required.</p>
       </div>
     </div>
 
@@ -289,6 +295,7 @@ function setContactPref(pref, el) {
   document.querySelectorAll('.pref-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('emailFieldWrap').style.display = pref === 'email' ? 'block' : 'none';
+  document.getElementById('anonFieldWrap').style.display = pref === 'anonymous' ? 'block' : 'none';
 }
 
 function toggleNeed(el) {
@@ -321,8 +328,13 @@ async function submitNeed() {
   if (!firstName) { alert('Please enter your first name.'); return; }
 
   const contactEmail = document.getElementById('needEmail').value.trim();
+  const dropoff = document.getElementById('needDropoff').value.trim();
   if (contactPreference === 'email' && !contactEmail) {
     alert('Please enter your email so helpers can reach you.');
+    return;
+  }
+  if (contactPreference === 'anonymous' && !dropoff) {
+    alert('Please share where resources can go so helpers know where to bring supplies.');
     return;
   }
 
@@ -338,6 +350,7 @@ async function submitNeed() {
     first_name: firstName,
     contact_preference: contactPreference,
     contact_email: contactPreference === 'email' ? contactEmail : null,
+    dropoff_location: contactPreference === 'anonymous' ? dropoff : null,
     expires_at: new Date(Date.now() + 48 * 3600000).toISOString()
   };
 
@@ -380,8 +393,14 @@ function resetForm() {
   document.querySelectorAll('.need-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('needFirstName').value = '';
   document.getElementById('needEmail').value = '';
+  document.getElementById('needDropoff').value = '';
   document.getElementById('otherNeed').value = '';
   document.getElementById('otherWrap').style.display = 'none';
+  contactPreference = 'email';
+  document.querySelectorAll('.pref-chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('.pref-chip[data-pref="email"]').classList.add('active');
+  document.getElementById('emailFieldWrap').style.display = 'block';
+  document.getElementById('anonFieldWrap').style.display = 'none';
   document.getElementById('needArea').value = '';
   document.getElementById('needUrgency').value = 'normal';
   document.getElementById('needNote').value = '';
