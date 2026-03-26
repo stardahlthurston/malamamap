@@ -3363,11 +3363,17 @@ async function renderAdminPage() {
         </tbody>
       </table>
     </div>
+
+    <!-- COMMUNITY NEEDS SECTION -->
+    <div id="communityNeedsSection"><p style="color:var(--text-muted);font-size:0.85rem;">Loading community needs…</p></div>
   `;
 
   // Store listings globally for filtering
   window._adminAllListings = allListings;
   window._adminClaims = claims;
+
+  // Load community needs
+  loadAdminCommunityNeeds(sb2);
 }
 
 function renderAdminRows(listings, claims, ownerMap={}) {
@@ -3599,6 +3605,177 @@ function selectSkillsDir(dir) {
     seEl.style.cssText = 'padding:0.85rem;border:2px solid #7b5ea7;border-radius:12px;cursor:pointer;background:#f5f0ff;text-align:center;';
     ofEl.style.cssText = 'padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;background:white;text-align:center;';
   }
+}
+
+// ─── COMMUNITY NEEDS ADMIN ───
+async function loadAdminCommunityNeeds(sb2) {
+  const section = document.getElementById('communityNeedsSection');
+  if (!section) return;
+
+  const { data: needs, error } = await sb2.from('community_needs')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    section.innerHTML = `<p style="color:var(--red);font-size:0.85rem;">Error loading community needs: ${error.message}</p>`;
+    return;
+  }
+
+  window._adminNeeds = needs;
+
+  const now = new Date();
+  const active = needs.filter(n => new Date(n.expires_at) > now);
+  const expired = needs.filter(n => new Date(n.expires_at) <= now);
+
+  section.innerHTML = `
+    <p class="admin-section-title" style="margin-top:1.5rem;">📣 Community needs (${active.length} active · ${needs.length} total)</p>
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.85rem;flex-wrap:wrap;align-items:center;">
+      <select id="needsStatusFilter" onchange="filterNeedsTable()"
+        style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">
+        <option value="active" selected>Active only</option>
+        <option value="">All</option>
+        <option value="expired">Expired</option>
+      </select>
+    </div>
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;overflow:auto;margin-bottom:2rem;">
+      <table class="admin-table" id="adminNeedsTable">
+        <thead><tr>
+          <th>Needs</th><th>Area</th><th>Urgency</th><th>Posted by</th>
+          <th>Contact</th><th>Note</th><th style="width:70px;">Posted</th><th style="width:70px;">Expires</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="adminNeedsBody">
+          ${renderNeedRows(needs)}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  filterNeedsTable();
+}
+
+function renderNeedRows(needs) {
+  const now = new Date();
+  const urgencyLabel = u => u === 'urgent' ? '🔴 Urgent' : u === 'this_week' ? '🟡 This week' : 'When possible';
+  return needs.map(n => {
+    const isExpired = n.expires_at && new Date(n.expires_at) < now;
+    const posted = n.created_at ? new Date(n.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    const expires = n.expires_at ? new Date(n.expires_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    const needTags = (n.needs||[]).map(t => `<span style="display:inline-block;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:100px;background:#fdf4e3;color:#7a5c1a;margin:1px 2px;">${t}</span>`).join('');
+    const contactStr = n.contact_preference === 'email' ? `📧 ${n.contact_email||'—'}` : '🔒 Anonymous';
+    return `<tr data-expired="${isExpired}" style="${isExpired?'opacity:0.5;':''}">
+      <td>${needTags}</td>
+      <td style="font-size:0.78rem;">${n.area||'—'}</td>
+      <td style="font-size:0.78rem;">${urgencyLabel(n.urgency)}</td>
+      <td style="font-size:0.78rem;font-weight:600;">${n.first_name||'Anonymous'}</td>
+      <td style="font-size:0.72rem;color:var(--text-muted);">${contactStr}</td>
+      <td style="font-size:0.72rem;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${n.note||'—'}</td>
+      <td style="color:var(--text-muted);font-size:0.75rem;">${posted}</td>
+      <td style="color:${isExpired?'var(--red)':'var(--text-muted)'};font-size:0.75rem;font-weight:${isExpired?'700':'400'};">${expires}</td>
+      <td style="white-space:nowrap;">
+        <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);" onclick="editNeed('${n.id}')">Edit</button>
+        <button class="admin-action-btn" style="color:var(--gold);border-color:var(--gold);margin-left:3px;" onclick="extendNeed('${n.id}')">+2d</button>
+        <button class="admin-action-btn" style="color:var(--red);border-color:var(--red);margin-left:3px;" onclick="deleteNeed('${n.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterNeedsTable() {
+  const status = document.getElementById('needsStatusFilter')?.value || '';
+  document.querySelectorAll('#adminNeedsBody tr').forEach(row => {
+    const isExpired = row.dataset.expired === 'true';
+    let show = true;
+    if (status === 'active' && isExpired) show = false;
+    if (status === 'expired' && !isExpired) show = false;
+    row.style.display = show ? '' : 'none';
+  });
+}
+
+async function deleteNeed(id) {
+  if (!confirm('Delete this community need? This cannot be undone.')) return;
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { error } = await sb2.from('community_needs').delete().eq('id', id);
+  if (error) { showToast('Error deleting: ' + error.message, 'error'); return; }
+  showToast('Need deleted');
+  loadAdminCommunityNeeds(sb2);
+}
+
+async function extendNeed(id) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const newExpiry = new Date(Date.now() + 48 * 3600000).toISOString();
+  const { error } = await sb2.from('community_needs').update({ expires_at: newExpiry }).eq('id', id);
+  if (error) { showToast('Error extending: ' + error.message, 'error'); return; }
+  showToast('Extended by 2 days');
+  loadAdminCommunityNeeds(sb2);
+}
+
+function editNeed(id) {
+  const need = (window._adminNeeds || []).find(n => n.id === id);
+  if (!need) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'needEditOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:1.75rem;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:var(--sage-deep);margin-bottom:1rem;">Edit Community Need</h3>
+      <div style="margin-bottom:0.75rem;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Needs (comma-separated)</label>
+        <input type="text" id="editNeedType" value="${(need.needs||[]).join(', ')}" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.85rem;font-family:'Nunito',sans-serif;">
+      </div>
+      <div style="margin-bottom:0.75rem;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Area</label>
+        <input type="text" id="editNeedArea" value="${need.area||''}" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.85rem;font-family:'Nunito',sans-serif;">
+      </div>
+      <div style="margin-bottom:0.75rem;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Urgency</label>
+        <select id="editNeedUrgency" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.85rem;font-family:'Nunito',sans-serif;background:white;">
+          <option value="urgent" ${need.urgency==='urgent'?'selected':''}>Urgent</option>
+          <option value="this_week" ${need.urgency==='this_week'?'selected':''}>This week</option>
+          <option value="ongoing" ${need.urgency==='ongoing'?'selected':''}>Ongoing</option>
+          <option value="not_urgent" ${need.urgency==='not_urgent'?'selected':''}>Not urgent</option>
+        </select>
+      </div>
+      <div style="margin-bottom:0.75rem;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Note</label>
+        <input type="text" id="editNeedNote" value="${(need.note||'').replace(/"/g,'&quot;')}" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.85rem;font-family:'Nunito',sans-serif;">
+      </div>
+      <div style="margin-bottom:0.75rem;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Posted by</label>
+        <input type="text" id="editNeedName" value="${need.first_name||''}" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.85rem;font-family:'Nunito',sans-serif;">
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Contact email</label>
+        <input type="text" id="editNeedEmail" value="${need.contact_email||''}" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.85rem;font-family:'Nunito',sans-serif;">
+      </div>
+      <div style="display:flex;gap:0.5rem;">
+        <button onclick="saveNeedEdit('${need.id}')" style="flex:1;padding:0.7rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Save changes</button>
+        <button onclick="document.getElementById('needEditOverlay').remove()" style="flex:1;padding:0.7rem;background:white;color:var(--text-mid);border:1.5px solid #ddd;border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Cancel</button>
+      </div>
+    </div>
+  `;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+async function saveNeedEdit(id) {
+  const needsStr = document.getElementById('editNeedType').value.trim();
+  const payload = {
+    needs: needsStr.split(',').map(s => s.trim()).filter(Boolean),
+    area: document.getElementById('editNeedArea').value.trim(),
+    urgency: document.getElementById('editNeedUrgency').value,
+    note: document.getElementById('editNeedNote').value.trim(),
+    first_name: document.getElementById('editNeedName').value.trim(),
+    contact_email: document.getElementById('editNeedEmail').value.trim() || null
+  };
+
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { error } = await sb2.from('community_needs').update(payload).eq('id', id);
+  if (error) { showToast('Error saving: ' + error.message, 'error'); return; }
+
+  document.getElementById('needEditOverlay')?.remove();
+  showToast('Need updated');
+  loadAdminCommunityNeeds(sb2);
 }
 
 try { init(); } catch(e) { console.error('Init error:', e); }
