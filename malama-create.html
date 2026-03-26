@@ -1094,6 +1094,20 @@ function dedupeItems(arr) {
 }
 
 async function saveListing() {
+  // Refresh session in case user spent a long time on the form
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      const { data: refreshed } = await sb.auth.refreshSession();
+      if (!refreshed?.session) {
+        alert('Your session expired. Please log in again.');
+        window.location.href = 'malama-auth.html';
+        return;
+      }
+      currentUser = refreshed.session.user;
+    }
+  } catch(e) {}
+
   const type = document.getElementById('editType').value;
   const types = type.split(',').filter(Boolean);
   const primaryType = types[0];
@@ -1246,6 +1260,19 @@ async function saveListing() {
     }
     payload.user_id = currentUser.id;
     ({ error } = await sb.from('listings').insert(payload));
+    // If RLS blocks it, try via API
+    if (error) {
+      try {
+        const apiRes = await fetch('/api/create-listing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const apiData = await apiRes.json();
+        if (apiRes.ok) error = null;
+        else error = { message: apiData.error || 'Server error' };
+      } catch(e) { /* keep original error */ }
+    }
   }
   if (error) { showToast('Error: '+error.message); btn.disabled=false; btn.textContent=editId?'Save changes →':'Publish listing →'; return; }
   clearDraft();
