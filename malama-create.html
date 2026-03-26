@@ -1097,12 +1097,17 @@ async function saveListing() {
     // Don't overwrite user_id on edit
     ({ error } = await sb.from('listings').update(payload).eq('id', editId));
   } else {
-    // Check for duplicate address
-    const { data: existing } = await sb.from('listings').select('id,name').eq('address', address).limit(1);
+    // Check for duplicate address (fuzzy match on street)
+    const streetPart = address.split(',')[0].trim();
+    const { data: existing } = await sb.from('listings')
+      .select('id, name, address, status')
+      .eq('status', true)
+      .ilike('address', '%' + streetPart + '%');
     if (existing && existing.length > 0) {
+      const match = existing[0];
       const proceed = confirm(
-        'A listing has already been made for this address ("' + existing[0].name + '").\n\n' +
-        'Would you like to continue? Your listing will not go live until a Mālama Map admin approves it.'
+        '⚠️ A listing already exists at this address:\n\n"' + match.name + '"\n\n' +
+        'Are you sure you want to add another? Tap OK to continue or Cancel to go back.'
       );
       if (!proceed) {
         btn.disabled = false;
