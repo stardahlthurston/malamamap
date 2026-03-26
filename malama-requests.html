@@ -495,28 +495,10 @@ function renderNeeds() {
           <p class="need-time">Most recent: ${timeAgo(items[0].created_at)}</p>
           ${(() => { const exp = timeUntilExpiry(items[0].expires_at); return exp ? `<p class="need-time" style="color:${exp.urgent ? '#c0392b' : 'var(--text-muted)'};">${exp.text}</p>` : ''; })()}
         </div>
-        <button onclick="offerHelp('${items[0].id}','${(items[0].first_name||items[0].poster_name||'').replace(/'/g,"\\'")}')" style="margin-top:0.6rem;width:100%;padding:0.55rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">I can help →</button>
+        <a href="malama-respond.html?id=${items[0].id}" style="display:block;margin-top:0.6rem;width:100%;padding:0.55rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:none;text-align:center;">I can help →</a>
       </div>`;
     }).join('')}
   `;
-}
-
-async function offerHelp(needId, posterName) {
-  const name = prompt('Your name:');
-  if (!name) return;
-  const contact = prompt('Your phone or email (this will be sent to ' + (posterName || 'the person') + '):');
-  if (!contact) return;
-
-  // Save helper response to Supabase
-  try {
-    await sb.from('help_offers').insert({
-      need_id: needId,
-      helper_name: name,
-      helper_contact: contact
-    });
-  } catch(e) { /* table may not exist yet */ }
-
-  alert('Mahalo, ' + name + '! Your contact info has been sent to ' + (posterName || 'the person who posted this need') + '. They\u2019ll reach out if they\u2019d like to connect.');
 }
 
 loadNeeds();
