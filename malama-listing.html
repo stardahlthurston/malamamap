@@ -101,7 +101,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 /* LOADING */
 .loading{text-align:center;padding:4rem 1rem;color:var(--text-muted);}
-.loading p{font-size:1rem;font-weight:600;}
+.loading p{font-size:0.9rem;font-weight:600;margin-top:0.75rem;}
+.spinner{width:36px;height:36px;border:3px solid rgba(58,125,92,0.15);border-top-color:#3a7d5c;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
 /* TOAST */
 .vol-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center;}
@@ -139,7 +141,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 </div>
 
 <div class="page" id="pageContent">
-  <div class="loading"><p>Loading listing…</p></div>
+  <div class="loading"><div class="spinner"></div><p>Loading listing…</p></div>
 </div>
 
 <div class="toast" id="toast"></div>
