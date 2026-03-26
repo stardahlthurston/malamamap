@@ -1,7 +1,13 @@
 {
   "functions": {
-    "api/parse-image.js": {
-      "maxDuration": 30
+    "api/parse-image.js": { "maxDuration": 30 },
+    "api/test-email.js": { "maxDuration": 10 },
+    "api/listing-checkins.js": { "maxDuration": 30 }
+  },
+  "crons": [
+    {
+      "path": "/api/listing-checkins",
+      "schedule": "0 */6 * * *"
     }
-  }
+  ]
 }
