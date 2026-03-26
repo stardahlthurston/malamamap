@@ -362,6 +362,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <a class="sidebar-link" id="navVolunteers" href="#" onclick="event.preventDefault();showPage('volunteers')">🙋 Volunteers</a>
       <a class="sidebar-link" id="navProfile" href="#" onclick="event.preventDefault();showPage('profile')">Profile & Contact</a>
       <a class="sidebar-link" id="navInquiries" href="#" onclick="event.preventDefault();showPage('inquiries')" style="display:none;color:var(--sage);">📬 Inquiries</a>
+      <a class="sidebar-link" id="navIssues" href="#" onclick="event.preventDefault();showPage('issues')" style="display:none;color:var(--red);">🚨 Issues</a>
       <a class="sidebar-link" id="navAdmin" href="#" onclick="event.preventDefault();showPage('admin')" style="display:none;color:var(--gold);">⭐ Admin Dashboard</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
@@ -751,6 +752,11 @@ function showPage(page) {
     renderInquiriesPage();
     return;
   }
+  if (page === 'issues') {
+    document.getElementById('navIssues').classList.add('active');
+    renderIssuesPage();
+    return;
+  }
   if (page === 'admin') {
     document.getElementById('navAdmin').classList.add('active');
     renderAdminPage();
@@ -904,6 +910,8 @@ async function init() {
     if (adminNav) adminNav.style.display = 'flex';
     const inquiriesNav = document.getElementById('navInquiries');
     if (inquiriesNav) inquiriesNav.style.display = 'flex';
+    const issuesNav = document.getElementById('navIssues');
+    if (issuesNav) issuesNav.style.display = 'flex';
   }
   document.getElementById('userEmail').textContent = getGreeting(currentUser);
   collaborators = currentUser.user_metadata?.collaborators || [];
@@ -2952,6 +2960,68 @@ async function autoExpireListings(sb2) {
     return toClose.length;
   }
   return 0;
+}
+
+let issuesFilter = 'active';
+async function renderIssuesPage() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);"><div class="malama-loader"></div><p style="font-size:0.85rem;font-weight:600;margin-top:0.75rem;">Loading issues…</p></div>';
+
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: issues } = await sb2.from('reported_issues').select('*').order('submitted_at', { ascending: false });
+  const items = issues || [];
+  const active = items.filter(i => i.status === 'active');
+  const resolved = items.filter(i => i.status === 'resolved');
+  const filtered = issuesFilter === 'active' ? active : resolved;
+
+  main.innerHTML = `
+    <div style="padding:1.5rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
+        <h1 class="page-title">🚨 Issues Reported</h1>
+        <div style="display:flex;gap:6px;">
+          <button onclick="issuesFilter='active';renderIssuesPage()" style="padding:6px 16px;border-radius:100px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;border:1.5px solid ${issuesFilter==='active'?'var(--red)':'#ddd'};background:${issuesFilter==='active'?'var(--red-pale)':'white'};color:${issuesFilter==='active'?'var(--red)':'var(--text-muted)'};">Active (${active.length})</button>
+          <button onclick="issuesFilter='resolved';renderIssuesPage()" style="padding:6px 16px;border-radius:100px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;border:1.5px solid ${issuesFilter==='resolved'?'var(--sage)':'#ddd'};background:${issuesFilter==='resolved'?'var(--sage-pale)':'white'};color:${issuesFilter==='resolved'?'var(--sage)':'var(--text-muted)'};">Resolved (${resolved.length})</button>
+        </div>
+      </div>
+      ${filtered.length === 0 ? `<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">${issuesFilter === 'active' ? 'No active issues. Nice!' : 'No resolved issues yet.'}</div>` : ''}
+      ${filtered.map(i => `
+      <div style="background:white;border:1.5px solid ${i.status==='active'?'rgba(192,57,43,0.2)':'var(--border)'};border-radius:14px;padding:1.25rem;margin-bottom:0.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+          <div>
+            <span style="display:inline-block;font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:100px;background:${i.status==='active'?'var(--red-pale)':'var(--sage-pale)'};color:${i.status==='active'?'var(--red)':'var(--sage)'};">${i.status === 'active' ? 'ACTIVE' : 'RESOLVED'}</span>
+            <span style="display:inline-block;font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:100px;background:#f0f0ee;color:var(--text-muted);margin-left:4px;">${escHtml(i.issue_type)}</span>
+          </div>
+          <span style="font-size:0.72rem;color:var(--text-muted);">${new Date(i.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>
+        </div>
+        <p style="font-weight:800;font-size:0.9rem;color:var(--sage-deep);margin:0.5rem 0 2px;">${escHtml(i.first_name)} ${escHtml(i.last_name || '')}</p>
+        <a href="mailto:${escHtml(i.email)}" style="font-size:0.78rem;color:var(--blue);text-decoration:none;">${escHtml(i.email)}</a>
+        <div style="background:#f8f8f6;border-radius:10px;padding:0.85rem 1rem;margin-top:0.75rem;">
+          <p style="font-size:0.85rem;color:var(--text-dark);line-height:1.65;margin:0;white-space:pre-wrap;">${escHtml(i.description)}</p>
+        </div>
+        ${i.screenshot_count > 0 ? `<p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.5rem;">📸 ${i.screenshot_count} screenshot${i.screenshot_count > 1 ? 's' : ''} attached (check email)</p>` : ''}
+        <div style="margin-top:0.75rem;display:flex;gap:8px;">
+          <a href="mailto:${escHtml(i.email)}" class="admin-action-btn" style="color:white;background:var(--sage);border-color:var(--sage);padding:8px 18px;font-size:0.78rem;text-decoration:none;display:inline-block;">Reply</a>
+          ${i.status === 'active' ? `<button class="admin-action-btn" style="color:white;background:var(--sage);border-color:var(--sage);padding:8px 18px;font-size:0.78rem;" onclick="resolveIssue('${i.id}')">Mark Resolved</button>` : `<span style="font-size:0.72rem;color:var(--sage);font-weight:700;padding:8px 0;">Resolved ${i.resolved_at ? new Date(i.resolved_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</span>`}
+        </div>
+      </div>`).join('')}
+    </div>`;
+}
+
+async function resolveIssue(issueId) {
+  showToast('Resolving…');
+  try {
+    const res = await fetch('/api/resolve-issue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ issueId, authUserId: currentUser.id })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    showToast('Issue resolved — notification sent to reporter');
+    renderIssuesPage();
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  }
 }
 
 async function renderInquiriesPage() {

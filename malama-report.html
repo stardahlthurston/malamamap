@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Report an Issue</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-pale:#edf7f1;--sage-deep:#1a3d2b;
+  --red:#c0392b;--red-pale:#fdf0ee;
+  --text-dark:#1a1a1a;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.08);
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--sage-deep);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-decoration:none;display:flex;align-items:center;gap:4px;}
+.topbar-back:hover{color:white;}
+.container{max-width:560px;margin:0 auto;padding:2.5rem 1.25rem 4rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:var(--red);margin-bottom:0.5rem;}
+.page-sub{font-size:0.88rem;color:var(--text-muted);line-height:1.6;margin-bottom:2rem;}
+.form-card{background:white;border:1.5px solid var(--border);border-radius:16px;padding:1.75rem;margin-bottom:1.5rem;}
+.field{margin-bottom:1.25rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;}
+.field label .req{color:var(--red);}
+.field input,.field textarea,.field select{width:100%;padding:0.7rem 0.85rem;border:1.5px solid var(--border);border-radius:10px;font-size:16px;font-family:'Nunito',sans-serif;transition:border-color 0.15s;background:white;color:var(--text-dark);}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--sage);}
+.field textarea{min-height:120px;resize:vertical;line-height:1.6;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:480px){.row{grid-template-columns:1fr;}}
+.upload-area{border:2px dashed #ccc;border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;}
+.upload-area:hover,.upload-area.dragover{border-color:var(--sage);background:var(--sage-pale);}
+.upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.upload-icon{font-size:1.8rem;margin-bottom:0.5rem;}
+.upload-text{font-size:0.82rem;font-weight:600;color:var(--text-muted);}
+.upload-hint{font-size:0.72rem;color:#bbb;margin-top:4px;}
+.preview-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:0.75rem;}
+.preview-thumb{width:64px;height:64px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);}
+.preview-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:var(--red);color:white;border:none;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.preview-wrap{position:relative;display:inline-block;}
+.submit-btn{width:100%;padding:0.85rem;background:var(--red);color:white;border:none;border-radius:100px;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.15s;letter-spacing:0.03em;}
+.submit-btn:hover{background:#a5311f;}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.success-card{background:white;border:1.5px solid var(--border);border-radius:16px;padding:2.5rem 1.75rem;text-align:center;display:none;}
+.success-icon{width:56px;height:56px;background:var(--sage-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;}
+.success-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.success-sub{font-size:0.85rem;color:var(--text-muted);line-height:1.6;}
+.back-link{display:inline-block;margin-top:1.25rem;font-size:0.85rem;font-weight:700;color:var(--sage);text-decoration:none;}
+.footer{text-align:center;padding:2rem;color:var(--text-muted);font-size:0.72rem;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Mālama Map</a>
+  <a href="index.html" class="topbar-back">← Back to map</a>
+</div>
+
+<div class="container">
+  <h1 class="page-title">Report an issue</h1>
+  <p class="page-sub">If you're experiencing any issues with the website, a listing, or anything else — please fill out this form and our admin team will get to it ASAP.</p>
+
+  <div class="form-card" id="reportForm">
+    <div class="row">
+      <div class="field">
+        <label>First name <span class="req">*</span></label>
+        <input type="text" id="firstName" placeholder="Kai">
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input type="text" id="lastName" placeholder="Akana">
+      </div>
+    </div>
+    <div class="field">
+      <label>Email <span class="req">*</span></label>
+      <input type="email" id="reportEmail" placeholder="kai@email.com">
+    </div>
+    <div class="field">
+      <label>Issue type <span class="req">*</span></label>
+      <select id="issueType">
+        <option value="">Select one</option>
+        <option value="Bug / broken feature">Bug / broken feature</option>
+        <option value="Listing issue">Listing issue (wrong info, spam, etc.)</option>
+        <option value="Can't create listing">Can't create a listing</option>
+        <option value="Login / account issue">Login / account issue</option>
+        <option value="Mobile display issue">Mobile display issue</option>
+        <option value="Suggestion / feedback">Suggestion / feedback</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Describe the issue <span class="req">*</span></label>
+      <textarea id="issueDescription" placeholder="What happened? What were you trying to do? Include as much detail as possible."></textarea>
+    </div>
+    <div class="field">
+      <label>Screenshots (optional)</label>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFiles(this.files)">
+        <div class="upload-icon">📸</div>
+        <p class="upload-text">Tap to upload or drag photos here</p>
+        <p class="upload-hint">PNG, JPG up to 5MB each</p>
+      </div>
+      <div class="preview-grid" id="previewGrid"></div>
+    </div>
+    <button class="submit-btn" id="submitBtn" onclick="submitReport()">Submit report</button>
+  </div>
+
+  <div class="success-card" id="successCard">
+    <div class="success-icon">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M6 13l5 5 9-10" stroke="#3a7d5c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <p class="success-title">Report submitted!</p>
+    <p class="success-sub">Mahalo for letting us know. We've sent you a confirmation email and our team will look into this ASAP.</p>
+    <a href="index.html" class="back-link">← Back to Mālama Map</a>
+  </div>
+</div>
+
+<div class="footer">Mālama Map · malamamap.org</div>
+
+<script>
+let uploadedFiles = [];
+
+function handleFiles(files) {
+  for (const file of files) {
+    if (file.size > 5 * 1024 * 1024) { alert('File too large (max 5MB): ' + file.name); continue; }
+    if (uploadedFiles.length >= 3) { alert('Max 3 photos'); break; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedFiles.push({ name: file.name, data: e.target.result });
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removeFile(idx) {
+  uploadedFiles.splice(idx, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = uploadedFiles.map((f, i) => `
+    <div class="preview-wrap">
+      <img class="preview-thumb" src="${f.data}" alt="${f.name}">
+      <button class="preview-remove" onclick="removeFile(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+// Drag and drop
+const area = document.getElementById('uploadArea');
+area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('dragover'); });
+area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+area.addEventListener('drop', e => { e.preventDefault(); area.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+
+async function submitReport() {
+  const first = document.getElementById('firstName').value.trim();
+  const last = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('reportEmail').value.trim();
+  const issueType = document.getElementById('issueType').value;
+  const description = document.getElementById('issueDescription').value.trim();
+
+  if (!first || !email || !issueType || !description) {
+    alert('Please fill in your name, email, issue type, and description.');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch('/api/report-issue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        first_name: first,
+        last_name: last,
+        email,
+        issue_type: issueType,
+        description,
+        screenshots: uploadedFiles.map(f => f.data).slice(0, 3)
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to submit');
+
+    document.getElementById('reportForm').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+  } catch(e) {
+    alert('Error submitting: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Submit report';
+  }
+}
+</script>
+</body>
+</html>
