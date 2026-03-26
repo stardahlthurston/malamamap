@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — How It Works</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-pale:#edf7f1;--sage-deep:#1a3d2b;
+  --blue:#2a6496;--blue-pale:#eaf3fb;
+  --gold:#c9983a;--gold-pale:#fdf4e3;
+  --red:#c0392b;--red-pale:#fdf0ee;
+  --text-dark:#1a1a1a;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.08);
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--sage-deep);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;display:flex;align-items:center;gap:8px;}
+.topbar-logo img{height:28px;width:auto;}
+.topbar-back{font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-decoration:none;}
+.topbar-back:hover{color:white;}
+.container{max-width:680px;margin:0 auto;padding:2.5rem 1.25rem 4rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.page-sub{font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin-bottom:2.5rem;}
+
+.section{margin-bottom:2.5rem;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:800;color:var(--sage-deep);margin-bottom:1rem;}
+.section-sub{font-size:0.85rem;color:var(--text-muted);line-height:1.7;margin-bottom:1.25rem;}
+
+.step-grid{display:flex;flex-direction:column;gap:12px;}
+.step-card{background:white;border:1.5px solid var(--border);border-radius:14px;padding:1.25rem 1.5rem;display:flex;gap:16px;align-items:flex-start;}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--sage);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.88rem;flex-shrink:0;}
+.step-content h3{font-size:0.95rem;font-weight:800;color:var(--text-dark);margin-bottom:4px;}
+.step-content p{font-size:0.82rem;color:var(--text-muted);line-height:1.6;}
+
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:520px){.feature-grid{grid-template-columns:1fr;}}
+.feature-card{background:white;border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;text-align:center;}
+.feature-icon{font-size:2rem;margin-bottom:0.5rem;}
+.feature-title{font-size:0.88rem;font-weight:800;color:var(--text-dark);margin-bottom:4px;}
+.feature-desc{font-size:0.78rem;color:var(--text-muted);line-height:1.5;}
+
+.safety-card{background:var(--sage-pale);border:1.5px solid rgba(58,125,92,0.2);border-radius:14px;padding:1.5rem;}
+.safety-item{display:flex;gap:10px;align-items:flex-start;margin-bottom:1rem;}
+.safety-item:last-child{margin-bottom:0;}
+.safety-icon{font-size:1.2rem;flex-shrink:0;margin-top:2px;}
+.safety-text{font-size:0.85rem;color:var(--sage-deep);line-height:1.6;}
+.safety-text strong{font-weight:800;}
+
+.disclaimer-card{background:white;border:1.5px solid var(--border);border-radius:14px;padding:1.5rem;}
+.disclaimer-title{font-size:0.95rem;font-weight:800;color:var(--text-dark);margin-bottom:0.75rem;}
+.disclaimer-text{font-size:0.8rem;color:var(--text-muted);line-height:1.7;}
+.disclaimer-text p{margin-bottom:0.75rem;}
+.disclaimer-text p:last-child{margin-bottom:0;}
+
+.cta-section{text-align:center;padding:2rem 0;}
+.cta-btn{display:inline-block;padding:0.85rem 2.5rem;background:var(--sage);color:white;border-radius:100px;font-weight:800;font-size:0.95rem;text-decoration:none;transition:background 0.15s;}
+.cta-btn:hover{background:var(--sage-deep);}
+.cta-sub{font-size:0.78rem;color:var(--text-muted);margin-top:0.75rem;}
+
+.footer{text-align:center;padding:2rem;color:var(--text-muted);font-size:0.72rem;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html" class="topbar-logo"><img src="logo.png" alt="">Mālama Map</a>
+  <a href="index.html" class="topbar-back">← Back to map</a>
+</div>
+
+<div class="container">
+  <h1 class="page-title">How Mālama Map works</h1>
+  <p class="page-sub">Mālama Map is a community-powered resource hub built during Hawaiʻi's flooding relief effort. Real people posting real resources — shelters, supplies, volunteers, and more — updated in real time.</p>
+
+  <!-- HOW IT WORKS STEPS -->
+  <div class="section">
+    <h2 class="section-title">Getting started</h2>
+    <div class="step-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Find or offer help</h3>
+          <p>Tap "I need help" to find resources near you, or "I want to help" to see where you can pitch in. Every listing shows what's available, where, and when.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Add a listing</h3>
+          <p>Running a supply station, donation drop-off, shelter, or volunteer event? Create a free account and add your location to the map. It goes live immediately.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Keep it updated</h3>
+          <p>Listings expire after 72 hours to keep the map current. You'll get a reminder to renew. You can update hours, items, and status anytime from your portal.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Get verified</h3>
+          <p>Organizations can get a verified badge by confirming their registration through the Hawaii Business Registry. This helps people trust your listing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT YOU CAN DO -->
+  <div class="section">
+    <h2 class="section-title">What you can do</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🏠</div>
+        <p class="feature-title">Shelters</p>
+        <p class="feature-desc">Find or list temporary housing for displaced families</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛖</div>
+        <p class="feature-title">Supply stations</p>
+        <p class="feature-desc">Water, food, cleaning supplies, and essentials</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <p class="feature-title">Donation drop-offs</p>
+        <p class="feature-desc">Where to bring donations the community needs</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🙋</div>
+        <p class="feature-title">Volunteer events</p>
+        <p class="feature-desc">Cleanup days, supply drives, and community efforts</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <p class="feature-title">Skills & labor</p>
+        <p class="feature-desc">Offer your skills — electricians, hauling, childcare, and more</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏥</div>
+        <p class="feature-title">Medical aid</p>
+        <p class="feature-desc">Medical checkups, wound care, mental health, and first aid</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY NEEDS BOARD -->
+  <div class="section">
+    <h2 class="section-title">Community needs board</h2>
+    <p class="section-sub">Don't have a listing to post but need something? Use the <a href="malama-requests.html" style="color:var(--sage);font-weight:700;">community needs board</a> to tell helpers what your neighborhood is short on — water, diapers, generators, cleanup crew, anything. Helpers and supply stations can see what's needed and respond directly.</p>
+  </div>
+
+  <!-- SAFETY -->
+  <div class="section">
+    <h2 class="section-title">Safety</h2>
+    <div class="safety-card">
+      <div class="safety-item">
+        <span class="safety-icon">🔒</span>
+        <p class="safety-text"><strong>Your contact info is never shown publicly.</strong> When someone clicks "I can help" on the needs board, their info is sent to you — you stay in control of who you connect with.</p>
+      </div>
+      <div class="safety-item">
+        <span class="safety-icon">✅</span>
+        <p class="safety-text"><strong>Verified organizations</strong> are confirmed through the Hawaii Business Registry. Look for the verified badge on listings.</p>
+      </div>
+      <div class="safety-item">
+        <span class="safety-icon">🚫</span>
+        <p class="safety-text"><strong>Duplicate listings are flagged</strong> and require admin approval. This prevents spam and keeps the map clean.</p>
+      </div>
+      <div class="safety-item">
+        <span class="safety-icon">⏳</span>
+        <p class="safety-text"><strong>Listings expire automatically</strong> after 72 hours unless renewed. This ensures the map only shows active, current resources.</p>
+      </div>
+      <div class="safety-item">
+        <span class="safety-icon">📞</span>
+        <p class="safety-text"><strong>Always call ahead when possible.</strong> Cell service is disrupted in some areas and conditions change quickly. Confirm availability before traveling to a location.</p>
+      </div>
+      <div class="safety-item">
+        <span class="safety-icon">🚨</span>
+        <p class="safety-text"><strong>See something wrong?</strong> <a href="malama-report.html" style="color:var(--sage);font-weight:700;">Report an issue</a> and our team will address it ASAP.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="section">
+    <h2 class="section-title">Disclaimer</h2>
+    <div class="disclaimer-card">
+      <div class="disclaimer-text">
+        <p>Mālama Map is a volunteer-built, community-powered platform created during an active disaster relief effort. It is provided as-is and free of charge to help connect people in Hawaiʻi with resources.</p>
+        <p><strong>Accuracy of information:</strong> Listings are submitted by community members, organizations, and volunteers. While we take steps to verify organizations and flag duplicates, Mālama Map cannot guarantee the accuracy, completeness, or timeliness of any listing. Conditions on the ground change rapidly — always verify directly with a location before relying on the information posted here.</p>
+        <p><strong>Not a government resource:</strong> Mālama Map is not affiliated with, endorsed by, or operated by any government agency, FEMA, the American Red Cross, or any official disaster response organization. For official emergency information, contact Hawaiʻi Emergency Management Agency (HI-EMA) or call 211.</p>
+        <p><strong>Personal safety:</strong> Use your own judgment when visiting listed locations or connecting with individuals through the platform. Mālama Map is not responsible for interactions, transactions, or experiences that result from using this site.</p>
+        <p><strong>No liability:</strong> Mālama Map, its founder, contributors, and volunteers shall not be held liable for any loss, damage, injury, or harm arising from the use of this platform or reliance on information posted by community members.</p>
+        <p><strong>Data and privacy:</strong> We collect only the information necessary to operate the platform (name, email, phone, listing details). Your personal contact information is never displayed publicly without your consent. We do not sell or share your data with third parties.</p>
+        <p>By using Mālama Map, you acknowledge that this is a community tool built under emergency conditions and agree to use it at your own discretion.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <a href="index.html" class="cta-btn">Back to Mālama Map</a>
+    <p class="cta-sub">Questions? <a href="malama-contact.html" style="color:var(--sage);font-weight:700;">Contact us</a></p>
+  </div>
+</div>
+
+<div class="footer">Mālama Map · malamamap.org · Founded by Star Dahl-Thurston</div>
+
+</body>
+</html>
