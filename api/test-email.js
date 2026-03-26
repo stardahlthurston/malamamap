@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   try {
     const { data, error } = await resend.emails.send({
       from: 'Mālama Map <noreply@malamamap.org>',
-      to: 'stardahlthurston@gmail.com',
+      to: 'dahlthurstonstar@gmail.com',
       subject: '🌺 Test — Mālama Map Email Preview',
       html: `
         <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f6f4;padding:32px 24px;">
