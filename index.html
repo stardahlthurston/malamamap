@@ -439,6 +439,95 @@
   .verified-text { font-size: 0.88rem; font-weight: 500; color: var(--text-mid); line-height: 1.65; }
   .verified-text strong { font-weight: 700; color: var(--sage-deep); }
 
+  /* ── IMPACT STRIP ── */
+  .impact-section {
+    background: #0d2a3d;
+    padding: 4.5rem 2.5rem;
+    text-align: center;
+  }
+  .impact-inner { max-width: 780px; margin: 0 auto; }
+  .impact-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 0.7rem;
+  }
+  .impact-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.85rem, 3vw, 2.7rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: white;
+    margin-bottom: 0.6rem;
+  }
+  .impact-title em { color: #4db8d4; font-style: normal; }
+  .impact-sub {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 2.5rem;
+  }
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .impact-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 1.6rem 1rem;
+    transition: transform 0.2s;
+  }
+  .impact-card:hover { transform: translateY(-3px); }
+  .impact-card:nth-child(1) { border-color: rgba(77,184,212,0.2); }
+  .impact-card:nth-child(2) { border-color: rgba(106,185,138,0.2); }
+  .impact-card:nth-child(3) { border-color: rgba(201,152,58,0.2); }
+  .impact-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .impact-card:nth-child(1) .impact-number { color: #4db8d4; }
+  .impact-card:nth-child(2) .impact-number { color: #6ab98a; }
+  .impact-card:nth-child(3) .impact-number { color: #f5c842; }
+  .impact-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+  }
+  .impact-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.75rem;
+    border-radius: 100px;
+    border: 1.5px solid rgba(77,184,212,0.35);
+    color: #4db8d4;
+    background: rgba(77,184,212,0.08);
+    text-decoration: none;
+    transition: all 0.22s ease;
+  }
+  .impact-cta:hover { background: rgba(77,184,212,0.18); border-color: rgba(77,184,212,0.55); }
+  .impact-cta svg { width: 14px; height: 14px; transition: transform 0.18s; }
+  .impact-cta:hover svg { transform: translateX(4px); }
+
+  @media (max-width: 720px) {
+    .impact-grid { grid-template-columns: 1fr; }
+    .impact-section { padding: 3rem 1.5rem; }
+  }
+
   /* ── FOOTER ── */
   footer {
     background: var(--sage-deep);
@@ -643,6 +732,33 @@
       </div>
     </div>
   </section>
+
+  <!-- Impact -->
+  <section class="impact-section">
+    <div class="impact-inner">
+      <p class="impact-eyebrow fade-up">Community impact</p>
+      <h2 class="impact-title fade-up">Hawaiʻi showing up<br><em>for each other</em></h2>
+      <p class="impact-sub fade-up">Real numbers, updated in real time from community listings.</p>
+      <div class="impact-grid">
+        <div class="impact-card fade-up">
+          <p class="impact-number" id="impactActive">—</p>
+          <p class="impact-label">Active listings</p>
+        </div>
+        <div class="impact-card fade-up" style="transition-delay:0.08s;">
+          <p class="impact-number" id="impactTotal">—</p>
+          <p class="impact-label">Total listings posted</p>
+        </div>
+        <div class="impact-card fade-up" style="transition-delay:0.16s;">
+          <p class="impact-number" id="impactNeighborhoods">—</p>
+          <p class="impact-label">Neighborhoods reached</p>
+        </div>
+      </div>
+      <a href="malama-stats.html" class="impact-cta fade-up">
+        See full impact
+        <svg viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </section>
 </main>
 
 <!-- Footer -->
@@ -651,15 +767,45 @@
   <p class="footer-tagline">Hawaiʻi helping Hawaiʻi</p>
   <p class="footer-credit">Founded by Star Dahl-Thurston &nbsp;·&nbsp; Honolulu, Hawaiʻi</p>
   <div class="footer-links">
-    <a href="#">About</a>
-    <a href="#">Add your location</a>
-    <a href="#">Log in</a>
-    <a href="#">Contact</a>
-    <a href="#">Privacy</a>
+    <a href="#how">About</a>
+    <a href="malama-auth.html">Add your location</a>
+    <a href="malama-auth.html">Log in</a>
+    <a href="mailto:dahlthurstonstar@gmail.com">Contact</a>
+    <a href="malama-stats.html">Impact</a>
   </div>
   <p class="footer-copy">© 2026 Mālama Map. Built for Hawaiʻi, with aloha. 🌺</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── Impact stats ──
+  (async function loadImpact() {
+    try {
+      const sb = window.supabase.createClient(
+        'https://wvplmqmqlnftlpyrqnle.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU'
+      );
+      const { data } = await sb.from('listings').select('status,location');
+      if (!data) return;
+      const active = data.filter(l => l.status);
+      const neighborhoods = new Set(active.map(l => l.location).filter(Boolean));
+      animateImpact('impactActive', active.length);
+      animateImpact('impactTotal', data.length);
+      animateImpact('impactNeighborhoods', neighborhoods.size);
+    } catch (e) { /* silent fail — stats just show dashes */ }
+  })();
+  function animateImpact(id, target) {
+    const el = document.getElementById(id);
+    if (!el || !target) return;
+    let cur = 0;
+    const step = Math.ceil(target / 25);
+    const t = setInterval(() => {
+      cur = Math.min(cur + step, target);
+      el.textContent = cur;
+      if (cur >= target) clearInterval(t);
+    }, 40);
+  }
+</script>
 <script>
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
