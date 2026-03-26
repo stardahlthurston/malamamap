@@ -176,10 +176,21 @@ async function shareListingCard(listing, context) {
     });
 
     const safeName = (listing.name||'listing').replace(/[^a-z0-9]/gi,'_').slice(0,40);
-    const shareText = (listing.name || '') + '\n'
-      + (listing.address ? '📍 ' + listing.address.replace(', USA','') + '\n' : '')
-      + (listing.hours ? '🕐 ' + listing.hours.replace(' · Until further notice','') + '\n' : '')
-      + '\nFind more resources → malamamap.org';
+    const listingUrl = 'malamamap.org/malama-listing.html?id=' + listing.id;
+
+    // Build offering summary from items
+    const offerItems = (listing.items||[])
+      .filter(i => !i.startsWith('ACCEPTING:'))
+      .map(i => i.replace('GIVING:',''))
+      .slice(0, 4);
+    const offeringText = offerItems.length
+      ? ' offering ' + offerItems.join(', ').toLowerCase()
+      : '';
+
+    const shareText = (listing.name || '')
+      + offeringText
+      + (listing.location ? '\n📍 ' + listing.location : '')
+      + '\n\nTo see more or get in contact:\n' + listingUrl;
 
     canvas.toBlob(async (blob) => {
       const file = new File([blob], 'MalamaMap_' + safeName + '.png', { type: 'image/png' });
