@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   if (!SUPABASE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
-  const { action, userId, claimId, listingId, authUserId } = req.body;
+  const { action, userId, claimId, listingId, authUserId, expiresAt } = req.body;
 
   // Basic auth check — only admin can use this
   if (authUserId !== ADMIN_ID) {
@@ -73,6 +73,17 @@ export default async function handler(req, res) {
         });
         if (!r.ok) throw new Error('Failed to decline claim: ' + await r.text());
         result = { success: true, message: 'Claim declined' };
+        break;
+      }
+
+      case 'extend_listing': {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${listingId}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ expires_at: expiresAt, status: true })
+        });
+        if (!r.ok) throw new Error('Failed to extend listing: ' + await r.text());
+        result = { success: true, message: 'Listing extended' };
         break;
       }
 

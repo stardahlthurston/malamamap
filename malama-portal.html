@@ -3355,13 +3355,24 @@ async function saveAdminNote(id, note) {
 }
 
 async function extendListing(id) {
-  const { data: l } = await sb.from('listings').select('expires_at').eq('id', id).single();
-  const base = l?.expires_at ? new Date(l.expires_at) : new Date();
-  const newExp = new Date(Math.max(base.getTime(), Date.now()) + 7*24*60*60*1000);
-  const { error } = await sb.from('listings').update({ expires_at: newExp.toISOString(), status: true }).eq('id', id);
-  if (error) { showToast('Error: ' + error.message); return; }
-  showToast('Extended by 7 days 🌺');
-  setTimeout(renderAdminPage, 600);
+  showToast('Extending…');
+  try {
+    const { data: l } = await sb.from('listings').select('expires_at').eq('id', id).single();
+    const base = l?.expires_at ? new Date(l.expires_at) : new Date();
+    const newExp = new Date(Math.max(base.getTime(), Date.now()) + 7*24*60*60*1000);
+    const res = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'extend_listing', listingId: id, expiresAt: newExp.toISOString(), authUserId: currentUser.id })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    showToast('Extended by 7 days 🌺');
+    setTimeout(renderAdminPage, 600);
+  } catch(e) {
+    showToast('Error: ' + e.message);
+    console.error('extendListing error:', e);
+  }
 }
 
 async function approveClaim(claimId, listingId) {
