@@ -2945,27 +2945,19 @@ async function renderAdminPage() {
   const { data: allListings, error } = await adminQuery;
   if (error) { main.innerHTML = `<p style="color:var(--red);">Error loading listings: ${error.message}</p>`; return; }
 
-  // Load user profiles to show owner names/emails
-  const userIds = [...new Set(allListings.map(l => l.user_id).filter(Boolean))];
+  // Build owner display names from listing data + profiles
   const ownerMap = {};
-  // Fetch display names from user metadata via profiles or auth
-  for (const uid of userIds) {
-    const { data: profile } = await sb2.from('listings')
-      .select('user_id')
-      .eq('user_id', uid)
-      .limit(1);
-    ownerMap[uid] = isAdmin(uid) ? '⭐ Mālama Map Team' : null;
-  }
-  // Build owner display from listing data
-  // We can't query auth.users directly, but we can show truncated IDs
-  // and mark admin-owned listings clearly
+  // First pass: use listing contact info to build names
   allListings.forEach(l => {
-    if (l.user_id && !ownerMap[l.user_id]) {
-      ownerMap[l.user_id] = 'User …' + l.user_id.slice(-6);
-    }
+    if (!l.user_id) return;
+    if (isAdmin(l.user_id)) { ownerMap[l.user_id] = '⭐ Mālama Map Team'; return; }
+    if (ownerMap[l.user_id]) return;
+    // Try to extract a name from the listing's contact info
+    const email = l.contact_email || '';
+    const name = l.name || '';
+    ownerMap[l.user_id] = email.split('@')[0] || name || 'User …' + l.user_id.slice(-6);
   });
-
-  // Try to get profile names if a profiles table exists
+  // Second pass: try profiles table for real names
   try {
     const { data: profiles } = await sb2.from('profiles').select('id, full_name, email');
     if (profiles?.length) {
@@ -3309,11 +3301,11 @@ async function saveAdminNote(id, note) {
 }
 
 async function extendListing(id) {
-  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const { data: l } = await sb2.from('listings').select('expires_at').eq('id', id).single();
+  const { data: l } = await sb.from('listings').select('expires_at').eq('id', id).single();
   const base = l?.expires_at ? new Date(l.expires_at) : new Date();
   const newExp = new Date(Math.max(base.getTime(), Date.now()) + 7*24*60*60*1000);
-  await sb2.from('listings').update({ expires_at: newExp.toISOString() }).eq('id', id);
+  const { error } = await sb.from('listings').update({ expires_at: newExp.toISOString(), status: true }).eq('id', id);
+  if (error) { showToast('Error: ' + error.message); return; }
   showToast('Extended by 7 days 🌺');
   setTimeout(renderAdminPage, 600);
 }
