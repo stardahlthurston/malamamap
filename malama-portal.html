@@ -365,6 +365,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <a class="sidebar-link" id="navInquiries" href="#" onclick="event.preventDefault();showPage('inquiries')" style="display:none;color:var(--sage);">📬 Inquiries</a>
       <a class="sidebar-link" id="navIssues" href="#" onclick="event.preventDefault();showPage('issues')" style="display:none;color:var(--red);">🚨 Issues</a>
       <a class="sidebar-link" id="navCommunityNeeds" href="#" onclick="event.preventDefault();showPage('communityNeeds')" style="display:none;color:var(--sage);">📋 Community Needs</a>
+      <a class="sidebar-link" id="navItemsManager" href="#" onclick="event.preventDefault();showPage('items')" style="display:none;color:var(--sage);">🏷️ Needs & Offerings</a>
       <a class="sidebar-link" id="navAdmin" href="#" onclick="event.preventDefault();showPage('admin')" style="display:none;color:var(--gold);">⭐ Admin Dashboard</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
@@ -561,7 +562,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
         <label class="item-check-label"><input type="checkbox" value="Batteries"> Batteries</label>
       </div>
       <p class="modal-label">Anything else?</p>
-      <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+      <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice packs (one item per entry, hit + to add more)">
     </div>
 
     <!-- VOLUNTEER TOGGLE — shows for supply_station, donation_dropoff, medical_assistance -->
@@ -772,6 +773,11 @@ function showPage(page) {
   if (page === 'communityNeeds') {
     document.getElementById('navCommunityNeeds').classList.add('active');
     renderCommunityNeedsPage();
+    return;
+  }
+  if (page === 'items') {
+    document.getElementById('navItemsManager').classList.add('active');
+    renderItemsManagerPage();
     return;
   }
   if (page === 'admin') {
@@ -988,6 +994,8 @@ async function init() {
     if (adminNav) adminNav.style.display = 'flex';
     const communityNeedsNav = document.getElementById('navCommunityNeeds');
     if (communityNeedsNav) communityNeedsNav.style.display = 'flex';
+    const itemsManagerNav = document.getElementById('navItemsManager');
+    if (itemsManagerNav) itemsManagerNav.style.display = 'flex';
     const inquiriesNav = document.getElementById('navInquiries');
     if (inquiriesNav) inquiriesNav.style.display = 'flex';
     const issuesNav = document.getElementById('navIssues');
@@ -3750,6 +3758,326 @@ function selectSkillsDir(dir) {
 }
 
 // ─── COMMUNITY NEEDS PAGE ───
+// ══════════════════════════════════════
+// NEEDS & OFFERINGS ITEMS MANAGER
+// ══════════════════════════════════════
+let _itemsAllListings = [];
+let _selectedItemKeys = new Set();
+
+async function renderItemsManagerPage() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.25rem;">Needs &amp; Offerings</h2>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">All unique items across your listings. Select multiple to combine duplicates, or add/delete individually.</p>
+    <div id="itemsMgrContent"><p style="color:var(--text-muted);font-size:0.85rem;">Loading…</p></div>
+  `;
+  await loadItemsManager();
+}
+
+async function loadItemsManager() {
+  const el = document.getElementById('itemsMgrContent');
+  if (!el) return;
+
+  // Fetch all listings with service client
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: listings, error } = await sb2.from('listings').select('id,name,items').not('items','is',null);
+  if (error) { el.innerHTML = `<p style="color:var(--red);">${error.message}</p>`; return; }
+
+  _itemsAllListings = listings || [];
+  _selectedItemKeys = new Set();
+
+  // Build map: normalised item name → { display, listingIds }
+  const itemMap = {};
+  for (const l of _itemsAllListings) {
+    const rawItems = Array.isArray(l.items) ? l.items : [];
+    for (const raw of rawItems) {
+      const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
+      const key = display.toLowerCase();
+      if (!itemMap[key]) itemMap[key] = { display, listingIds: new Set(), raws: new Set() };
+      itemMap[key].listingIds.add(l.id);
+      itemMap[key].raws.add(raw);
+    }
+  }
+
+  window._itemMap = itemMap;
+  renderItemsUI(itemMap);
+}
+
+function renderItemsUI(itemMap) {
+  const el = document.getElementById('itemsMgrContent');
+  if (!el) return;
+
+  const sorted = Object.entries(itemMap).sort((a,b) => b[1].listingIds.size - a[1].listingIds.size);
+
+  el.innerHTML = `
+    <!-- Toolbar -->
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem;margin-bottom:1.25rem;">
+      <input type="text" id="itemSearchInput" placeholder="Search items…" oninput="filterItemsList()" style="flex:1;min-width:180px;padding:0.55rem 0.85rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.85rem;font-family:'Nunito',sans-serif;outline:none;">
+      <button onclick="showAddItemModal()" style="padding:0.5rem 1rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Add item</button>
+      <button id="combineBtn" onclick="combineSelectedItems()" style="padding:0.5rem 1rem;background:var(--blue);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:none;">🔗 Combine selected</button>
+      <button id="deleteSelectedBtn" onclick="deleteSelectedItems()" style="padding:0.5rem 1rem;background:var(--red);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:none;">🗑 Delete selected</button>
+    </div>
+    <p id="selectionCount" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem;display:none;"></p>
+
+    <!-- Items grid -->
+    <div id="itemsGrid" style="display:flex;flex-direction:column;gap:6px;">
+      ${sorted.map(([key, info]) => `
+        <div class="item-row" data-key="${key}" data-display="${info.display.replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:10px;padding:0.65rem 0.9rem;background:white;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.15s;" onclick="toggleItemSelect('${key.replace(/'/g,"\\'")}', this)">
+          <div style="width:18px;height:18px;border:2px solid #ccc;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" class="item-checkbox"></div>
+          <span style="flex:1;font-size:0.88rem;font-weight:600;color:var(--text-dark);">${info.display}</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">${info.listingIds.size} listing${info.listingIds.size !== 1 ? 's' : ''}</span>
+          <button onclick="event.stopPropagation();editItemInline('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',this)" style="font-size:0.72rem;font-weight:700;color:var(--sage);background:none;border:1.5px solid var(--border);border-radius:100px;padding:3px 10px;cursor:pointer;">Rename</button>
+          <button onclick="event.stopPropagation();deleteSingleItem('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',${info.listingIds.size})" style="font-size:0.72rem;font-weight:700;color:var(--red);background:none;border:1.5px solid rgba(192,57,43,0.2);border-radius:100px;padding:3px 10px;cursor:pointer;">Delete</button>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Add item modal -->
+    <div id="addItemModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:16px;padding:2rem 1.5rem;max-width:380px;width:90%;font-family:'Nunito',sans-serif;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin:0 0 0.5rem;">Add new item</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;">This adds the item to the global list — you can then assign it to listings via the listing editor.</p>
+        <input type="text" id="newItemInput" placeholder="e.g. Ice, Tarps, Power banks" style="width:100%;padding:0.65rem 0.85rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;box-sizing:border-box;outline:none;margin-bottom:1rem;">
+        <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem;">Tip: enter one item. Use the listing editor to add it to specific listings.</p>
+        <div style="display:flex;gap:0.5rem;">
+          <button onclick="document.getElementById('addItemModal').style.display='none'" style="flex:1;padding:0.65rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;background:white;font-family:'Nunito',sans-serif;">Cancel</button>
+          <button onclick="confirmAddItem()" style="flex:1;padding:0.65rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Add item</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Combine modal -->
+    <div id="combineModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:16px;padding:2rem 1.5rem;max-width:420px;width:90%;font-family:'Nunito',sans-serif;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin:0 0 0.5rem;">Combine items</h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;">Choose a name for the combined item. All listings that have any of the selected items will be updated.</p>
+        <p id="combineListPreview" style="font-size:0.78rem;color:var(--blue);font-weight:600;margin-bottom:0.75rem;"></p>
+        <input type="text" id="combineNameInput" placeholder="Combined item name" style="width:100%;padding:0.65rem 0.85rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;box-sizing:border-box;outline:none;margin-bottom:1rem;">
+        <div style="display:flex;gap:0.5rem;">
+          <button onclick="document.getElementById('combineModal').style.display='none'" style="flex:1;padding:0.65rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;background:white;font-family:'Nunito',sans-serif;">Cancel</button>
+          <button onclick="confirmCombineItems()" style="flex:1;padding:0.65rem;background:var(--blue);color:white;border:none;border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Combine &amp; update listings</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function filterItemsList() {
+  const q = document.getElementById('itemSearchInput')?.value.toLowerCase() || '';
+  document.querySelectorAll('#itemsGrid .item-row').forEach(row => {
+    const key = row.dataset.key || '';
+    const display = row.dataset.display || '';
+    row.style.display = (!q || key.includes(q) || display.toLowerCase().includes(q)) ? 'flex' : 'none';
+  });
+}
+
+function toggleItemSelect(key, rowEl) {
+  const cb = rowEl.querySelector('.item-checkbox');
+  if (_selectedItemKeys.has(key)) {
+    _selectedItemKeys.delete(key);
+    cb.style.background = '';
+    cb.style.borderColor = '#ccc';
+    cb.innerHTML = '';
+    rowEl.style.borderColor = 'var(--border)';
+    rowEl.style.background = 'white';
+  } else {
+    _selectedItemKeys.add(key);
+    cb.style.background = 'var(--sage)';
+    cb.style.borderColor = 'var(--sage)';
+    cb.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 2.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    rowEl.style.borderColor = 'var(--sage)';
+    rowEl.style.background = 'var(--sage-pale)';
+  }
+  const count = _selectedItemKeys.size;
+  const countEl = document.getElementById('selectionCount');
+  const combineBtn = document.getElementById('combineBtn');
+  const deleteBtn = document.getElementById('deleteSelectedBtn');
+  if (count === 0) {
+    if (countEl) countEl.style.display = 'none';
+    if (combineBtn) combineBtn.style.display = 'none';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+  } else {
+    if (countEl) { countEl.textContent = `${count} item${count !== 1 ? 's' : ''} selected`; countEl.style.display = 'block'; }
+    if (combineBtn) combineBtn.style.display = count >= 2 ? 'inline-block' : 'none';
+    if (deleteBtn) deleteBtn.style.display = 'inline-block';
+  }
+}
+
+function showAddItemModal() {
+  const m = document.getElementById('addItemModal');
+  if (m) { m.style.display = 'flex'; document.getElementById('newItemInput')?.focus(); }
+}
+
+async function confirmAddItem() {
+  const val = document.getElementById('newItemInput')?.value.trim();
+  if (!val) return;
+  // Item is stored in localStorage as a custom item suggestion; actual listing assignment happens in listing editor
+  try {
+    const saved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
+    if (!saved.map(s => s.toLowerCase()).includes(val.toLowerCase())) {
+      saved.push(val);
+      localStorage.setItem('malama_custom_items', JSON.stringify(saved));
+    }
+  } catch(e) {}
+  document.getElementById('addItemModal').style.display = 'none';
+  showToast('Item added — assign it to listings via the listing editor');
+  await loadItemsManager();
+}
+
+function combineSelectedItems() {
+  if (_selectedItemKeys.size < 2) return;
+  const itemMap = window._itemMap || {};
+  const names = [..._selectedItemKeys].map(k => itemMap[k]?.display || k);
+  document.getElementById('combineListPreview').textContent = 'Combining: ' + names.join(' + ');
+  document.getElementById('combineNameInput').value = names[0]; // prefill with first
+  const m = document.getElementById('combineModal');
+  if (m) { m.style.display = 'flex'; document.getElementById('combineNameInput')?.focus(); }
+}
+
+async function confirmCombineItems() {
+  const newName = document.getElementById('combineNameInput')?.value.trim();
+  if (!newName) return;
+  const itemMap = window._itemMap || {};
+  const keys = [..._selectedItemKeys];
+
+  // Collect all listings that have any of the selected items
+  const affectedListingIds = new Set();
+  for (const key of keys) {
+    for (const id of (itemMap[key]?.listingIds || [])) affectedListingIds.add(id);
+  }
+
+  // For each affected listing, replace selected items with newName, keeping prefix if any
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let successCount = 0;
+  for (const listingId of affectedListingIds) {
+    const listing = _itemsAllListings.find(l => l.id === listingId);
+    if (!listing) continue;
+    const rawItems = Array.isArray(listing.items) ? listing.items : [];
+    let replaced = false;
+    const newItems = rawItems.map(raw => {
+      const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
+      const key = display.toLowerCase();
+      if (keys.includes(key)) {
+        replaced = true;
+        const prefix = raw.startsWith('GIVING:') ? 'GIVING:' : raw.startsWith('ACCEPTING:') ? 'ACCEPTING:' : '';
+        return prefix + newName;
+      }
+      return raw;
+    });
+    // Dedupe
+    const deduped = [...new Set(newItems)];
+    const r = await fetch(`https://wvplmqmqlnftlpyrqnle.supabase.co/rest/v1/listings?id=eq.${listingId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ items: deduped })
+    });
+    if (r.ok) successCount++;
+  }
+
+  document.getElementById('combineModal').style.display = 'none';
+  _selectedItemKeys.clear();
+  showToast(`🔗 Combined into "${newName}" across ${successCount} listing${successCount !== 1 ? 's' : ''}`);
+  await loadItemsManager();
+}
+
+async function deleteSingleItem(key, display, count) {
+  if (!confirm(`Remove "${display}" from all ${count} listing${count !== 1 ? 's' : ''}? This cannot be undone.`)) return;
+  await _deleteItemsFromListings([key]);
+}
+
+async function deleteSelectedItems() {
+  const keys = [..._selectedItemKeys];
+  if (!keys.length) return;
+  const itemMap = window._itemMap || {};
+  const names = keys.map(k => itemMap[k]?.display || k).join(', ');
+  if (!confirm(`Remove "${names}" from all affected listings? This cannot be undone.`)) return;
+  await _deleteItemsFromListings(keys);
+}
+
+async function _deleteItemsFromListings(keys) {
+  const itemMap = window._itemMap || {};
+  const affectedIds = new Set();
+  for (const k of keys) for (const id of (itemMap[k]?.listingIds || [])) affectedIds.add(id);
+
+  let count = 0;
+  for (const listingId of affectedIds) {
+    const listing = _itemsAllListings.find(l => l.id === listingId);
+    if (!listing) continue;
+    const rawItems = Array.isArray(listing.items) ? listing.items : [];
+    const newItems = rawItems.filter(raw => {
+      const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
+      return !keys.includes(display.toLowerCase());
+    });
+    await fetch(`https://wvplmqmqlnftlpyrqnle.supabase.co/rest/v1/listings?id=eq.${listingId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ items: newItems })
+    });
+    count++;
+  }
+  _selectedItemKeys.clear();
+  showToast(`🗑 Removed from ${count} listing${count !== 1 ? 's' : ''}`);
+  await loadItemsManager();
+}
+
+function editItemInline(key, display, btnEl) {
+  const row = btnEl.closest('.item-row');
+  const nameSpan = row.querySelector('span[style*="font-weight:600"]');
+  const oldHtml = row.innerHTML;
+  // Replace name span with input
+  nameSpan.outerHTML = `<input type="text" id="inlineRenameInput" value="${display.replace(/"/g,'&quot;')}" style="flex:1;padding:4px 8px;border:1.5px solid var(--sage);border-radius:8px;font-size:0.88rem;font-family:'Nunito',sans-serif;font-weight:600;" onclick="event.stopPropagation()">`;
+  // Replace rename button
+  btnEl.textContent = '✓ Save';
+  btnEl.onclick = (e) => { e.stopPropagation(); saveItemRename(key, row); };
+  row.onclick = null; // disable row toggle while editing
+}
+
+async function saveItemRename(key, row) {
+  const input = document.getElementById('inlineRenameInput');
+  const newName = input?.value.trim();
+  if (!newName || newName.toLowerCase() === key) { await loadItemsManager(); return; }
+
+  const itemMap = window._itemMap || {};
+  const affectedIds = itemMap[key]?.listingIds || new Set();
+  let count = 0;
+  for (const listingId of affectedIds) {
+    const listing = _itemsAllListings.find(l => l.id === listingId);
+    if (!listing) continue;
+    const rawItems = Array.isArray(listing.items) ? listing.items : [];
+    const newItems = rawItems.map(raw => {
+      const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
+      if (display.toLowerCase() === key) {
+        const prefix = raw.startsWith('GIVING:') ? 'GIVING:' : raw.startsWith('ACCEPTING:') ? 'ACCEPTING:' : '';
+        return prefix + newName;
+      }
+      return raw;
+    });
+    await fetch(`https://wvplmqmqlnftlpyrqnle.supabase.co/rest/v1/listings?id=eq.${listingId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ items: newItems })
+    });
+    count++;
+  }
+  showToast(`✏️ Renamed to "${newName}" across ${count} listing${count !== 1 ? 's' : ''}`);
+  await loadItemsManager();
+}
+
 function renderCommunityNeedsPage() {
   const main = document.getElementById('mainContent');
   main.innerHTML = `
