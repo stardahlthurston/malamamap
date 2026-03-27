@@ -205,7 +205,7 @@ function showError(msg) {
 function renderListing(l) {
   const items = Array.isArray(l.items) ? l.items : [];
   const isNeedsType = NEEDS_TYPES.includes(l.type);
-  const typeLabel = TYPE_LABELS[l.type] || l.type;
+  const typeLabel = (l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(' · ');
   const isAdmin = l.user_id === ADMIN_USER_ID;
   const isOwner = currentUser && currentUser.id === l.user_id;
 
@@ -379,7 +379,7 @@ function renderListing(l) {
         <span class="status-pill ${l.status ? 'open' : 'closed'}">
           ${l.status ? '<div class="status-dot"></div> Active' : 'Inactive'}
         </span>
-        <span class="type-badge">${typeLabel}</span>
+        ${(l.type||"").split(",").map(t=>t.trim()).filter(Boolean).map(t=>`<span class="type-badge">${TYPE_LABELS[t]||t}</span>`).join(" ")}
         ${l.verified ? '<span class="verified-badge">✓ Verified Org</span>' : ''}${l.nonprofit ? '<span class="nonprofit-badge">✦ Certified Nonprofit</span>' : ''}
         ${isAdmin ? '<span class="admin-badge">⭐ Mālama Map</span>' : ''}
       </div>

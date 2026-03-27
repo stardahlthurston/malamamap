@@ -1195,7 +1195,7 @@ function renderListingCard(l) {
         <div class="field-grid">
           <div><p class="field-label">Address</p><p class="field-value">${l.address}</p></div>
           <div><p class="field-label">Hours</p><p class="field-value">${l.hours || '—'}</p></div>
-          <div><p class="field-label">Type</p><p class="field-value">${TYPE_LABELS[l.type] || l.type}</p></div>
+          <div><p class="field-label">Type</p><p class="field-value">${(l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(', ')}</p></div>
           <div><p class="field-label">Contact</p><p class="field-value">${l.contact_phone || 'Visit location'}</p></div>
           ${givingItems.length ? `<div style="grid-column:1/-1;"><p class="field-label" style="color:var(--sage-deep);">✅ Giving out</p><div class="items-wrap" style="margin-top:6px;">${givingItems.map(i => `<span class="item-tag" style="background:#eaf3fb;color:#1a4a72;">${i}</span>`).join('')}</div></div>` : ''}
           ${acceptingItems.length ? `<div style="grid-column:1/-1;"><p class="field-label" style="color:#c9983a;">📦 Accepting</p><div class="items-wrap" style="margin-top:6px;">${acceptingItems.map(i => `<span class="item-tag" style="background:#fdf4e3;color:#7a5c1a;">${i}</span>`).join('')}</div></div>` : ''}
@@ -3731,7 +3731,7 @@ function openSkillsModal(direction, allListings) {
         <td style="padding:10px 12px;font-weight:700;font-size:0.85rem;">
           <a href="malama-listing.html?id=${l.id}" target="_blank" style="color:var(--sage-deep);text-decoration:none;">${escHtml(l.name)}</a>
         </td>
-        <td style="padding:10px 12px;font-size:0.78rem;color:var(--text-muted);">${TYPE_LABELS[l.type] || l.type || '—'}</td>
+        <td style="padding:10px 12px;font-size:0.78rem;color:var(--text-muted);">${(l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(', ')||'—'}</td>
         <td style="padding:10px 12px;">
           <select onchange="updateSkillsDirection('${l.id}', this)"
             style="padding:5px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.78rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">

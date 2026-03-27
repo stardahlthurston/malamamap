@@ -314,7 +314,7 @@ const NEEDS_TYPES = ['donation_dropoff','accepting'];
 
 function createPinElement(l) {
   const color = !l.open ? '#888' : (TYPE_COLORS[l.type] || '#3a7d5c');
-  const label = l.location || (!l.open ? 'Closed' : (TYPE_LABELS[l.type] || l.type));
+  const label = l.location || (!l.open ? 'Closed' : ((l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(' · ')));
   const w = Math.max(70, label.length * 7 + 30);
   const el = document.createElement('div');
   el.style.cssText = 'cursor:pointer;';
@@ -386,7 +386,7 @@ function renderMarkers() {
 // ── BUILD CARD — clicking anywhere opens detail page ──
 function buildCard(l, inPopup) {
   const isNeed = NEEDS_TYPES.includes(l.type);
-  const typeLabel = TYPE_LABELS[l.type] || l.type;
+  const typeLabel = (l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(' · ');
   const itemsToShow = l.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')).slice(0,5);
   const moreCount = l.items.length - 5;
   const detailUrl = `malama-listing.html?id=${l.id}`;
