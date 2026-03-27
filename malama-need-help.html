@@ -181,6 +181,10 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 <div id="listView">
   <div class="content">
     <div class="loading" id="loading"><div class="spinner"></div><p>Finding resources near you…</p></div>
+    <div style="position:relative;margin-bottom:1rem;">
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;" width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="#8a827a" stroke-width="1.8"/><path d="M15 15l-3-3" stroke="#8a827a" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input type="text" id="listingSearch" placeholder="Search listings…" oninput="handleSearch(this.value)" style="width:100%;padding:0.65rem 1rem 0.65rem 2.25rem;border:1.5px solid rgba(0,0,0,0.1);border-radius:100px;font-size:0.88rem;font-family:'Nunito',sans-serif;background:white;color:#1a1a1a;box-sizing:border-box;outline:none;">
+    </div>
     <div id="resultCount" class="result-count" style="display:none;"></div>
     <div id="listingsContainer"></div>
   </div>
@@ -201,6 +205,7 @@ const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station'
 let allListings = [];
 let filtered = [];
 let activeFilter = 'all';
+let searchQuery = '';
 let map, markers = [];
 let mapReady = false;
 
@@ -243,12 +248,29 @@ function applyFilters() {
   if (mapReady) renderMarkers();
 }
 
+function handleSearch(val) {
+  searchQuery = val.trim().toLowerCase();
+  renderList();
+}
+
 function renderList() {
   const count = document.getElementById('resultCount');
   const container = document.getElementById('listingsContainer');
-  count.innerHTML = `<span>${filtered.length}</span> location${filtered.length !== 1 ? 's' : ''} found`;
+  let display = filtered;
+  if (searchQuery) {
+    display = filtered.filter(l => {
+      const items = (l.items || []).join(' ').toLowerCase();
+      return (l.name || '').toLowerCase().includes(searchQuery)
+        || (l.address || '').toLowerCase().includes(searchQuery)
+        || (l.location || '').toLowerCase().includes(searchQuery)
+        || (l.notes || '').toLowerCase().includes(searchQuery)
+        || items.includes(searchQuery)
+        || (l.type || '').toLowerCase().includes(searchQuery);
+    });
+  }
+  count.innerHTML = `<span>${display.length}</span> location${display.length !== 1 ? 's' : ''} found`;
 
-  if (!filtered.length) {
+  if (!display.length) {
     container.innerHTML = `
       <div class="empty">
         <div class="empty-icon">🗺️</div>
@@ -259,7 +281,7 @@ function renderList() {
     return;
   }
 
-  container.innerHTML = filtered.map(l => {
+  container.innerHTML = display.map(l => {
     const rawItems = l.items || [];
     const givingItems = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:','')).slice(0,5);
     const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:','')).slice(0,5);
