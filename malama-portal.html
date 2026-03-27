@@ -2094,18 +2094,28 @@ async function saveListing() {
 
   let error;
   if (id) {
-    // Don't overwrite user_id or expires_at on edit
     delete payload.user_id;
     delete payload.expires_at;
+    // ADMIN OVERRIDE — service key bypasses all RLS, no exceptions
+    console.log('[ADMIN SAVE] id:', id, 'isAdmin:', isAdmin(currentUser.id), 'uid:', currentUser.id);
     if (isAdmin(currentUser.id)) {
-      // Admin always uses service-role API to bypass RLS on any listing
-      const resp = await fetch('/api/admin-action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_listing', authUserId: currentUser.id, listingId: id, payload })
-      });
-      const json = await resp.json().catch(() => ({}));
-      if (!resp.ok) { showToast('Error saving: ' + (json.error || resp.status)); return; }
+      let resp, json;
+      try {
+        resp = await fetch('/api/admin-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_listing', authUserId: currentUser.id, listingId: id, payload })
+        });
+        json = await resp.json().catch(() => ({}));
+        console.log('[ADMIN SAVE] response:', resp.status, json);
+      } catch(netErr) {
+        alert('Network error: ' + netErr.message);
+        return;
+      }
+      if (!resp.ok) {
+        alert('Save failed (' + resp.status + '): ' + (json.error || JSON.stringify(json)));
+        return;
+      }
     } else {
       ({ error } = await sb.from('listings').update(payload).eq('id', id));
     }
@@ -2113,7 +2123,7 @@ async function saveListing() {
     ({ error } = await sb.from('listings').insert(payload));
   }
 
-  if (error) { showToast('Error saving: ' + error.message); return; }
+  if (error) { alert('Error saving: ' + error.message); return; }
   closeEditModal();
   // Save shifts for builtin volunteer listings
   const savedId = data?.id || id;
