@@ -936,9 +936,25 @@ async function init() {
   } else {
     // New listing — make sure no edit ID is lingering
     window._editListingId = null;
-    // If ?new=1 or coming from "Add new listing" button, clear any stale draft
+    // If ?new=1 or coming from "Add new listing" button, clear any stale draft and reset form
     if (forceNew) {
       try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+      // Explicitly reset all form fields to prevent browser bfcache or autofill from restoring old values
+      DRAFT_FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = false;
+        else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+        else el.value = '';
+      });
+      // Clear type selections
+      selectedTypes = [];
+      document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor = '#ddd'; c.style.background = 'white'; });
+      // Clear all item checkboxes
+      document.querySelectorAll('.item-check, .giving-item, .accepting-item, .skill-check, .medical-check, .day-check').forEach(cb => {
+        cb.checked = false;
+        const lbl = cb.closest('label'); if (lbl) lbl.classList.remove('checked');
+      });
     } else {
       restoreFormDraft();
     }
