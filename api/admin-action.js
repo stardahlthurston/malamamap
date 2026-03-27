@@ -99,6 +99,19 @@ export default async function handler(req, res) {
         break;
       }
 
+      case 'update_listing': {
+        const { payload } = req.body;
+        if (!listingId || !payload) throw new Error('listingId and payload required');
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${listingId}`, {
+          method: 'PATCH',
+          headers: { ...headers, 'Prefer': 'return=representation' },
+          body: JSON.stringify(payload)
+        });
+        if (!r.ok) throw new Error('Failed to update listing: ' + await r.text());
+        result = { success: true, message: 'Listing updated' };
+        break;
+      }
+
       default:
         return res.status(400).json({ error: 'Unknown action: ' + action });
     }

@@ -1963,7 +1963,21 @@ async function saveListing() {
     // Don't overwrite user_id or expires_at on edit
     delete payload.user_id;
     delete payload.expires_at;
-    ({ error } = await sb.from('listings').update(payload).eq('id', id));
+    // Find out if this listing belongs to current user
+    const existingListingForSave = myListings ? myListings.find(x => x.id === id) : null;
+    const isOwner = !existingListingForSave || existingListingForSave.user_id === currentUser.id;
+    if (!isOwner && isAdmin(currentUser.id)) {
+      // Admin editing someone else's listing — route through service-role API to bypass RLS
+      const resp = await fetch('/api/admin-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_listing', authUserId: currentUser.id, listingId: id, payload })
+      });
+      const json = await resp.json();
+      if (!resp.ok) { showToast('Error saving: ' + (json.error || 'Unknown error')); return; }
+    } else {
+      ({ error } = await sb.from('listings').update(payload).eq('id', id));
+    }
   } else {
     ({ error } = await sb.from('listings').insert(payload));
   }
