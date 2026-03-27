@@ -5,7 +5,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 // ✏️ To add another admin: paste their Supabase UUID here (Supabase → Auth → Users → copy User UID)
 const ADMIN_IDS = [
   '04e3776b-b75f-4701-888e-511a9cf21382', // Star (super admin)
-  // 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Example: another team member's UUID
+  'af107d04-0543-40ac-8808-765e25e6ce13', // Braedyn Domeyer
 ];
 
 export default async function handler(req, res) {
