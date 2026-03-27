@@ -3501,7 +3501,7 @@ async function renderAdminPage() {
               <td style="font-size:0.75rem;color:var(--text-muted);">${ownerMap[l.user_id] || '—'}</td>
               <td>
                 <button class="admin-action-btn" style="color:var(--sage);border-color:var(--sage);" onclick="extendListing('${l.id}')">+7 days</button>
-                <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);margin-left:4px;" onclick="editListing('${l.id}')">Edit</button>
+                <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);margin-left:4px;" onclick="openEditModal('${l.id}')">Edit</button>
               </td>
             </tr>`;
           }).join('')}
@@ -3856,26 +3856,31 @@ function filterAdminTable() {
 }
 
 async function toggleAdminStatus(id, current, btn) {
-  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const newStatus = !current;
-  const { error } = await sb2.from('listings').update({ status: newStatus }).eq('id', id);
-  if (error) { showToast('Error: ' + error.message); return; }
+  // Route through admin API to bypass RLS on non-owned listings
+  const resp = await fetch('/api/admin-action', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'update_listing', authUserId: currentUser.id, listingId: id, payload: { status: newStatus } })
+  });
+  if (!resp.ok) { const j = await resp.json().catch(() => ({})); showToast('Error: ' + (j.error || resp.status)); return; }
   btn.textContent = newStatus ? 'Active' : 'Inactive';
   btn.style.color = newStatus ? 'var(--sage)' : 'var(--text-muted)';
   btn.style.borderColor = newStatus ? 'var(--sage)' : '#ccc';
-  // Update the row class
   const row = btn.closest('tr');
-  if (row) {
-    row.dataset.status = newStatus ? 'open' : 'closed';
-  }
+  if (row) row.dataset.status = newStatus ? 'open' : 'closed';
   const dot = btn.previousElementSibling;
   if (dot) dot.className = newStatus ? 'status-dot-open' : 'status-dot-closed';
   showToast(newStatus ? '🟢 Listing is now Active (visible on map)' : '🔴 Listing is now Inactive (hidden from map)');
 }
 
 async function saveAdminNote(id, note) {
-  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  await sb2.from('listings').update({ admin_notes: note }).eq('id', id);
+  // Route through admin API to bypass RLS on non-owned listings
+  await fetch('/api/admin-action', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'update_listing', authUserId: currentUser.id, listingId: id, payload: { admin_notes: note } })
+  });
 }
 
 async function toggleBadge(listingId, field, value, btn) {
