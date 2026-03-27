@@ -395,7 +395,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <p class="modal-sub" id="modalSub">Fill in your details below. Nothing changes until you hit Save.</p>
     <input type="hidden" id="editId">
 
-    <p class="modal-label">What are you offering? <span style="font-weight:400;text-transform:none;letter-spacing:0;">Choose one</span></p>
+    <p class="modal-label">What type of listing? <span style="font-weight:400;text-transform:none;letter-spacing:0;">Choose one or more</span></p>
     <div id="typeCards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
       <div class="type-card" data-type="shelter" onclick="selectType('shelter')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🏠</div><p style="font-size:0.82rem;font-weight:700;">Shelter</p></div>
       <div class="type-card" data-type="supply_station" onclick="selectType('supply_station')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🛖</div><p style="font-size:0.82rem;font-weight:700;">Supply Station</p></div>
@@ -844,7 +844,20 @@ function selectType(type) {
   document.getElementById('volunteerNeedsExtras').style.display = (selectedTypes.includes('volunteer_event') || selectedTypes.includes('skills_labor')) ? 'block' : 'none';
   if (selectedTypes.includes('volunteer_event') || selectedTypes.includes('skills_labor')) initVolTypeChips();
   document.getElementById('shelterExtras').style.display = selectedTypes.includes('shelter') ? 'block' : 'none';
-  document.getElementById('dropoffToggle').style.display = selectedTypes.includes('supply_station') ? 'block' : 'none';
+  // If both supply_station and donation_dropoff are selected, auto-check and hide the dropoff toggle
+  const hasBoth = selectedTypes.includes('supply_station') && selectedTypes.includes('donation_dropoff');
+  const dropoffToggle = document.getElementById('dropoffToggle');
+  const acceptingDropoffs = document.getElementById('acceptingDropoffs');
+  if (hasBoth) {
+    dropoffToggle.style.display = 'none';
+    if (acceptingDropoffs) acceptingDropoffs.checked = true;
+  } else if (selectedTypes.includes('supply_station')) {
+    dropoffToggle.style.display = 'block';
+    if (acceptingDropoffs) acceptingDropoffs.checked = false;
+  } else {
+    dropoffToggle.style.display = 'none';
+    if (acceptingDropoffs) acceptingDropoffs.checked = false;
+  }
   document.getElementById('skillsExtras').style.display = selectedTypes.includes('skills_labor') ? 'block' : 'none';
   const itemsSection = document.getElementById('itemsSection');
   const allSkillsMedical = selectedTypes.every(t => t === 'skills_labor' || t === 'medical_assistance');
