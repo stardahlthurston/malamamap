@@ -167,10 +167,9 @@ const TYPE_LABELS = {
   shelter:'🏠 Shelter', supply_station:'🛖 Supply Station',
   donation_dropoff:'📦 Donation Drop-off', volunteer_event:'🙋 Volunteers Needed',
   skills_labor:'🔧 Skills & Labor', medical_assistance:'🏥 Medical Aid Station',
-  giving:'🤝 Giving', accepting:'📬 Accepting'
 };
 
-const NEEDS_TYPES = ['donation_dropoff','accepting'];
+const NEEDS_TYPES = ['donation_dropoff','accepting','supply_station'];
 
 let listing = null;
 let currentUser = null;
@@ -204,7 +203,8 @@ function showError(msg) {
 
 function renderListing(l) {
   const items = Array.isArray(l.items) ? l.items : [];
-  const isNeedsType = NEEDS_TYPES.includes(l.type);
+  const types = (l.type||'').split(',').map(s=>s.trim());
+  const isNeedsType = types.some(t => NEEDS_TYPES.includes(t)) || l.accepting_dropoffs;
   const typeLabel = (l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(' · ');
   const isAdmin = l.user_id === ADMIN_USER_ID;
   const isOwner = currentUser && currentUser.id === l.user_id;

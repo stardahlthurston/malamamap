@@ -189,10 +189,16 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       </div>
     </div>
     <div class="field"><label>What kind of volunteers are needed? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="text" id="editVolunteerNeeds" placeholder="e.g. Strong backs, chainsaws, gloves provided"></div>
+    <div class="field"><label>Sign-up link <span style="font-weight:400;text-transform:none;letter-spacing:0;">— optional, if you have an external signup form</span></label><input type="url" id="editVolunteerSignupUrl" placeholder="https://..."></div>
   </div>
 
   <div id="skillsExtras" class="section">
-    <p class="section-title">🔧 What are you offering?</p>
+    <p class="section-title">🔧 Skills & Labor</p>
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+      <button type="button" id="skillsDirOffering" onclick="setSkillsDir('offering')" style="flex:1;padding:0.6rem;border-radius:100px;font-size:0.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid #2e6b6b;background:#2e6b6b;color:white;">🙌 I'm offering skills</button>
+      <button type="button" id="skillsDirSeeking" onclick="setSkillsDir('seeking')" style="flex:1;padding:0.6rem;border-radius:100px;font-size:0.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid #ddd;background:white;color:var(--text-muted);">🔍 I need skills</button>
+    </div>
+    <p id="skillsDirLabel" class="section-title" style="margin-bottom:0.5rem;">What skills are you offering?</p>
     <div class="check-grid" id="skillsGrid">
       <label class="check-label"><input type="checkbox" value="Physical labor" class="skill-check"> Physical labor</label>
       <label class="check-label"><input type="checkbox" value="Truck / hauling" class="skill-check"> Truck / hauling</label>
@@ -604,6 +610,25 @@ document.addEventListener('change', function(e) {
 function autoFillModalName(type) {
   autoFillListingName(type);
 }
+
+var _skillsDir = 'offering';
+window._skillsDir = _skillsDir;
+function setSkillsDir(dir) {
+  window._skillsDir = dir;
+  const offering = document.getElementById('skillsDirOffering');
+  const seeking = document.getElementById('skillsDirSeeking');
+  const label = document.getElementById('skillsDirLabel');
+  if (dir === 'offering') {
+    offering.style.background = '#2e6b6b'; offering.style.color = 'white'; offering.style.borderColor = '#2e6b6b';
+    seeking.style.background = 'white'; seeking.style.color = 'var(--text-muted)'; seeking.style.borderColor = '#ddd';
+    if (label) label.textContent = 'What skills are you offering?';
+  } else {
+    seeking.style.background = '#2e6b6b'; seeking.style.color = 'white'; seeking.style.borderColor = '#2e6b6b';
+    offering.style.background = 'white'; offering.style.color = 'var(--text-muted)'; offering.style.borderColor = '#ddd';
+    if (label) label.textContent = 'What skills do you need?';
+  }
+}
+
 function smartSplit(str) {
   if (!str) return [];
   return str.split(',').map(s => s.trim()).filter(Boolean);
@@ -1100,6 +1125,8 @@ async function loadEditListing(id) {
   if (data.pet_friendly) { const el = document.getElementById('editPetFriendly'); if (el) el.value = 'true'; }
   if (data.event_date === 'ongoing') { toggleOngoing(); } else if (data.event_date) { const el = document.getElementById('editEventDate'); if (el) el.value = data.event_date; }
   if (data.volunteer_needs) { const el = document.getElementById('editVolunteerNeeds'); if (el) el.value = data.volunteer_needs; }
+  if (data.volunteer_signup_url) { const el = document.getElementById('editVolunteerSignupUrl'); if (el) el.value = data.volunteer_signup_url; }
+  if (data.skills_direction) setSkillsDir(data.skills_direction);
   if (data.contact_email) { const el = document.getElementById('editContactEmail'); if (el) el.value = data.contact_email; }
   if (data.giving_url) {
     const cb = document.getElementById('givingCheck'); if (cb) cb.checked = true;
@@ -1283,6 +1310,8 @@ async function saveListing() {
     pet_friendly: document.getElementById('editPetFriendly')?.value==='true',
     event_date: document.getElementById('ongoingToggle')?.dataset.active === 'true' ? 'ongoing' : (document.getElementById('editEventDate')?.value||null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
+    volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim()||null,
+    skills_direction: window._skillsDir || 'offering',
     expires_at: (() => { const untilFurther = document.getElementById('untilFurtherNotice')?.checked; return untilFurther ? null : new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); })()
   };
 
@@ -1357,7 +1386,7 @@ async function saveListing() {
 const DRAFT_KEY = 'malama_create_draft';
 const DRAFT_FIELDS = ['editType','editName','editAddress','editZip','editCity','editLocation','editPhone','editNotes','editWebsite',
   'editHoursOpen','editHoursClose','editDateFrom','editDateUntil','editCapacity','editPetFriendly',
-  'editEventDate','editEventTime','editVolunteerNeeds','editContactEmail','editCustomItems',
+  'editEventDate','editEventTime','editVolunteerNeeds','editVolunteerSignupUrl','editContactEmail','editCustomItems',
   'givingCustomItems','acceptingCustomItems','editGivingUrl'];
 
 function saveDraft() {

@@ -217,8 +217,8 @@ async function init() {
   // Show: shelters, supply stations, medical, skills offering help,
   // AND any listing that gives out items (has GIVING: items)
   const filteredByDir = (data || []).filter(l => {
-    if (['shelter','supply_station','medical_assistance'].includes(l.type)) return true;
-    if (l.type === 'skills_labor' && (l.skills_direction === 'offering' || !l.skills_direction)) return true;
+    if (['shelter','supply_station','medical_assistance'].some(t=>(l.type||'').split(',').map(s=>s.trim()).includes(t))) return true;
+    if ((l.type||'').split(',').map(s=>s.trim()).includes('skills_labor') && (l.skills_direction === 'offering' || !l.skills_direction)) return true;
     if (Array.isArray(l.items) && l.items.some(i => i.startsWith('GIVING:'))) return true;
     return false;
   });
@@ -289,7 +289,7 @@ function renderList() {
     const showItems = givingItems.length ? givingItems : plainItems;
     const expHrs = Math.max(0, Math.round((new Date(l.expires_at) - new Date()) / 3600000));
     return `
-    <div class="listing-card" onclick="window.open('malama-listing.html?id=${l.id}','_self')" style="border-top:4px solid ${l.type==='donation_dropoff'?'var(--gold)':l.type==='volunteer_event'?'#7b5ea7':l.type==='shelter'?'var(--blue)':l.type==='medical_assistance'?'var(--red)':'var(--sage)'};">
+    <div class="listing-card" onclick="window.open('malama-listing.html?id=${l.id}','_self')" style="border-top:4px solid ${(()=>{const t=(l.type||'').split(',')[0].trim();return t==='donation_dropoff'?'var(--gold)':t==='volunteer_event'?'#7b5ea7':t==='shelter'?'var(--blue)':t==='medical_assistance'?'var(--red)':'var(--sage)'})()};">
       <div class="lc-header">
         <div>
           <p class="lc-name">${l.name}</p>
@@ -303,7 +303,7 @@ function renderList() {
         </div>
       </div>
       <div class="lc-body">
-        ${l.type === 'shelter' ? `
+        ${(l.type||'').split(',').map(s=>s.trim()).includes('shelter') ? `
         <div class="shelter-info">
           ${l.capacity ? `<span class="shelter-badge">👥 Capacity: ${l.capacity}</span>` : ''}
           ${l.pet_friendly ? `<span class="shelter-badge">🐾 Pet friendly</span>` : ''}

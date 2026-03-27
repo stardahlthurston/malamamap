@@ -401,7 +401,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <div class="type-card" data-type="supply_station" onclick="selectType('supply_station')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🛖</div><p style="font-size:0.82rem;font-weight:700;">Supply Station</p></div>
       <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">📦</div><p style="font-size:0.82rem;font-weight:700;">Donation Drop-off</p></div>
       <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🙋</div><p style="font-size:0.82rem;font-weight:700;">Volunteers Needed</p></div>
-      <div class="type-card" data-type="skills_labor" onclick="selectType('skills_labor')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🔧</div><p style="font-size:0.82rem;font-weight:700;">Skilled Labor</p></div>
+      <div class="type-card" data-type="skills_labor" onclick="selectType('skills_labor')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🔧</div><p style="font-size:0.82rem;font-weight:700;">Skills & Labor</p></div>
       <div class="type-card" data-type="medical_assistance" onclick="selectType('medical_assistance')" style="padding:0.9rem;border:2px solid #fcc;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🏥</div><p style="font-size:0.82rem;font-weight:700;">Medical Aid Station</p></div>
     </div>
     <input type="hidden" id="editType" value="">
@@ -2739,7 +2739,7 @@ async function drawShareCardCanvas(l) {
 }
 
 function drawShareCard(listing) {
-  const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteer Needed',skills_labor:'🔧 Skills & Labor',medical_assistance:'🏥 Medical Aid'};
+  const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteers Needed',skills_labor:'🔧 Skills & Labor',medical_assistance:'🏥 Medical Aid'};
   const items = (listing.items||[]).filter(i=>!i.startsWith('ACCEPTING:')).map(i=>i.replace('GIVING:','')).slice(0,6);
   const accepting = (listing.items||[]).filter(i=>i.startsWith('ACCEPTING:')).slice(0,5).map(i=>i.replace('ACCEPTING:',''));
   const types = (listing.type||'').split(',').filter(Boolean);
