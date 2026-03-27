@@ -2068,7 +2068,8 @@ async function saveListing() {
     delete payload.expires_at;
     // Find out if this listing belongs to current user
     const existingListingForSave = myListings ? myListings.find(x => x.id === id) : null;
-    const isOwner = !existingListingForSave || existingListingForSave.user_id === currentUser.id;
+    // If listing not found in myListings or owned by someone else → use admin API
+    const isOwner = !!(existingListingForSave && existingListingForSave.user_id === currentUser.id);
     if (!isOwner && isAdmin(currentUser.id)) {
       // Admin editing someone else's listing — route through service-role API to bypass RLS
       const resp = await fetch('/api/admin-action', {
