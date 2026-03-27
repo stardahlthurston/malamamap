@@ -1,7 +1,12 @@
 // Admin actions endpoint — uses service role key to bypass RLS
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const ADMIN_ID = '04e3776b-b75f-4701-888e-511a9cf21382';
+
+// ✏️ To add another admin: paste their Supabase UUID here (Supabase → Auth → Users → copy User UID)
+const ADMIN_IDS = [
+  '04e3776b-b75f-4701-888e-511a9cf21382', // Star (super admin)
+  // 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Example: another team member's UUID
+];
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
@@ -9,8 +14,8 @@ export default async function handler(req, res) {
 
   const { action, userId, claimId, listingId, authUserId, expiresAt, field, value } = req.body;
 
-  // Basic auth check — only admin can use this
-  if (authUserId !== ADMIN_ID) {
+  // Basic auth check — only admins can use this
+  if (!ADMIN_IDS.includes(authUserId)) {
     return res.status(403).json({ error: 'Not authorized' });
   }
 

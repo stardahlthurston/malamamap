@@ -717,7 +717,10 @@ const ADMIN_USER_ID = '04e3776b-b75f-4701-888e-511a9cf21382'; // Supabase → Au
 const SUPER_ADMIN_IDS = [
   ADMIN_USER_ID
 ];
-const SUB_ADMIN_IDS = [];
+// ✏️ To add another admin: paste their Supabase UUID here (Supabase → Auth → Users → copy User UID)
+const SUB_ADMIN_IDS = [
+  // 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Example: another team member's UUID
+];
 const ADMIN_IDS = [...SUPER_ADMIN_IDS, ...SUB_ADMIN_IDS];
 function isAdmin(uid) { return ADMIN_IDS.includes(uid); }
 function isSuperAdmin(uid) { return SUPER_ADMIN_IDS.includes(uid); }
