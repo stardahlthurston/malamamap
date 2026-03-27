@@ -130,7 +130,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <button class="chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteers Needed</button>
   <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔍 Needs Skills</button>
   <div class="chip-divider"></div>
-  <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Open right now</label>
+  <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Active right now</label>
   <div class="chip-divider"></div>
   <div class="view-toggle">
     <button class="view-btn active" onclick="switchView('list',this)">
@@ -269,7 +269,7 @@ function renderList() {
           <p class="lc-addr">${l.address}</p>
         </div>
         <div class="lc-badges">
-          <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Open' : 'Closed'}</span>
+          <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Active' : 'Inactive'}</span>
           <span class="pill ${l.type==='volunteer_event'?'pill-event':l.type==='donation_dropoff'?'pill-dropoff':l.type==='supply_station'?'pill-supply':l.type==='shelter'?'pill-shelter':l.type==='medical_assistance'?'pill-medical':l.type==='skills_labor'?'pill-skills':'pill-dropoff'}">${TYPE_LABELS[l.type] || l.type}</span>
           ${l.verified ? `<span class="pill" style="background:var(--blue-pale);color:var(--blue-deep);">✓ Verified Org</span>` : ''}${l.nonprofit ? `<span class="pill" style="background:#f3eeff;color:#5b3e8a;">✦ Nonprofit</span>` : ''}
         </div>
@@ -331,7 +331,7 @@ function renderMarkers() {
     const el = document.createElement('div');
     el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="34" style="cursor:pointer">
       <rect x="1" y="1" width="${w-2}" height="24" rx="12" fill="${color}"/>
-      <text x="${w/2}" y="17" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="700" fill="white">${l.status ? label : 'Closed'}</text>
+      <text x="${w/2}" y="17" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="700" fill="white">${l.status ? label : 'Inactive'}</text>
       <polygon points="${w/2-5},25 ${w/2},32 ${w/2+5},25" fill="${color}"/>
     </svg>`;
     el.title = l.name + (l.location ? ' — ' + l.location : '');

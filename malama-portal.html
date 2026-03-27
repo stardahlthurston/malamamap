@@ -461,8 +461,8 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <input type="email" class="modal-input" id="editContactEmail" placeholder="you@email.com">
     </div>
 
-    <p class="modal-label">Status</p>
-    <select class="modal-input" id="editStatus"><option value="true">Open</option><option value="false">Closed</option></select>
+    <p class="modal-label">Status <span style="font-size:0.7rem;font-weight:500;color:var(--text-muted);text-transform:none;letter-spacing:0;">Active = visible to public · Inactive = hidden from map</span></p>
+    <select class="modal-input" id="editStatus"><option value="true">Active</option><option value="false">Inactive</option></select>
 
 
 
@@ -497,6 +497,11 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <span class="day-pill" data-day="Sat" onclick="toggleDay(this)">Sat</span>
       <span class="day-pill" data-day="Sun" onclick="toggleDay(this)">Sun</span>
     </div>
+
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;cursor:pointer;">
+      <input type="checkbox" id="open247" style="accent-color:var(--sage);width:15px;height:15px;" onchange="toggle247(this.checked)">
+      Open 24 hours / 24/7
+    </label>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
       <div>
@@ -1136,12 +1141,12 @@ function renderListingsPage() {
   main.innerHTML = `
     <div class="page-header">
       <div><h1 class="page-title">My Listings</h1>
-      <p class="page-subtitle">${getDisplayName(currentUser)} · ${myListings.length} listing${myListings.length > 1 ? 's' : ''} · ${myListings.filter(l => l.status).length} open</p></div>
+      <p class="page-subtitle">${getDisplayName(currentUser)} · ${myListings.length} listing${myListings.length > 1 ? 's' : ''} · ${myListings.filter(l => l.status).length} active</p></div>
       <a class="btn btn-primary" href="malama-create.html?new=1">+ Add new listing</a>
     </div>
     ${expiringListing ? `<div class="expiry-banner"><div style="font-size:1.4rem;">⏳</div><p class="expiry-text"><strong>A listing expires soon.</strong> Renew it to keep your pin active on the map.</p></div>` : ''}
     <div class="stats-row">
-      <div class="stat-card"><p class="stat-label">Active listings</p><p class="stat-val">${myListings.filter(l => l.status).length}</p><p class="stat-sub">Currently open</p></div>
+      <div class="stat-card"><p class="stat-label">Active listings</p><p class="stat-val">${myListings.filter(l => l.status).length}</p><p class="stat-sub">Visible to public</p></div>
       <div class="stat-card"><p class="stat-label">Total listings</p><p class="stat-val">${myListings.length}</p><p class="stat-sub">All time</p></div>
       <div class="stat-card"><p class="stat-label">Account</p><p class="stat-val" style="font-size:1rem;color:var(--sage);padding-top:6px;text-transform:capitalize;">${getDisplayName(currentUser)}</p><p class="stat-sub">Organization</p></div>
       <div class="stat-card"><p class="stat-label">Verified</p><p class="stat-val" style="font-size:1rem;padding-top:6px;color:${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'var(--sage)' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '#c9983a' : 'var(--text-muted)'};">${(currentUser.user_metadata||{}).ein_status === 'verified' ? '✅ Yes' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '⏳ Pending' : 'No'}</p><p class="stat-sub">${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'Organization verified' : (currentUser.user_metadata||{}).ein_status === 'pending' ? 'EIN under review' : 'Submit EIN to verify'}</p></div>
@@ -1152,7 +1157,7 @@ function renderListingsPage() {
     </div>
     ${myListings.filter(l => l.status).length < myListings.length ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
       <label class="toggle"><input type="checkbox" id="showClosedToggle" onchange="renderListingsPage()"><span class="toggle-slider"></span></label>
-      <span style="font-size:0.82rem;font-weight:600;color:var(--text-muted);">Show closed listings</span>
+      <span style="font-size:0.82rem;font-weight:600;color:var(--text-muted);">Show inactive listings</span>
     </div>` : ''}
     ${displayListings.map(l => renderListingCard(l)).join('')}`;
 }
@@ -1170,17 +1175,17 @@ function renderListingCard(l) {
           <a href="malama-listing.html?id=${l.id}" class="card-title" style="text-decoration:none;color:inherit;">${l.name}</a>
           ${l.verified ? `<span class="verified-badge">✓ Verified Org</span>` : ''}${l.nonprofit ? `<span class="nonprofit-badge">✦ Nonprofit</span>` : ''}
         </div>
-        <span class="open-pill ${l.status ? 'open' : 'closed'}">${l.status ? 'Open' : 'Closed'}</span>
+        <span class="open-pill ${l.status ? 'open' : 'closed'}">${l.status ? 'Active' : 'Inactive'}</span>
       </div>
       <div class="card-body">
         <div class="status-card" style="margin-bottom:1rem;">
           <div class="status-left">
             <div class="status-dot ${l.status ? '' : 'closed'}"></div>
-            <div><p class="status-label">${l.status ? 'Currently Open' : 'Currently Closed'}</p>
-            <p class="status-sub">${l.status ? 'Visible and active on the map' : 'Hidden from the map'}</p></div>
+            <div><p class="status-label">${l.status ? 'Currently Active' : 'Currently Inactive'}</p>
+            <p class="status-sub">${l.status ? 'Visible to the public on the map' : 'Hidden from the map'}</p></div>
           </div>
           <div class="toggle-wrap">
-            <span class="toggle-text">${l.status ? 'Open' : 'Closed'}</span>
+            <span class="toggle-text">${l.status ? 'Active' : 'Inactive'}</span>
             <label class="toggle"><input type="checkbox" ${l.status ? 'checked' : ''} onchange="toggleStatus('${l.id}', this.checked)"><span class="toggle-slider"></span></label>
           </div>
         </div>
@@ -1646,7 +1651,7 @@ async function toggleStatus(id, val) {
   if (error) { showToast('Error updating status'); return; }
   const l = myListings.find(x => x.id === id);
   if (l) l.status = val;
-  showToast(val ? '🟢 Listing is now Open' : '🔴 Listing is now Closed');
+  showToast(val ? '🟢 Listing is now Active' : '🔴 Listing is now Inactive');
   await loadListings();
 }
 
@@ -1764,7 +1769,15 @@ async function openEditModal(id) {
     const dateUntilEl = document.getElementById('editDateUntil');
     const ufnEl = document.getElementById('untilFurtherNotice');
 
-    if (savedHours && hoursOpen && hoursClose) {
+    // Check for 24/7
+    const cb247 = document.getElementById('open247');
+    if (savedHours === '24/7' || savedHours.includes('24/7')) {
+      if (cb247) { cb247.checked = true; toggle247(true); }
+    } else {
+      if (cb247) { cb247.checked = false; toggle247(false); }
+    }
+
+    if (savedHours && hoursOpen && hoursClose && savedHours !== '24/7') {
       // Split on · to get segments
       const segments = savedHours.split('·').map(s => s.trim()).filter(Boolean);
 
@@ -1911,6 +1924,8 @@ async function openEditModal(id) {
     if (dateUntilClear) { dateUntilClear.value = ''; dateUntilClear.disabled = false; dateUntilClear.style.opacity = ''; }
     const ufnClear = document.getElementById('untilFurtherNotice');
     if (ufnClear) { ufnClear.checked = false; }
+    const cb247Clear = document.getElementById('open247');
+    if (cb247Clear) { cb247Clear.checked = false; toggle247(false); }
     document.getElementById('editNotes').value = '';
     document.getElementById('editWebsite').value = '';
     document.getElementById('editCustomItems').value = '';
@@ -1928,6 +1943,14 @@ async function openEditModal(id) {
 function closeEditModal() {
   document.getElementById('editModal').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+function toggle247(checked) {
+  const fields = ['editHoursOpen', 'editHoursClose'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = checked; el.style.opacity = checked ? '0.4' : '1'; }
+  });
 }
 
 function toggleUntilFurtherNotice(cb) {
@@ -2035,6 +2058,11 @@ async function saveListing() {
     coords = { lat: parseFloat(addrInput.dataset.lat), lng: parseFloat(addrInput.dataset.lng) };
   } else {
     coords = await geocodeAddress(address);
+  }
+
+  // Override hours to 24/7 if checkbox checked
+  if (document.getElementById('open247')?.checked) {
+    hours = '24/7';
   }
 
   const payload = {
@@ -3398,7 +3426,7 @@ async function renderAdminPage() {
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.5rem;">
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:var(--sage);">${active.length}</p>
-        <p class="admin-stat-label">Active listings</p>
+        <p class="admin-stat-label">Active (visible)</p>
       </div>
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:var(--sage-deep);">${allListings.length}</p>
@@ -3441,6 +3469,16 @@ async function renderAdminPage() {
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:#5b3e8a;">${allListings.filter(l => l.nonprofit).length}</p>
         <p class="admin-stat-label">Certified nonprofits</p>
+      </div>
+      <div class="admin-stat-card" style="cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;" onclick="openSkillsModal('offering',window._adminAllListings||[])" title="Click to view offering listings">
+        <p class="admin-stat-num" style="color:var(--sage);">${allListings.filter(l => l.skills_direction === 'offering' || (l.type === 'skills_labor' && !l.skills_direction)).length}</p>
+        <p class="admin-stat-label">Skills: Offering</p>
+        <p style="font-size:0.62rem;color:var(--sage);margin-top:3px;">↓ Click to view</p>
+      </div>
+      <div class="admin-stat-card" style="cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;" onclick="openSkillsModal('seeking',window._adminAllListings||[])" title="Click to view seeking listings">
+        <p class="admin-stat-num" style="color:#7b5ea7;">${allListings.filter(l => l.skills_direction === 'seeking').length}</p>
+        <p class="admin-stat-label">Skills: Seeking</p>
+        <p style="font-size:0.62rem;color:#7b5ea7;margin-top:3px;">↓ Click to view</p>
       </div>
     </div>
 
@@ -3570,14 +3608,14 @@ async function renderAdminPage() {
         style="padding:0.45rem 0.85rem;border:1.5px solid #ddd;border-radius:100px;font-size:0.82rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">
         <option value="open" selected>Active only</option>
         <option value="">All listings</option>
-        <option value="closed">Closed</option>
+        <option value="closed">Inactive</option>
         <option value="expiring">Expiring soon</option>
         <option value="unclaimed">Admin-owned</option>
         <option value="community">Community-owned</option>
         <option value="need">I Need Help page</option>
         <option value="want">I Want to Help page</option>
       </select>
-      <span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);">${allListings.filter(l=>l.status).length} active · ${allListings.length} total</span>
+      <span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);">${allListings.filter(l=>l.status).length} active · ${allListings.filter(l=>!l.status).length} inactive · ${allListings.length} total</span>
     </div>
 
     <div style="background:white;border:1.5px solid var(--border);border-radius:14px;overflow:auto;margin-bottom:2rem;">
@@ -3594,9 +3632,10 @@ async function renderAdminPage() {
 
   `;
 
-  // Store listings globally for filtering
+  // Store listings globally for filtering and skills modal
   window._adminAllListings = allListings;
   window._adminClaims = claims;
+  window._adminOwnerMap = ownerMap;
 }
 
 function renderAdminRows(listings, claims, ownerMap={}) {
@@ -3618,7 +3657,7 @@ function renderAdminRows(listings, claims, ownerMap={}) {
       <td>
         <span class="${l.status ? 'status-dot-open' : 'status-dot-closed'}"></span>
         <button class="admin-action-btn" style="font-size:0.62rem;color:${l.status?'var(--sage)':'var(--text-muted)'};border-color:${l.status?'var(--sage)':'#ccc'};" onclick="toggleAdminStatus('${l.id}',${l.status},this)">
-          ${l.status ? 'Open' : 'Closed'}
+          ${l.status ? 'Active' : 'Inactive'}
         </button>
       </td>
       <td>
@@ -3659,6 +3698,137 @@ function renderAdminRows(listings, claims, ownerMap={}) {
   }).join('');
 }
 
+// ══════════════════════════════════════
+// SKILLS DIRECTION MODAL
+// ══════════════════════════════════════
+function openSkillsModal(direction, allListings) {
+  const listings = (allListings || window._adminAllListings || []).filter(l => {
+    if (direction === 'offering') return l.skills_direction === 'offering' || (l.type === 'skills_labor' && !l.skills_direction);
+    if (direction === 'seeking') return l.skills_direction === 'seeking';
+    return l.skills_direction === direction;
+  });
+
+  // Also filter the admin table below
+  filterAdminBySkillsDir(direction);
+
+  const dirLabel = direction === 'offering' ? 'Offering Skills' : direction === 'seeking' ? 'Seeking Skills' : direction;
+  const rowsHtml = listings.length === 0
+    ? `<tr><td colspan="3" style="padding:1rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">No listings with this direction</td></tr>`
+    : listings.map(l => `
+      <tr id="skills-row-${l.id}" style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px 12px;font-weight:700;font-size:0.85rem;">
+          <a href="malama-listing.html?id=${l.id}" target="_blank" style="color:var(--sage-deep);text-decoration:none;">${escHtml(l.name)}</a>
+        </td>
+        <td style="padding:10px 12px;font-size:0.78rem;color:var(--text-muted);">${TYPE_LABELS[l.type] || l.type || '—'}</td>
+        <td style="padding:10px 12px;">
+          <select onchange="updateSkillsDirection('${l.id}', this)"
+            style="padding:5px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.78rem;font-family:'Nunito',sans-serif;background:white;cursor:pointer;">
+            <option value="offering" ${(l.skills_direction === 'offering' || !l.skills_direction) ? 'selected' : ''}>offering</option>
+            <option value="seeking" ${l.skills_direction === 'seeking' ? 'selected' : ''}>seeking</option>
+            <option value="none" ${l.skills_direction === 'none' ? 'selected' : ''}>none</option>
+          </select>
+          <span id="saved-${l.id}" style="display:none;font-size:0.72rem;font-weight:700;color:var(--sage);margin-left:6px;">✓ Saved</span>
+        </td>
+      </tr>`).join('');
+
+  const existing = document.getElementById('skillsModalOverlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'skillsModalOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:600;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:18px;width:100%;max-width:620px;max-height:80vh;overflow-y:auto;font-family:'Nunito',sans-serif;">
+      <div style="padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+        <div>
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:var(--text-dark);margin:0 0 4px;">Listings — ${dirLabel}</h2>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin:0;">${listings.length} listing${listings.length !== 1 ? 's' : ''} · Change direction inline using the dropdown</p>
+        </div>
+        <button onclick="closeSkillsModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);line-height:1;padding:4px;">×</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:8px 12px;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">Listing</th>
+            <th style="text-align:left;padding:8px 12px;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">Type</th>
+            <th style="text-align:left;padding:8px 12px;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">Direction</th>
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);text-align:right;">
+        <button onclick="closeSkillsModal()" style="padding:0.5rem 1.2rem;border-radius:100px;border:1.5px solid #ddd;background:white;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text-mid);">Close</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeSkillsModal(); });
+  document.body.appendChild(overlay);
+}
+
+function closeSkillsModal() {
+  const overlay = document.getElementById('skillsModalOverlay');
+  if (overlay) overlay.remove();
+}
+
+async function updateSkillsDirection(listingId, selectEl) {
+  const newValue = selectEl.value;
+  const savedIndicator = document.getElementById('saved-' + listingId);
+  try {
+    const res = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update_listing',
+        authUserId: currentUser.id,
+        listingId,
+        payload: { skills_direction: newValue }
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    // Update local cache
+    const listing = (window._adminAllListings || []).find(l => l.id === listingId);
+    if (listing) listing.skills_direction = newValue;
+    if (savedIndicator) {
+      savedIndicator.style.display = 'inline';
+      setTimeout(() => { if (savedIndicator) savedIndicator.style.display = 'none'; }, 2500);
+    }
+  } catch(e) {
+    showToast('Error saving: ' + e.message);
+  }
+}
+
+function filterAdminBySkillsDir(direction) {
+  // Set skills direction filter label above table
+  const existing = document.getElementById('skillsDirFilterLabel');
+  if (existing) existing.remove();
+  const tableSection = document.querySelector('#adminListingsTable')?.closest('div');
+  if (!tableSection) return;
+  const label = document.createElement('div');
+  label.id = 'skillsDirFilterLabel';
+  label.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:0.6rem;padding:6px 14px;background:var(--sage-pale);border:1.5px solid rgba(58,125,92,0.25);border-radius:100px;width:fit-content;font-size:0.78rem;font-weight:700;color:var(--sage-deep);';
+  const dirLabel = direction === 'offering' ? 'Offering Skills' : direction === 'seeking' ? 'Seeking Skills' : direction;
+  label.innerHTML = `Filtering by: ${dirLabel} <button onclick="clearSkillsDirFilter()" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--sage-deep);line-height:1;padding:0 0 0 4px;font-family:'Nunito',sans-serif;">× Clear filter</button>`;
+  tableSection.parentNode.insertBefore(label, tableSection);
+
+  // Apply filter to table rows
+  document.querySelectorAll('#adminTableBody tr').forEach(row => {
+    const id = row.dataset.id;
+    const listing = (window._adminAllListings || []).find(l => l.id === id);
+    if (!listing) { row.style.display = 'none'; return; }
+    let match;
+    if (direction === 'offering') match = listing.skills_direction === 'offering' || (listing.type === 'skills_labor' && !listing.skills_direction);
+    else if (direction === 'seeking') match = listing.skills_direction === 'seeking';
+    else match = listing.skills_direction === direction;
+    row.style.display = match ? '' : 'none';
+  });
+}
+
+function clearSkillsDirFilter() {
+  const label = document.getElementById('skillsDirFilterLabel');
+  if (label) label.remove();
+  filterAdminTable(); // restore normal filter state
+}
+
 function filterAdminTable() {
   const q = (document.getElementById('adminSearch')?.value || '').toLowerCase();
   const area = (document.getElementById('adminAreaFilter')?.value || '').toLowerCase();
@@ -3691,7 +3861,7 @@ async function toggleAdminStatus(id, current, btn) {
   const newStatus = !current;
   const { error } = await sb2.from('listings').update({ status: newStatus }).eq('id', id);
   if (error) { showToast('Error: ' + error.message); return; }
-  btn.textContent = newStatus ? 'Open' : 'Closed';
+  btn.textContent = newStatus ? 'Active' : 'Inactive';
   btn.style.color = newStatus ? 'var(--sage)' : 'var(--text-muted)';
   btn.style.borderColor = newStatus ? 'var(--sage)' : '#ccc';
   // Update the row class
@@ -3701,7 +3871,7 @@ async function toggleAdminStatus(id, current, btn) {
   }
   const dot = btn.previousElementSibling;
   if (dot) dot.className = newStatus ? 'status-dot-open' : 'status-dot-closed';
-  showToast(newStatus ? '🟢 Listing is now visible on the map' : '🔴 Listing hidden from the map');
+  showToast(newStatus ? '🟢 Listing is now Active (visible on map)' : '🔴 Listing is now Inactive (hidden from map)');
 }
 
 async function saveAdminNote(id, note) {
