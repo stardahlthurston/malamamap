@@ -1280,7 +1280,7 @@ async function saveListing() {
     pet_friendly: document.getElementById('editPetFriendly')?.value==='true',
     event_date: document.getElementById('ongoingToggle')?.dataset.active === 'true' ? 'ongoing' : (document.getElementById('editEventDate')?.value||null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
-    expires_at: new Date(Date.now()+72*3600000).toISOString()
+    expires_at: (() => { const untilFurther = document.getElementById('untilFurtherNotice')?.checked; return untilFurther ? null : new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); })()
   };
 
   const editId = window._editListingId;
