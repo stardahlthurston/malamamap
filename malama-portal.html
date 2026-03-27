@@ -4360,13 +4360,14 @@ function renderCommunityNeedsPage() {
     <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">Manage posts from the community needs board.</p>
     <div id="communityNeedsSection"><p style="color:var(--text-muted);font-size:0.85rem;">Loading community needs…</p></div>
   `;
-  loadAdminCommunityNeeds(sb2);
+  loadAdminCommunityNeeds();
 }
 
 // ─── COMMUNITY NEEDS ADMIN ───
-async function loadAdminCommunityNeeds(sb2) {
+async function loadAdminCommunityNeeds() {
   const section = document.getElementById('communityNeedsSection');
   if (!section) return;
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const { data: needs, error } = await sb2.from('community_needs')
     .select('*')
@@ -4380,7 +4381,7 @@ async function loadAdminCommunityNeeds(sb2) {
   window._adminNeeds = needs;
 
   const now = new Date();
-  const active = needs.filter(n => new Date(n.expires_at) > now);
+  const active = needs.filter(n => !n.expires_at || new Date(n.expires_at) > now);
   const expired = needs.filter(n => new Date(n.expires_at) <= now);
 
   section.innerHTML = `
@@ -4413,7 +4414,7 @@ function renderNeedRows(needs) {
   const now = new Date();
   const urgencyLabel = u => u === 'urgent' ? '🔴 Urgent' : u === 'this_week' ? '🟡 This week' : 'When possible';
   return needs.map(n => {
-    const isExpired = n.expires_at && new Date(n.expires_at) < now;
+    const isExpired = n.expires_at ? new Date(n.expires_at) < now : false;
     const posted = n.created_at ? new Date(n.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const expires = n.expires_at ? new Date(n.expires_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const needTags = (n.needs||[]).map(t => `<span style="display:inline-block;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:100px;background:#fdf4e3;color:#7a5c1a;margin:1px 2px;">${t}</span>`).join('');
@@ -4453,7 +4454,7 @@ async function deleteNeed(id) {
   const { error } = await sb2.from('community_needs').delete().eq('id', id);
   if (error) { showToast('Error deleting: ' + error.message, 'error'); return; }
   showToast('Need deleted');
-  loadAdminCommunityNeeds(sb2);
+  loadAdminCommunityNeeds();
 }
 
 async function extendNeed(id) {
@@ -4462,7 +4463,7 @@ async function extendNeed(id) {
   const { error } = await sb2.from('community_needs').update({ expires_at: newExpiry }).eq('id', id);
   if (error) { showToast('Error extending: ' + error.message, 'error'); return; }
   showToast('Extended by 2 days');
-  loadAdminCommunityNeeds(sb2);
+  loadAdminCommunityNeeds();
 }
 
 function editNeed(id) {
@@ -4531,7 +4532,7 @@ async function saveNeedEdit(id) {
 
   document.getElementById('needEditOverlay')?.remove();
   showToast('Need updated');
-  loadAdminCommunityNeeds(sb2);
+  loadAdminCommunityNeeds();
 }
 
 try { init(); } catch(e) { console.error('Init error:', e); }
