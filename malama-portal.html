@@ -1072,7 +1072,7 @@ async function init() {
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
   // Show admin tab for admin user
-  if (isAdmin(currentUser.id) || currentUser.email === 'stardahlthurston@gmail.com') {
+  if (isAdmin(currentUser.id) || currentUser.email === 'dahlthurstonstar@gmail.com') {
     const adminNav = document.getElementById('navAdmin');
     if (adminNav) adminNav.style.display = 'flex';
     const communityNeedsNav = document.getElementById('navCommunityNeeds');
@@ -3238,7 +3238,7 @@ async function updateVolStatus(signupId, btn) {
 // ══════════════════════════════════════
 // ── ADMIN DASHBOARD ──
 // ══════════════════════════════════════
-const ADMIN_EMAIL = 'stardahlthurston@gmail.com';
+const ADMIN_EMAIL = 'dahlthurstonstar@gmail.com';
 
 async function autoExpireListings(sb2) {
   // Find listings that are within a date range and that range has now passed
