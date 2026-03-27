@@ -412,22 +412,25 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       <div class="section">
         <p class="section-title">📋 What you're offering</p>
         <div class="check-grid">
-          <label class="check-label"><input type="checkbox" value="Water" class="item-check"> Water</label>
-          <label class="check-label"><input type="checkbox" value="Canned food" class="item-check"> Canned food</label>
-          <label class="check-label"><input type="checkbox" value="Hot meals" class="item-check"> Hot meals</label>
           <label class="check-label"><input type="checkbox" value="Baby formula" class="item-check"> Baby formula</label>
-          <label class="check-label"><input type="checkbox" value="Diapers" class="item-check"> Diapers</label>
-          <label class="check-label"><input type="checkbox" value="Clothing" class="item-check"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="Baby wipes" class="item-check"> Baby wipes</label>
+          <label class="check-label"><input type="checkbox" value="Batteries" class="item-check"> Batteries</label>
           <label class="check-label"><input type="checkbox" value="Blankets" class="item-check"> Blankets</label>
+          <label class="check-label"><input type="checkbox" value="Canned food" class="item-check"> Canned food</label>
+          <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="item-check"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Clothing" class="item-check"> Clothing</label>
+          <label class="check-label"><input type="checkbox" value="Diapers" class="item-check"> Diapers</label>
+          <label class="check-label"><input type="checkbox" value="First aid supplies" class="item-check"> First aid supplies</label>
+          <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
           <label class="check-label"><input type="checkbox" value="Gasoline" class="item-check"> Gasoline</label>
           <label class="check-label"><input type="checkbox" value="Generators" class="item-check"> Generators</label>
-          <label class="check-label"><input type="checkbox" value="First aid supplies" class="item-check"> First aid supplies</label>
-          <label class="check-label"><input type="checkbox" value="Medications" class="item-check"> Medications</label>
-          <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="item-check"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Hot meals" class="item-check"> Hot meals</label>
           <label class="check-label"><input type="checkbox" value="Hygiene kits" class="item-check"> Hygiene kits</label>
+          <label class="check-label"><input type="checkbox" value="Medications" class="item-check"> Medications</label>
+          <label class="check-label"><input type="checkbox" value="Pet food &amp; supplies" class="item-check"> Pet food &amp; supplies</label>
           <label class="check-label"><input type="checkbox" value="Towels" class="item-check"> Towels</label>
-          <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
-          <label class="check-label"><input type="checkbox" value="Batteries" class="item-check"> Batteries</label>
+          <label class="check-label"><input type="checkbox" value="Water" class="item-check"> Water</label>
+          <label class="check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)" class="item-check"> Work supplies (shovels, rakes, gloves)</label>
         </div>
         <div style="margin-top:0.85rem;">
           <p style="font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Add an item not listed above</p>
@@ -589,8 +592,8 @@ document.addEventListener('change', function(e) {
   }
   if (e.target.classList.contains('day-check')) {
     e.target.closest('label').classList.toggle('checked', e.target.checked);
-    if (e.target.value === 'Daily' && e.target.checked) {
-      document.querySelectorAll('.day-check:not([value="Daily"])').forEach(d => { d.checked=false; d.closest('label').classList.remove('checked'); });
+    if (e.target.value === 'Daily') {
+      document.querySelectorAll('.day-check').forEach(cb => { cb.checked = e.target.checked; const lbl = cb.closest('label'); if(lbl) lbl.classList.toggle('checked', e.target.checked); });
     } else if (e.target.value !== 'Daily') {
       const daily = document.querySelector('.day-check[value="Daily"]');
       if (daily) { daily.checked=false; daily.closest('label').classList.remove('checked'); }

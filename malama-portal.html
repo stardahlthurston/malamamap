@@ -401,7 +401,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <div class="type-card" data-type="supply_station" onclick="selectType('supply_station')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🛖</div><p style="font-size:0.82rem;font-weight:700;">Supply Station</p></div>
       <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">📦</div><p style="font-size:0.82rem;font-weight:700;">Donation Drop-off</p></div>
       <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;"><div style="font-size:1.4rem;margin-bottom:4px;">🙋</div><p style="font-size:0.82rem;font-weight:700;">Volunteers Needed</p></div>
-      <div class="type-card" data-type="skills_labor" onclick="selectType('skills_labor')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🔧</div><p style="font-size:0.82rem;font-weight:700;">Skills & Labor</p></div>
+      <div class="type-card" data-type="skills_labor" onclick="selectType('skills_labor')" style="padding:0.9rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🔧</div><p style="font-size:0.82rem;font-weight:700;">Skilled Labor</p></div>
       <div class="type-card" data-type="medical_assistance" onclick="selectType('medical_assistance')" style="padding:0.9rem;border:2px solid #fcc;border-radius:12px;cursor:pointer;text-align:center;grid-column:1/-1;"><div style="font-size:1.4rem;margin-bottom:4px;">🏥</div><p style="font-size:0.82rem;font-weight:700;">Medical Aid Station</p></div>
     </div>
     <input type="hidden" id="editType" value="">
@@ -411,12 +411,20 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <p class="modal-label">Event date</p>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:0.5rem;">
         <input type="date" class="modal-input" id="editEventDate" style="flex:1;margin-bottom:0;">
+        <span id="ongoingDateLabel" style="display:none;flex:1;font-size:0.85rem;font-weight:700;color:var(--sage);padding:0.55rem 0.85rem;background:var(--sage-pale);border-radius:10px;">Currently operating</span>
         <button type="button" id="ongoingToggle" onclick="toggleOngoing()" style="padding:0.5rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid #ddd;background:white;color:var(--text-muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
       </div>
+      <p class="modal-label">Volunteer sign-up link <span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:0.78rem;">(optional)</span></p>
+      <input type="url" class="modal-input" id="editVolunteerSignupUrl" placeholder="https://signupgenius.com/your-link">
     </div>
     <div id="volunteerNeedsExtras" style="display:none;">
       <p class="modal-label" id="volunteerNeedsLabel">What kind of volunteers are needed?</p>
-      <input type="text" class="modal-input" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;" id="volTypeChips"></div>
+      <div style="display:flex;gap:6px;margin-top:4px;">
+        <input type="text" id="volTypeCustomInput" class="modal-input" placeholder="Add custom type…" style="flex:1;margin-bottom:0;" onkeydown="if(event.key==='Enter'){event.preventDefault();addVolType();}">
+        <button type="button" onclick="addVolType()" style="padding:0.5rem 0.85rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;">+ Add</button>
+      </div>
+      <input type="hidden" id="editVolunteerNeeds">
     </div>
     <div id="shelterExtras" style="display:none;">
       <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2a6496;margin-bottom:0.4rem;margin-top:0.5rem;">🏠 Shelter Details</p>
@@ -539,27 +547,27 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <p class="modal-section" id="itemsSectionTitle">What you're offering</p>
       <p style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:0.75rem;">Select everything that applies.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0.5rem;" id="itemCheckboxGrid">
-        <label class="item-check-label"><input type="checkbox" value="Water"> Water</label>
-        <label class="item-check-label"><input type="checkbox" value="Canned food"> Canned food</label>
-        <label class="item-check-label"><input type="checkbox" value="Hot meals"> Hot meals</label>
         <label class="item-check-label"><input type="checkbox" value="Baby formula"> Baby formula</label>
-        <label class="item-check-label"><input type="checkbox" value="Diapers"> Diapers</label>
-        <label class="item-check-label"><input type="checkbox" value="Clothing"> Clothing</label>
+        <label class="item-check-label"><input type="checkbox" value="Baby wipes"> Baby wipes</label>
+        <label class="item-check-label"><input type="checkbox" value="Batteries"> Batteries</label>
         <label class="item-check-label"><input type="checkbox" value="Blankets"> Blankets</label>
+        <label class="item-check-label"><input type="checkbox" value="Canned food"> Canned food</label>
+        <label class="item-check-label"><input type="checkbox" value="Cleanup supplies"> Cleanup supplies</label>
+        <label class="item-check-label"><input type="checkbox" value="Clothing"> Clothing</label>
+        <label class="item-check-label"><input type="checkbox" value="Diapers"> Diapers</label>
+        <label class="item-check-label"><input type="checkbox" value="First aid supplies"> First aid supplies</label>
+        <label class="item-check-label"><input type="checkbox" value="Flashlights"> Flashlights</label>
         <label class="item-check-label"><input type="checkbox" value="Gasoline"> Gasoline</label>
         <label class="item-check-label"><input type="checkbox" value="Generators"> Generators</label>
-        <label class="item-check-label"><input type="checkbox" value="First aid supplies"> First aid</label>
-        <label class="item-check-label"><input type="checkbox" value="Medications"> Medications</label>
-        <label class="item-check-label"><input type="checkbox" value="Cleanup supplies"> Cleanup supplies</label>
-        <label class="item-check-label"><input type="checkbox" value="Hygiene kits"> Hygiene kits</label>
-        <label class="item-check-label"><input type="checkbox" value="Pet food & supplies"> Pet food & supplies</label>
-        <label class="item-check-label"><input type="checkbox" value="Baby wipes"> Baby wipes</label>
+        <label class="item-check-label"><input type="checkbox" value="Hot meals"> Hot meals</label>
         <label class="item-check-label"><input type="checkbox" value="Hygiene items (toothpaste, toothbrushes, soap, deodorant)"> Hygiene items</label>
-        <label class="item-check-label"><input type="checkbox" value="Towels"> Towels</label>
-        <label class="item-check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)"> Work supplies</label>
+        <label class="item-check-label"><input type="checkbox" value="Hygiene kits"> Hygiene kits</label>
         <label class="item-check-label"><input type="checkbox" value="Medical supplies"> Medical supplies</label>
-        <label class="item-check-label"><input type="checkbox" value="Flashlights"> Flashlights</label>
-        <label class="item-check-label"><input type="checkbox" value="Batteries"> Batteries</label>
+        <label class="item-check-label"><input type="checkbox" value="Medications"> Medications</label>
+        <label class="item-check-label"><input type="checkbox" value="Pet food &amp; supplies"> Pet food &amp; supplies</label>
+        <label class="item-check-label"><input type="checkbox" value="Towels"> Towels</label>
+        <label class="item-check-label"><input type="checkbox" value="Water"> Water</label>
+        <label class="item-check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)"> Work supplies</label>
       </div>
       <p class="modal-label">Anything else?</p>
       <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice packs (one item per entry, hit + to add more)">
@@ -826,6 +834,7 @@ function selectType(type) {
   // Show extras if any selected type needs them
   document.getElementById('eventExtras').style.display = selectedTypes.includes('volunteer_event') ? 'block' : 'none';
   document.getElementById('volunteerNeedsExtras').style.display = (selectedTypes.includes('volunteer_event') || selectedTypes.includes('skills_labor')) ? 'block' : 'none';
+  if (selectedTypes.includes('volunteer_event') || selectedTypes.includes('skills_labor')) initVolTypeChips();
   document.getElementById('shelterExtras').style.display = selectedTypes.includes('shelter') ? 'block' : 'none';
   document.getElementById('dropoffToggle').style.display = selectedTypes.includes('supply_station') ? 'block' : 'none';
   document.getElementById('skillsExtras').style.display = selectedTypes.includes('skills_labor') ? 'block' : 'none';
@@ -862,27 +871,78 @@ function selectType(type) {
 
 function toggleOngoing() {
   const dateInput = document.getElementById('editEventDate');
+  const ongoingLabel = document.getElementById('ongoingDateLabel');
   const btn = document.getElementById('ongoingToggle');
   const isOngoing = btn.dataset.active === 'true';
   if (isOngoing) {
-    // Turn off ongoing
     btn.dataset.active = 'false';
     btn.style.borderColor = '#ddd';
     btn.style.background = 'white';
     btn.style.color = 'var(--text-muted)';
+    dateInput.style.display = '';
+    if (ongoingLabel) ongoingLabel.style.display = 'none';
     dateInput.disabled = false;
     dateInput.style.opacity = '1';
     dateInput.value = '';
   } else {
-    // Turn on ongoing
     btn.dataset.active = 'true';
     btn.style.borderColor = '#3a7d5c';
     btn.style.background = '#edf7f1';
     btn.style.color = '#3a7d5c';
+    dateInput.style.display = 'none';
+    if (ongoingLabel) { ongoingLabel.style.display = 'block'; }
     dateInput.value = 'ongoing';
     dateInput.disabled = true;
-    dateInput.style.opacity = '0.4';
   }
+}
+
+const VOL_TYPE_OPTIONS = [
+  'General help','Drivers / transportation','Loading & unloading','Food distribution',
+  'Registration / check-in','Medical support','Translation / interpreter','Child care',
+  'Chainsaw / tree work','Physical labor','Truck / hauling','Heavy equipment',
+  'Electrician','Plumber','Carpenter','Meals / cooking','Generator / power',
+  'Photography / documentation','Administrative','Security / safety'
+];
+let _selectedVolTypes = [];
+
+function initVolTypeChips() {
+  const container = document.getElementById('volTypeChips');
+  if (!container) return;
+  container.innerHTML = VOL_TYPE_OPTIONS.map(type => {
+    const sel = _selectedVolTypes.includes(type);
+    return `<span class="vol-type-chip${sel ? ' selected' : ''}" onclick="toggleVolType('${type.replace(/'/g,"\\'")}',this)" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;font-size:0.78rem;font-weight:700;cursor:pointer;border:1.5px solid ${sel?'#7b5ea7':'#ddd'};background:${sel?'#f3eeff':'white'};color:${sel?'#7b5ea7':'var(--text-mid)'};transition:all 0.15s;">${type}</span>`;
+  }).join('') + _selectedVolTypes.filter(t => !VOL_TYPE_OPTIONS.includes(t)).map(type =>
+    `<span class="vol-type-chip selected" onclick="toggleVolType('${type.replace(/'/g,"\\'")}',this)" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;font-size:0.78rem;font-weight:700;cursor:pointer;border:1.5px solid #7b5ea7;background:#f3eeff;color:#7b5ea7;transition:all 0.15s;">${type} <span onclick="event.stopPropagation();removeVolType('${type.replace(/'/g,"\\'")}');" style="font-size:1rem;line-height:1;cursor:pointer;opacity:0.6;">×</span></span>`
+  ).join('');
+}
+
+function toggleVolType(type, el) {
+  if (_selectedVolTypes.includes(type)) {
+    _selectedVolTypes = _selectedVolTypes.filter(t => t !== type);
+    el.style.borderColor = '#ddd'; el.style.background = 'white'; el.style.color = 'var(--text-mid)';
+    el.classList.remove('selected');
+  } else {
+    _selectedVolTypes.push(type);
+    el.style.borderColor = '#7b5ea7'; el.style.background = '#f3eeff'; el.style.color = '#7b5ea7';
+    el.classList.add('selected');
+  }
+  document.getElementById('editVolunteerNeeds').value = _selectedVolTypes.join(', ');
+}
+
+function removeVolType(type) {
+  _selectedVolTypes = _selectedVolTypes.filter(t => t !== type);
+  document.getElementById('editVolunteerNeeds').value = _selectedVolTypes.join(', ');
+  initVolTypeChips();
+}
+
+function addVolType() {
+  const input = document.getElementById('volTypeCustomInput');
+  const val = input?.value.trim();
+  if (!val || _selectedVolTypes.includes(val)) { if (input) input.value = ''; return; }
+  _selectedVolTypes.push(val);
+  document.getElementById('editVolunteerNeeds').value = _selectedVolTypes.join(', ');
+  if (input) input.value = '';
+  initVolTypeChips();
 }
 
 const MODAL_TYPE_LABELS = {
@@ -905,18 +965,20 @@ function autoFillModalName(type) {
 // ══════════════════════════════════════
 // DAY PILLS — fully filled green when selected
 // ══════════════════════════════════════
-function toggleDay(pill) {
-  const day = pill.dataset.day;
-  const isEveryDay = day === 'Every day';
-  if (isEveryDay) {
-    // Select "Every day" and deselect all others
-    document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('selected'));
-    pill.classList.add('selected');
+function toggleDay(el) {
+  const day = el.dataset.day;
+  if (day === 'Every day') {
+    const isNowSelected = !el.classList.contains('selected');
+    document.querySelectorAll('.day-pill').forEach(p => {
+      if (isNowSelected) p.classList.add('selected');
+      else p.classList.remove('selected');
+    });
   } else {
-    // Deselect "Every day" if a specific day is picked
+    el.classList.toggle('selected');
+    // If any individual day is deselected, deselect "Every day" too
     const everyDay = document.querySelector('.day-pill[data-day="Every day"]');
-    if (everyDay) everyDay.classList.remove('selected');
-    pill.classList.toggle('selected');
+    const allSelected = [...document.querySelectorAll('.day-pill:not([data-day="Every day"])')].every(p => p.classList.contains('selected'));
+    if (everyDay) everyDay.classList.toggle('selected', allSelected);
   }
 }
 
@@ -1794,7 +1856,14 @@ async function openEditModal(id) {
       } else if (l.event_date) {
         document.getElementById('editEventDate').value = l.event_date;
       }
-      if (l.volunteer_needs) document.getElementById('editVolunteerNeeds').value = l.volunteer_needs;
+      if (l.volunteer_needs) {
+        _selectedVolTypes = l.volunteer_needs.split(',').map(s => s.trim()).filter(Boolean);
+        document.getElementById('editVolunteerNeeds').value = l.volunteer_needs;
+        initVolTypeChips();
+      } else {
+        _selectedVolTypes = [];
+      }
+      if (l.volunteer_signup_url) document.getElementById('editVolunteerSignupUrl').value = l.volunteer_signup_url;
     }
     if (typeStr.includes('shelter')) {
       if (l.capacity) document.getElementById('editCapacity').value = l.capacity;
@@ -1819,6 +1888,7 @@ async function openEditModal(id) {
     nameFieldReset.placeholder = 'Auto-fills after selecting type & address';
     document.getElementById('editType').value = '';
     selectedTypes = [];
+    _selectedVolTypes = [];
     document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor = '#ddd'; c.style.background = 'white'; });
     clearAreaSuggestion();
     // Reset volunteer toggle
@@ -1847,6 +1917,7 @@ async function openEditModal(id) {
     document.getElementById('givingCheck').checked = false;
     document.getElementById('givingUrlWrap').style.display = 'none';
     document.getElementById('editGivingUrl').value = '';
+    if (document.getElementById('editVolunteerSignupUrl')) document.getElementById('editVolunteerSignupUrl').value = '';
   }
 
   modal.classList.add('open');
@@ -1985,6 +2056,7 @@ async function saveListing() {
     pet_friendly: document.getElementById('editPetFriendly')?.value === 'true',
     event_date: document.getElementById('ongoingToggle')?.dataset.active === 'true' ? 'ongoing' : (document.getElementById('editEventDate')?.value || null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim() || null,
+    volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim() || null,
     expires_at: new Date(Date.now() + 72 * 3600000).toISOString(),
     user_id: currentUser.id
   };
@@ -3819,15 +3891,17 @@ function renderItemsUI(itemMap) {
     </div>
     <p id="selectionCount" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem;display:none;"></p>
 
-    <!-- Items grid -->
-    <div id="itemsGrid" style="display:flex;flex-direction:column;gap:6px;">
+    <!-- Items pill grid -->
+    <div id="itemsGrid" style="display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;">
       ${sorted.map(([key, info]) => `
-        <div class="item-row" data-key="${key}" data-display="${info.display.replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:10px;padding:0.65rem 0.9rem;background:white;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.15s;" onclick="toggleItemSelect('${key.replace(/'/g,"\\'")}', this)">
-          <div style="width:18px;height:18px;border:2px solid #ccc;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" class="item-checkbox"></div>
-          <span style="flex:1;font-size:0.88rem;font-weight:600;color:var(--text-dark);">${info.display}</span>
-          <span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">${info.listingIds.size} listing${info.listingIds.size !== 1 ? 's' : ''}</span>
-          <button onclick="event.stopPropagation();editItemInline('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',this)" style="font-size:0.72rem;font-weight:700;color:var(--sage);background:none;border:1.5px solid var(--border);border-radius:100px;padding:3px 10px;cursor:pointer;">Rename</button>
-          <button onclick="event.stopPropagation();deleteSingleItem('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',${info.listingIds.size})" style="font-size:0.72rem;font-weight:700;color:var(--red);background:none;border:1.5px solid rgba(192,57,43,0.2);border-radius:100px;padding:3px 10px;cursor:pointer;">Delete</button>
+        <div class="item-row" data-key="${key}" data-display="${info.display.replace(/"/g,'&quot;')}"
+             style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:white;border:1.5px solid var(--border);border-radius:100px;cursor:pointer;transition:all 0.15s;font-size:0.82rem;"
+             onclick="toggleItemSelect('${key.replace(/'/g,"\\'")}', this)">
+          <div style="width:14px;height:14px;border:2px solid #ccc;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" class="item-checkbox"></div>
+          <span style="font-weight:600;color:var(--text-dark);white-space:nowrap;">${info.display}</span>
+          <span style="font-size:0.68rem;color:var(--text-muted);white-space:nowrap;">${info.listingIds.size}</span>
+          <button onclick="event.stopPropagation();editItemInline('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',this)" style="font-size:0.65rem;font-weight:700;color:var(--sage);background:none;border:none;padding:0 2px;cursor:pointer;opacity:0.7;">✏️</button>
+          <button onclick="event.stopPropagation();deleteSingleItem('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',${info.listingIds.size})" style="font-size:0.65rem;font-weight:700;color:var(--red);background:none;border:none;padding:0 2px;cursor:pointer;opacity:0.7;">✕</button>
         </div>
       `).join('')}
     </div>
@@ -3867,7 +3941,7 @@ function filterItemsList() {
   document.querySelectorAll('#itemsGrid .item-row').forEach(row => {
     const key = row.dataset.key || '';
     const display = row.dataset.display || '';
-    row.style.display = (!q || key.includes(q) || display.toLowerCase().includes(q)) ? 'flex' : 'none';
+    row.style.display = (!q || key.includes(q) || display.toLowerCase().includes(q)) ? 'inline-flex' : 'none';
   });
 }
 
