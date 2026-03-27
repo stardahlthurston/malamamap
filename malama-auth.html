@@ -100,17 +100,6 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     <p style="text-align:center;margin-top:0.5rem;"><a href="#" onclick="testResetEmail(event)" style="font-size:0.75rem;color:#bbb;font-weight:600;text-decoration:none;">🧪 Test: send to Star's email</a></p>
   </div>
 
-  <!-- NEW PASSWORD (shown after clicking reset link) -->
-  <div id="newPassSection" style="display:none;">
-    <div class="section">
-      <p class="section-title">Set new password</p>
-      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;">Choose a new password for your account.</p>
-      <div class="field"><label>New password</label><input type="password" id="newPassword" placeholder="At least 6 characters"></div>
-      <div class="field"><label>Confirm password</label><input type="password" id="confirmPassword" placeholder="Same password again"></div>
-    </div>
-    <button class="submit-btn" id="newPassBtn" onclick="handleNewPassword()">Save new password →</button>
-  </div>
-
   <!-- SIGNUP -->
   <div id="signupSection">
     <div class="section">
@@ -151,7 +140,6 @@ function show(mode) {
   document.getElementById('loginSection').style.display = mode === 'login' ? 'block' : 'none';
   document.getElementById('signupSection').style.display = mode === 'signup' ? 'block' : 'none';
   document.getElementById('forgotSection').style.display = 'none';
-  document.getElementById('newPassSection').style.display = 'none';
   document.getElementById('msg').className = 'msg';
 }
 
@@ -160,7 +148,6 @@ function showForgot(e) {
   document.getElementById('loginSection').style.display = 'none';
   document.getElementById('signupSection').style.display = 'none';
   document.getElementById('forgotSection').style.display = 'block';
-  document.getElementById('newPassSection').style.display = 'none';
   document.getElementById('tab-login').classList.remove('active');
   document.getElementById('tab-signup').classList.remove('active');
   document.getElementById('msg').className = 'msg';
@@ -176,22 +163,7 @@ var sb;
 window.addEventListener('load', function() {
   sb = window.supabase.createClient(SURL, SKEY);
   sb.auth.getSession().then(function(r) {
-    if (r.data && r.data.session) {
-      // If this is a password recovery session, don't redirect — show new password form
-      var hash = window.location.hash;
-      if (hash && hash.includes('type=recovery')) return;
-      window.location.href = 'malama-portal.html';
-    }
-  });
-  // Catch PASSWORD_RECOVERY event from Supabase
-  sb.auth.onAuthStateChange(function(event) {
-    if (event === 'PASSWORD_RECOVERY') {
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('signupSection').style.display = 'none';
-      document.getElementById('forgotSection').style.display = 'none';
-      document.getElementById('newPassSection').style.display = 'block';
-      document.querySelectorAll('.tabs').forEach(function(t){ t.style.display='none'; });
-    }
+    if (r.data && r.data.session) window.location.href = 'malama-portal.html';
   });
 });
 
@@ -248,46 +220,24 @@ async function testResetEmail(e) {
 }
 
 async function handleReset() {
-  if (!sb) { showMsg('Still loading, please try again', 'error'); return; }
   var email = document.getElementById('resetEmail').value.trim();
   if (!email) { showMsg('Please enter your email', 'error'); return; }
   var btn = document.getElementById('resetBtn');
   btn.disabled = true; btn.textContent = 'Sending…';
-  var r = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://www.malamamap.org/malama-auth.html'
-  });
-  if (r.error) { showMsg(r.error.message, 'error'); btn.disabled=false; btn.textContent='Send reset link →'; return; }
+  try {
+    var r = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    var json = await r.json().catch(() => ({}));
+    if (!r.ok) { showMsg(json.error || 'Something went wrong, please try again', 'error'); btn.disabled=false; btn.textContent='Send reset link →'; return; }
+  } catch(err) {
+    showMsg('Network error, please try again', 'error'); btn.disabled=false; btn.textContent='Send reset link →'; return;
+  }
   showMsg('✅ Reset link sent! Check your email (including spam).', 'success');
   btn.disabled=false; btn.textContent='Send reset link →';
 }
-
-async function handleNewPassword() {
-  if (!sb) { showMsg('Still loading, please try again', 'error'); return; }
-  var pw = document.getElementById('newPassword').value;
-  var pw2 = document.getElementById('confirmPassword').value;
-  if (!pw || pw.length < 6) { showMsg('Password must be at least 6 characters', 'error'); return; }
-  if (pw !== pw2) { showMsg('Passwords do not match', 'error'); return; }
-  var btn = document.getElementById('newPassBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  var r = await sb.auth.updateUser({ password: pw });
-  if (r.error) { showMsg(r.error.message, 'error'); btn.disabled=false; btn.textContent='Save new password →'; return; }
-  showMsg('✅ Password updated! Redirecting to your portal…', 'success');
-  setTimeout(function(){ window.location.href = 'malama-portal.html'; }, 1500);
-}
-
-// Detect password recovery session (user clicked reset link in email)
-window.addEventListener('load', function() {
-  var hash = window.location.hash;
-  if (hash && hash.includes('type=recovery')) {
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('signupSection').style.display = 'none';
-    document.getElementById('forgotSection').style.display = 'none';
-    document.getElementById('newPassSection').style.display = 'block';
-    document.querySelectorAll('.tabs').forEach(function(t){ t.style.display='none'; });
-  }
-});
-
-
 </script>
 </body>
 </html>
