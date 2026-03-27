@@ -1978,12 +1978,15 @@ async function saveListing() {
   const name = document.getElementById('editName').value.trim();
   const address = document.getElementById('editAddress').value.trim();
   const location = document.getElementById('editLocation')?.value || '';
-  if (!address) { showToast('Please enter an address'); return; }
-  if (!location) { showToast('Please select a neighborhood from the suggestions'); return; }
-  if (!name) { showToast('Please fill in listing name'); return; }
+  console.log('[SAVE CHECK] id:', id, 'name:', name, 'address:', address, 'location:', location, 'isAdmin:', isAdmin(currentUser?.id));
+  if (!address) { console.warn('[SAVE BLOCKED] no address'); showToast('Please enter an address'); return; }
+  // Admin editing an existing listing: skip location check (old listings may lack it)
+  if (!location && !(id && isAdmin(currentUser.id))) { console.warn('[SAVE BLOCKED] no location'); showToast('Please select a neighborhood from the suggestions'); return; }
+  if (!name) { console.warn('[SAVE BLOCKED] no name'); showToast('Please fill in listing name'); return; }
 
   const type = document.getElementById('editType').value;
-  if (!type) { showToast('Please select a listing type'); return; }
+  console.log('[SAVE CHECK] type:', type);
+  if (!type) { console.warn('[SAVE BLOCKED] no type'); showToast('Please select a listing type'); return; }
 
   // Build hours string — only rebuild if user touched the fields, otherwise keep original
   const days = getSelectedDays();
