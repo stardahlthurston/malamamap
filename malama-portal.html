@@ -4120,7 +4120,7 @@ async function renderGiveFinanciallyPage() {
   const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data: listings, error } = await sb2
     .from('listings')
-    .select('id,name,type,website,notes,address,status,main_hub')
+    .select('id,name,type,website,notes,address,status')
     .order('name', { ascending: true });
   const el = document.getElementById('giveFinContent');
   if (error) { el.innerHTML = `<p style="color:var(--red);">${error.message}</p>`; return; }
@@ -4139,7 +4139,6 @@ async function renderGiveFinanciallyPage() {
             <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:4px;">
               <span style="font-size:0.95rem;font-weight:700;color:var(--text-dark);">${l.name || 'Unnamed'}</span>
               ${l.status ? '<span style="font-size:0.68rem;font-weight:700;background:#edf7f1;color:var(--sage-deep);padding:2px 8px;border-radius:100px;">Active</span>' : '<span style="font-size:0.68rem;font-weight:700;background:#f5f5f5;color:var(--text-muted);padding:2px 8px;border-radius:100px;">Inactive</span>'}
-              ${l.main_hub ? '<span style="font-size:0.68rem;font-weight:700;background:var(--gold-pale);color:var(--gold);padding:2px 8px;border-radius:100px;">⭐ Hub</span>' : ''}
             </div>
             ${l.address ? `<p style="font-size:0.78rem;color:var(--text-muted);margin:0;">${l.address}</p>` : ''}
             ${l.notes ? `<p style="font-size:0.8rem;color:var(--text-mid);margin:4px 0 0;line-height:1.4;">${l.notes.substring(0,120)}${l.notes.length>120?'…':''}</p>` : ''}
