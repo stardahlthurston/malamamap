@@ -146,7 +146,8 @@
   .type-chip.selected.dropoff { background: var(--gold-pale); border-color: var(--gold); color: #7a5c1a; }
   .type-chip.selected.medical { background: #fdf0ef; border-color: #c0392b; color: #8b1a1a; }
   .type-chip.selected.shelter { background: #eef4ff; border-color: #4a7abf; color: #1a3a6b; }
-  .type-chip.selected.skills  { background: #f5f0ff; border-color: #7b5ea7; color: #4a2d7a; }
+  .type-chip.selected.skills    { background: #f5f0ff; border-color: #7b5ea7; color: #4a2d7a; }
+  .type-chip.selected.financial { background: #fff8e7; border-color: #c9983a; color: #7a4f00; }
 
   /* ── TOGGLES ROW ── */
   .toggles-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
@@ -360,6 +361,7 @@
             <button type="button" class="type-chip"          data-type="volunteer_event"   onclick="toggleTypeChip(this)">🙋 Volunteers</button>
             <button type="button" class="type-chip medical"  data-type="medical_assistance" onclick="toggleTypeChip(this)">🏥 Medical</button>
             <button type="button" class="type-chip skills"   data-type="skills_labor"      onclick="toggleTypeChip(this)">🔧 Skills & Labor</button>
+            <button type="button" class="type-chip financial" data-type="financial_giving"  onclick="toggleTypeChip(this)">💛 Give Financially</button>
           </div>
         </div>
 
@@ -636,7 +638,7 @@ function onListingSelect() {
   type.split(',').forEach(t => {
     t = t.trim();
     if (t && t !== 'donation_dropoff' && t !== 'supply_station') {
-      const labels = { shelter:'🏠 Shelter', volunteer_event:'🙋 Volunteers', medical_assistance:'🏥 Medical', skills_labor:'🔧 Skills & Labor' };
+      const labels = { shelter:'🏠 Shelter', volunteer_event:'🙋 Volunteers', medical_assistance:'🏥 Medical', skills_labor:'🔧 Skills & Labor', financial_giving:'💛 Give Financially' };
       badgeHTML.push(`<span class="type-badge other">${labels[t] || t}</span>`);
     }
   });

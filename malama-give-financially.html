@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Give Financially — Mālama Map</title>
+<link rel="icon" href="/logo.png">
+<meta name="description" content="Organizations in Hawaiʻi offering direct financial support to those affected. Find and give now.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold:       #c9983a;
+    --gold-deep:  #7a4f00;
+    --gold-mid:   #b07a00;
+    --gold-pale:  #fff8e7;
+    --gold-light: #f5e0a0;
+    --sage:       #3a7d5c;
+    --sage-deep:  #275c42;
+    --sage-pale:  #edf7f1;
+    --text-dark:  #1c1a18;
+    --text-mid:   #4a453f;
+    --text-muted: #8a827a;
+    --border:     rgba(0,0,0,0.1);
+    --cream:      #fdf8f2;
+  }
+  html, body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--text-dark); min-height: 100vh; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: linear-gradient(135deg, #7a4f00 0%, #b07a00 60%, #c9983a 100%);
+    padding: 0.85rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(122,79,0,0.25);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-back {
+    font-size: 0.78rem; font-weight: 700; color: rgba(255,255,255,0.8);
+    text-decoration: none; display: flex; align-items: center; gap: 4px;
+    transition: color 0.15s;
+  }
+  .topbar-back:hover { color: white; }
+  .topbar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 800; color: white;
+  }
+  .topbar-sub { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.7); margin-top: 1px; }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #7a4f00 0%, #b07a00 55%, #c9983a 100%);
+    padding: 2.5rem 1.5rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '💛';
+    position: absolute;
+    font-size: 8rem;
+    opacity: 0.07;
+    top: -1rem; right: -1rem;
+    line-height: 1;
+  }
+  .hero-eyebrow {
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.18em;
+    text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800; color: white; line-height: 1.1; margin-bottom: 0.75rem;
+  }
+  .hero-title em { font-style: italic; }
+  .hero-desc {
+    font-size: 0.95rem; font-weight: 500; color: rgba(255,255,255,0.85);
+    max-width: 500px; margin: 0 auto 1.5rem; line-height: 1.7;
+  }
+  .hero-count {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: white; font-size: 0.8rem; font-weight: 700;
+    padding: 0.4rem 1rem; border-radius: 100px;
+  }
+
+  /* ── CONTENT ── */
+  .content { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+  /* ── SEARCH ── */
+  .search-wrap {
+    position: relative; margin-bottom: 1.5rem;
+  }
+  .search-wrap svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; color: var(--text-muted);
+  }
+  .search-input {
+    width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 1.5px solid var(--border); border-radius: 100px;
+    font-size: 0.92rem; font-family: 'Nunito', sans-serif;
+    outline: none; background: white;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--gold); }
+
+  /* ── CARD ── */
+  .cards { display: flex; flex-direction: column; gap: 1rem; }
+  .card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.35rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--gold-mid), var(--gold));
+  }
+  .card:hover { border-color: var(--gold-light); box-shadow: 0 4px 20px rgba(201,152,58,0.12); }
+
+  .card-top { display: flex; align-items: flex-start; gap: 0.85rem; margin-bottom: 0.65rem; }
+  .card-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: var(--gold-pale); border: 1.5px solid var(--gold-light);
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+  }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 800; color: var(--text-dark); line-height: 1.2;
+  }
+  .card-location {
+    font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-top: 2px;
+  }
+  .card-notes {
+    font-size: 0.88rem; font-weight: 500; color: var(--text-mid);
+    line-height: 1.65; margin-bottom: 1rem;
+  }
+  .card-footer { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
+  .btn-give {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0.6rem 1.3rem;
+    background: linear-gradient(135deg, #b07a00, #c9983a);
+    color: white; font-size: 0.85rem; font-weight: 800;
+    border-radius: 100px; text-decoration: none;
+    transition: filter 0.2s, transform 0.15s;
+    border: none; cursor: pointer; font-family: 'Nunito', sans-serif;
+  }
+  .btn-give:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-give svg { width: 14px; height: 14px; }
+  .card-phone {
+    font-size: 0.8rem; font-weight: 700; color: var(--text-mid);
+    text-decoration: none;
+  }
+  .card-phone:hover { color: var(--gold-deep); }
+
+  /* ── STATUS BADGES ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 100px;
+  }
+  .badge-active   { background: #e8f5ed; color: #2a7a4a; }
+  .badge-inactive { background: #f5f5f5; color: #999; }
+  .badge-hub      { background: var(--gold-pale); color: var(--gold-deep); border: 1px solid var(--gold-light); }
+
+  /* ── EMPTY ── */
+  .empty {
+    text-align: center; padding: 4rem 1rem;
+    color: var(--text-muted);
+  }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .empty p { font-size: 0.92rem; font-weight: 600; line-height: 1.6; }
+
+  /* ── LOADING ── */
+  .loading { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #e8c840; border-top-color: var(--gold-deep); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+
+  /* ── FOOTER NOTE ── */
+  .footer-note {
+    text-align: center; margin-top: 2.5rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem; font-weight: 600; color: var(--text-muted); line-height: 1.7;
+  }
+  .footer-note a { color: var(--sage); text-decoration: none; font-weight: 700; }
+  .footer-note a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .hero { padding: 2rem 1.25rem 2.5rem; }
+    .card-top { gap: 0.65rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="/" class="topbar-back">
+      <svg viewBox="0 0 15 15" fill="none" width="14" height="14"><path d="M9 3L4.5 7.5 9 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Mālama Map
+    </a>
+  </div>
+  <div>
+    <div class="topbar-title">💛 Give Financially</div>
+  </div>
+  <div style="width:80px;"></div><!-- spacer -->
+</div>
+
+<div class="hero">
+  <p class="hero-eyebrow">Financial support available</p>
+  <h1 class="hero-title">Give <em>Financially</em></h1>
+  <p class="hero-desc">Organizations across Hawaiʻi offering direct financial support to individuals and families affected by the disaster.</p>
+  <span class="hero-count" id="heroCount">Loading…</span>
+</div>
+
+<div class="content">
+  <div class="search-wrap">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <circle cx="8.5" cy="8.5" r="5.5"/><path d="M13.5 13.5l3.5 3.5"/>
+    </svg>
+    <input class="search-input" type="text" id="searchInput" placeholder="Search organizations…" oninput="filterCards()">
+  </div>
+
+  <div class="cards" id="cardsList">
+    <div class="loading"><span class="spinner"></span>Loading organizations…</div>
+  </div>
+
+  <div class="footer-note">
+    Are you an organization offering financial support?
+    <a href="/malama-create.html">Add your listing →</a>
+    &nbsp;·&nbsp;
+    <a href="/">Back to Mālama Map</a>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2NzI3NDgsImV4cCI6MjA1ODI0ODc0OH0.S5pHBBJUO0OGr0QmKAEg74gHetMHX_mN5Y1GiYDl2HI';
+
+let allListings = [];
+
+async function loadListings() {
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/listings?select=id,name,type,notes,address,contact_phone,website,status,main_hub&status=eq.true&order=name.asc`,
+      { headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON } }
+    );
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    // Filter to only financial_giving type listings
+    allListings = (data || []).filter(l => {
+      const types = (l.type || '').split(',').map(t => t.trim());
+      return types.includes('financial_giving');
+    });
+    renderCards(allListings);
+  } catch(e) {
+    document.getElementById('cardsList').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div><p>Couldn't load listings.<br>Please try refreshing.</p></div>`;
+    document.getElementById('heroCount').textContent = 'Try refreshing';
+  }
+}
+
+function renderCards(listings) {
+  const heroCount = document.getElementById('heroCount');
+  heroCount.textContent = listings.length === 0
+    ? 'No organizations yet'
+    : `${listings.length} organization${listings.length !== 1 ? 's' : ''} giving financially`;
+
+  if (listings.length === 0) {
+    document.getElementById('cardsList').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">💛</div>
+        <p>No financial giving listings yet.<br>Check back soon — more organizations are joining every day.</p>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('cardsList').innerHTML = listings.map(l => {
+    const hasLink   = l.website && l.website.trim();
+    const hasPhone  = l.contact_phone && l.contact_phone.trim();
+    const location  = l.address ? l.address.split(',').slice(-2).join(',').trim() : '';
+    const notes     = (l.notes || '').trim();
+
+    return `
+      <div class="card" data-name="${escHtml(l.name || '')}" data-notes="${escHtml(notes)}">
+        <div class="card-top">
+          <div class="card-icon">💛</div>
+          <div>
+            <div class="card-name">${escHtml(l.name || 'Unnamed Organization')}</div>
+            ${location ? `<div class="card-location">📍 ${escHtml(location)}</div>` : ''}
+          </div>
+        </div>
+        ${notes ? `<div class="card-notes">${escHtml(notes)}</div>` : ''}
+        <div class="card-footer">
+          ${hasLink
+            ? `<a href="${escAttr(ensureHttp(l.website))}" target="_blank" rel="noopener noreferrer" class="btn-give">
+                Give Now
+                <svg viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               </a>`
+            : ''}
+          ${hasPhone
+            ? `<a href="tel:${escAttr(l.contact_phone)}" class="card-phone">📞 ${escHtml(l.contact_phone)}</a>`
+            : ''}
+          ${l.main_hub ? `<span class="badge badge-hub">⭐ Fully Stocked Hub</span>` : ''}
+          ${!hasLink && !hasPhone ? `<span style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">Contact info coming soon</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function filterCards() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (!q) { renderCards(allListings); return; }
+  const filtered = allListings.filter(l =>
+    (l.name || '').toLowerCase().includes(q) ||
+    (l.notes || '').toLowerCase().includes(q) ||
+    (l.address || '').toLowerCase().includes(q)
+  );
+  renderCards(filtered);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+function ensureHttp(url) {
+  if (!url) return '#';
+  return /^https?:\/\//i.test(url) ? url : 'https://' + url;
+}
+
+loadListings();
+</script>
+</body>
+</html>
