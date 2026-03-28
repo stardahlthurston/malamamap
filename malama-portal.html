@@ -4206,9 +4206,6 @@ function renderItemsUI(itemMap) {
                      background:${inForm ? 'var(--sage-pale)' : '#eee'};
                      color:${inForm ? 'var(--sage)' : 'var(--muted)'};">${cnt}</span>
         <span style="font-size:0.7rem;color:${inForm ? 'var(--sage)' : '#ccc'};">${inForm ? '●' : '○'}</span>
-        <button onclick="event.stopPropagation();deleteSingleItem('${ek}','${ed}',${cnt})"
-                style="font-size:0.62rem;font-weight:700;color:var(--red);background:none;border:none;
-                       padding:0 2px;cursor:pointer;opacity:0.45;line-height:1;">✕</button>
       </div>`;
   }
 
@@ -4579,17 +4576,8 @@ async function confirmCombineItems() {
       return raw;
     });
     const deduped = [...new Set(newItems)];
-    const r = await fetch(`https://wvplmqmqlnftlpyrqnle.supabase.co/rest/v1/listings?id=eq.${listingId}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ items: deduped })
-    });
-    if (r.ok) successCount++;
+    const { error } = await sb.from('listings').update({ items: deduped }).eq('id', listingId);
+    if (!error) successCount++;
   }
 
   // Show success state inside modal before closing
@@ -4639,17 +4627,8 @@ async function _deleteItemsFromListings(keys) {
       const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
       return !keys.includes(display.toLowerCase());
     });
-    await fetch(`https://wvplmqmqlnftlpyrqnle.supabase.co/rest/v1/listings?id=eq.${listingId}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ items: newItems })
-    });
-    count++;
+    const { error } = await sb.from('listings').update({ items: newItems }).eq('id', listingId);
+    if (!error) count++;
   }
   _selectedItemKeys.clear();
   showToast(`🗑 Removed from ${count} listing${count !== 1 ? 's' : ''}`);
