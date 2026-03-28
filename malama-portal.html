@@ -367,7 +367,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <a class="sidebar-link" id="navIssues" href="#" onclick="event.preventDefault();showPage('issues')" style="display:none;color:var(--red);">🚨 Issues</a>
       <a class="sidebar-link" id="navCommunityNeeds" href="#" onclick="event.preventDefault();showPage('communityNeeds')" style="display:none;color:var(--sage);">📋 Community Needs</a>
       <a class="sidebar-link" id="navItemsManager" href="#" onclick="event.preventDefault();showPage('items')" style="display:none;color:var(--sage);">🏷️ Needs & Offerings</a>
-      <a class="sidebar-link" id="navGiveFinancially" href="#" onclick="event.preventDefault();showPage('giveFinancially')" style="display:none;color:var(--sage);">💰 Give Financially</a>
+      <a class="sidebar-link" id="navGiveFinancially" href="#" onclick="event.preventDefault();showPage('giveFinancially')" style="display:none;color:var(--sage);">Give Financially</a>
       <a class="sidebar-link" id="navAdmin" href="#" onclick="event.preventDefault();showPage('admin')" style="display:none;color:var(--gold);">⭐ Admin Dashboard</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
@@ -4113,7 +4113,7 @@ function selectSkillsDir(dir) {
 async function renderGiveFinanciallyPage() {
   const main = document.getElementById('mainContent');
   main.innerHTML = `
-    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.25rem;">💰 Give Financially</h2>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.25rem;">Give Financially</h2>
     <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">All listings offering financial giving — organizations with donation links or marked as financial giving.</p>
     <div id="giveFinContent"><p style="color:var(--text-muted);font-size:0.85rem;">Loading…</p></div>
   `;

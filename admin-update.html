@@ -361,7 +361,7 @@
             <button type="button" class="type-chip"          data-type="volunteer_event"   onclick="toggleTypeChip(this)">🙋 Volunteers</button>
             <button type="button" class="type-chip medical"  data-type="medical_assistance" onclick="toggleTypeChip(this)">🏥 Medical</button>
             <button type="button" class="type-chip skills"   data-type="skills_labor"      onclick="toggleTypeChip(this)">🔧 Skills & Labor</button>
-            <button type="button" class="type-chip financial" data-type="financial_giving"  onclick="toggleTypeChip(this)">💛 Give Financially</button>
+            <button type="button" class="type-chip financial" data-type="financial_giving"  onclick="toggleTypeChip(this)">Give Financially</button>
           </div>
         </div>
 
@@ -638,7 +638,7 @@ function onListingSelect() {
   type.split(',').forEach(t => {
     t = t.trim();
     if (t && t !== 'donation_dropoff' && t !== 'supply_station') {
-      const labels = { shelter:'🏠 Shelter', volunteer_event:'🙋 Volunteers', medical_assistance:'🏥 Medical', skills_labor:'🔧 Skills & Labor', financial_giving:'💛 Give Financially' };
+      const labels = { shelter:'🏠 Shelter', volunteer_event:'🙋 Volunteers', medical_assistance:'🏥 Medical', skills_labor:'🔧 Skills & Labor', financial_giving:'Give Financially' };
       badgeHTML.push(`<span class="type-badge other">${labels[t] || t}</span>`);
     }
   });
