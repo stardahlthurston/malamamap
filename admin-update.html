@@ -162,6 +162,21 @@
   .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
   .review-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0 1rem; }
 
+  /* ── ITEM PILLS ── */
+  .items-pill-box { display:flex; flex-wrap:wrap; gap:6px; min-height:46px; padding:8px 10px; background:#fafbfa; border:1.5px solid var(--border); border-radius:10px; margin-bottom:6px; align-content:flex-start; }
+  .item-pill-edit { display:inline-flex; align-items:center; gap:5px; padding:5px 8px 5px 11px; border-radius:100px; font-size:0.78rem; font-weight:700; transition:all 0.12s; }
+  .item-pill-edit[data-status="existing"] { background:white; border:1.5px solid var(--border); color:var(--text); }
+  .item-pill-edit[data-status="new"] { background:var(--sage-pale); border:1.5px solid var(--sage); color:var(--sage-deep); }
+  .pill-badge { font-size:0.56rem; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; padding:1px 5px; border-radius:100px; flex-shrink:0; }
+  .pill-badge.existing { background:#e8eae8; color:var(--muted); }
+  .pill-badge.new { background:var(--sage); color:white; }
+  .pill-remove { background:none; border:none; cursor:pointer; font-size:0.82rem; font-weight:700; color:var(--muted); padding:0 0 0 2px; line-height:1; opacity:0.5; }
+  .pill-remove:hover { opacity:1; color:var(--red); }
+  .pill-add-row { display:flex; gap:5px; }
+  .pill-add-input { flex:1; padding:5px 12px; border:1.5px solid var(--border); border-radius:100px; font-size:0.78rem; font-family:inherit; outline:none; }
+  .pill-add-input:focus { border-color:var(--sage); }
+  .pill-add-btn { padding:5px 13px; background:var(--sage); color:white; border:none; border-radius:100px; font-size:0.82rem; font-weight:700; cursor:pointer; }
+
   /* ── POST-SAVE ACTIONS ── */
   .post-save-actions { display: none; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
   .post-save-actions.show { display: flex; }
@@ -352,20 +367,32 @@
 
         <!-- Giving out (supply station) -->
         <div class="review-field" id="extractedGivingWrap" style="display:none;">
-          <span class="items-section-label giving">🟢 Giving out — one per line</span>
-          <textarea id="extractedGiving" rows="6" placeholder="Items being distributed…"></textarea>
+          <span class="items-section-label giving">🟢 Giving out</span>
+          <div class="items-pill-box" id="extractedGivingPills"></div>
+          <div class="pill-add-row">
+            <input class="pill-add-input" id="extractedGivingInput" placeholder="Add item…" onkeydown="pillAddKey(event,'extractedGivingPills','extractedGivingInput')">
+            <button class="pill-add-btn" onclick="pillAddBtn('extractedGivingPills','extractedGivingInput')">+</button>
+          </div>
         </div>
 
         <!-- Accepting (donation drop-off) -->
         <div class="review-field" id="extractedAcceptingWrap" style="display:none;">
-          <span class="items-section-label accepting">🟡 Accepting — one per line</span>
-          <textarea id="extractedAccepting" rows="6" placeholder="Items being accepted…"></textarea>
+          <span class="items-section-label accepting">🟡 Accepting</span>
+          <div class="items-pill-box" id="extractedAcceptingPills"></div>
+          <div class="pill-add-row">
+            <input class="pill-add-input" id="extractedAcceptingInput" placeholder="Add item…" onkeydown="pillAddKey(event,'extractedAcceptingPills','extractedAcceptingInput')">
+            <button class="pill-add-btn" onclick="pillAddBtn('extractedAcceptingPills','extractedAcceptingInput')">+</button>
+          </div>
         </div>
 
         <!-- Plain items (neither) -->
         <div class="review-field" id="extractedItemsWrap" style="display:none;">
-          <label>Items — one per line</label>
-          <textarea id="extractedItems" rows="6" placeholder="Items…"></textarea>
+          <label>Items</label>
+          <div class="items-pill-box" id="extractedItemsPills"></div>
+          <div class="pill-add-row">
+            <input class="pill-add-input" id="extractedItemsInput" placeholder="Add item…" onkeydown="pillAddKey(event,'extractedItemsPills','extractedItemsInput')">
+            <button class="pill-add-btn" onclick="pillAddBtn('extractedItemsPills','extractedItemsInput')">+</button>
+          </div>
         </div>
 
         <div class="review-field"><label>Address</label><input type="text" id="extractedAddress" placeholder="Leave blank to keep current"></div>
@@ -452,6 +479,64 @@ let allListings     = [];
 let selectedListing = null;
 let pendingItems    = []; // items waiting for clarification (mixed-type listings)
 let selectedTypesEdit = new Set();
+let _curGiving = [], _curAccepting = [], _curPlain = []; // current listing's items by section
+
+// ── Title case ──
+function toTitleCase(s) {
+  return (s || '').replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+// ── Pill helpers ──
+function appendPill(container, name, status) {
+  const d = document.createElement('div');
+  d.className = 'item-pill-edit';
+  d.dataset.status = status;
+  d.dataset.name   = name;
+  d.innerHTML = `<span>${escHtml(name)}</span>`
+    + `<span class="pill-badge ${status}">${status}</span>`
+    + `<button class="pill-remove" onclick="this.closest('.item-pill-edit').remove()" title="Remove">×</button>`;
+  container.appendChild(d);
+}
+
+function setExtractedPills(containerId, extractedItems, section) {
+  const box = document.getElementById(containerId);
+  if (!box) return;
+  box.innerHTML = '';
+  const existing = section === 'giving' ? _curGiving : section === 'accepting' ? _curAccepting : _curPlain;
+  const existingSet = new Set(existing.map(i => i.toLowerCase()));
+  const newSet = new Set(extractedItems.map(i => i.toLowerCase()));
+  // Existing items first
+  for (const item of existing) {
+    appendPill(box, toTitleCase(item), newSet.has(item.toLowerCase()) ? 'existing' : 'existing');
+  }
+  // New items not already present
+  for (const item of extractedItems) {
+    if (!existingSet.has(item.toLowerCase())) appendPill(box, toTitleCase(item), 'new');
+  }
+}
+
+function getItemsFromPills(containerId) {
+  const box = document.getElementById(containerId);
+  if (!box) return [];
+  return [...box.querySelectorAll('.item-pill-edit')].map(p => p.dataset.name).filter(Boolean);
+}
+
+function pillAddKey(e, pillsId, inputId) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  pillAddBtn(pillsId, inputId);
+}
+
+function pillAddBtn(pillsId, inputId) {
+  const input = document.getElementById(inputId);
+  const val = toTitleCase((input?.value || '').trim());
+  if (!val) return;
+  const box = document.getElementById(pillsId);
+  // Don't add duplicates
+  const existing = [...(box?.querySelectorAll('.item-pill-edit') || [])].map(p => (p.dataset.name || '').toLowerCase());
+  if (!existing.includes(val.toLowerCase())) appendPill(box, val, 'new');
+  if (input) input.value = '';
+}
 
 // ══════════════════════════════════════
 // PASSWORD GATE
@@ -563,6 +648,8 @@ function onListingSelect() {
   const givingItems    = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
   const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
   const plainItems     = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+  // Store for use in pill rendering
+  _curGiving = givingItems; _curAccepting = acceptingItems; _curPlain = plainItems;
 
   // ── Populate current data panel ──
   setEl('currentHours',   selectedListing.hours   || '—', !selectedListing.hours);
@@ -633,15 +720,16 @@ function openManualEdit() {
   const plainItems     = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
 
   // Pre-fill with current values so user can edit in place
-  document.getElementById('extractedHours').value    = selectedListing.hours || '';
-  document.getElementById('extractedGiving').value   = givingItems.join('\n');
-  document.getElementById('extractedAccepting').value = acceptingItems.join('\n');
-  document.getElementById('extractedItems').value    = plainItems.join('\n');
-  document.getElementById('extractedAddress').value  = selectedListing.address || '';
-  document.getElementById('extractedPhone').value    = selectedListing.contact_phone || '';
-  document.getElementById('extractedName').value     = selectedListing.name || '';
-  document.getElementById('extractedWebsite').value  = selectedListing.website || '';
-  document.getElementById('extractedNotes').value    = selectedListing.notes || '';
+  document.getElementById('extractedHours').value   = selectedListing.hours || '';
+  document.getElementById('extractedAddress').value = selectedListing.address || '';
+  document.getElementById('extractedPhone').value   = selectedListing.contact_phone || '';
+  document.getElementById('extractedName').value    = selectedListing.name || '';
+  document.getElementById('extractedWebsite').value = selectedListing.website || '';
+  document.getElementById('extractedNotes').value   = selectedListing.notes || '';
+  // Populate pills with current items (all shown as "existing")
+  setExtractedPills('extractedGivingPills',    [], 'giving');
+  setExtractedPills('extractedAcceptingPills', [], 'accepting');
+  setExtractedPills('extractedItemsPills',     [], 'plain');
 
   document.getElementById('reviewSectionTitle').textContent = '3 — Edit listing directly';
   document.getElementById('reviewSection').classList.add('show');
@@ -764,10 +852,10 @@ function applyClarification(choice) {
 }
 
 function routeItems(items, choice) {
-  const flat = items.join('\n');
-  document.getElementById('extractedGiving').value    = (choice === 'giving' || choice === 'both') ? flat : '';
-  document.getElementById('extractedAccepting').value = (choice === 'accepting' || choice === 'both') ? flat : '';
-  document.getElementById('extractedItems').value     = choice === 'plain' ? flat : '';
+  const titled = items.map(toTitleCase);
+  if (choice === 'giving'    || choice === 'both') setExtractedPills('extractedGivingPills',    titled, 'giving');
+  if (choice === 'accepting' || choice === 'both') setExtractedPills('extractedAcceptingPills', titled, 'accepting');
+  if (choice === 'plain')                          setExtractedPills('extractedItemsPills',     titled, 'plain');
 }
 
 // ══════════════════════════════════════
@@ -789,17 +877,10 @@ async function pushUpdate() {
   const websiteVal = document.getElementById('extractedWebsite').value.trim();
   const notesVal   = document.getElementById('extractedNotes').value.trim();
 
-  const givingRaw    = document.getElementById('extractedGiving').value.trim();
-  const acceptingRaw = document.getElementById('extractedAccepting').value.trim();
-  const plainRaw     = document.getElementById('extractedItems').value.trim();
-
-  const toArr = (raw, prefix) =>
-    raw ? raw.split('\n').map(s => s.trim()).filter(Boolean).map(s => prefix + s) : [];
-
   const itemsArr = [
-    ...toArr(givingRaw,    'GIVING:'),
-    ...toArr(acceptingRaw, 'ACCEPTING:'),
-    ...toArr(plainRaw,     '')
+    ...getItemsFromPills('extractedGivingPills').map(s => 'GIVING:' + s),
+    ...getItemsFromPills('extractedAcceptingPills').map(s => 'ACCEPTING:' + s),
+    ...getItemsFromPills('extractedItemsPills')
   ];
 
   const payload = {
@@ -961,8 +1042,9 @@ function resetTool() {
   document.getElementById('resultMsg').className = 'result-msg';
   document.getElementById('postSaveActions').classList.remove('show');
   document.getElementById('notifyPanel').classList.remove('show');
-  ['extractedHours','extractedGiving','extractedAccepting','extractedItems','extractedNotes'].forEach(id => {
-    document.getElementById(id).value = '';
+  ['extractedHours','extractedNotes'].forEach(id => { document.getElementById(id).value = ''; });
+  ['extractedGivingPills','extractedAcceptingPills','extractedItemsPills'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = '';
   });
   document.getElementById('extractedAddress').value = '';
   document.getElementById('extractedPhone').value   = '';
