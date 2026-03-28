@@ -1354,6 +1354,7 @@ async function saveListing() {
     }
     payload.user_id = currentUser.id;
     ({ error } = await sb.from('listings').insert(payload));
+    if (!error) fetch('/api/check-item-thresholds', { method: 'POST' }).catch(() => {});
     // If RLS blocks it, try via API
     if (error) {
       try {

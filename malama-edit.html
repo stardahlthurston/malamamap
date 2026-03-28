@@ -424,6 +424,7 @@ async function saveEdits() {
   };
 
   const { error } = await sb.from('listings').update(payload).eq('id', listingId);
+  if (!error) fetch('/api/check-item-thresholds', { method: 'POST' }).catch(() => {});
   if (error) { showToast('Error: ' + error.message); btn.disabled=false; btn.textContent='Save changes →'; return; }
 
   showToast('🌺 Changes saved!');
