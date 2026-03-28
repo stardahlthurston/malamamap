@@ -1,6 +1,8 @@
 // Admin actions endpoint — uses service role key to bypass RLS
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+// Anon key used as fallback for read-only operations when service key isn't set
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 
 // ✏️ To add another admin: paste their Supabase UUID here (Supabase → Auth → Users → copy User UID)
 const ADMIN_IDS = [
@@ -10,7 +12,6 @@ const ADMIN_IDS = [
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
-  if (!SUPABASE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
   const { action, userId, claimId, listingId, authUserId, expiresAt, field, value } = req.body;
 
@@ -18,6 +19,25 @@ export default async function handler(req, res) {
   if (!ADMIN_IDS.includes(authUserId)) {
     return res.status(403).json({ error: 'Not authorized' });
   }
+
+  // Read-only actions work with anon key if service key isn't set yet
+  if (action === 'get_all_listings') {
+    const readKey = SUPABASE_KEY || SUPABASE_ANON;
+    try {
+      const r = await fetch(
+        `${SUPABASE_URL}/rest/v1/listings?select=*&order=name.asc`,
+        { headers: { 'apikey': readKey, 'Authorization': `Bearer ${readKey}` } }
+      );
+      if (!r.ok) throw new Error(await r.text());
+      const listings = await r.json();
+      return res.status(200).json({ success: true, listings });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // All write actions require the service key
+  if (!SUPABASE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
   const headers = {
     'apikey': SUPABASE_KEY,
@@ -82,7 +102,7 @@ export default async function handler(req, res) {
       }
 
       case 'toggle_badge': {
-        if (!['verified', 'nonprofit'].includes(field)) throw new Error('Invalid badge field');
+        if (!['verified', 'nonprofit', 'main_hub'].includes(field)) throw new Error('Invalid badge field');
         const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${listingId}`, {
           method: 'PATCH',
           headers,
@@ -117,17 +137,62 @@ export default async function handler(req, res) {
         break;
       }
 
-      case 'create_listing': {
-        const { payload } = req.body;
-        if (!payload) throw new Error('payload required');
-        const r = await fetch(`${SUPABASE_URL}/rest/v1/listings`, {
-          method: 'POST',
-          headers: { ...headers, 'Prefer': 'return=representation' },
-          body: JSON.stringify(payload)
+      // Bulk update items arrays across any listing — bypasses RLS via service key
+      case 'merge_items':
+      case 'delete_items': {
+        const { listingUpdates } = req.body;
+        if (!Array.isArray(listingUpdates) || !listingUpdates.length)
+          throw new Error('listingUpdates array required');
+        let successCount = 0;
+        for (const { id, items } of listingUpdates) {
+          if (!id || !Array.isArray(items)) continue;
+          const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${id}`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ items })
+          });
+          if (r.ok) successCount++;
+        }
+        result = { success: true, updated: successCount };
+        break;
+      }
+
+      case 'reactivate_auto_expired': {
+        // Find all inactive listings, reactivate ones that were closed by expires_at
+        // but NOT ones whose hours date range has genuinely passed.
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?select=id,hours,expires_at&status=eq.false`, {
+          headers
         });
-        if (!r.ok) throw new Error('Failed to create listing: ' + await r.text());
-        const created = await r.json();
-        result = { success: true, message: 'Listing created', id: created[0]?.id };
+        if (!r.ok) throw new Error('Failed to fetch inactive listings: ' + await r.text());
+        const inactive = await r.json();
+
+        const now = new Date();
+        const toReactivate = [];
+        for (const l of (inactive || [])) {
+          // Only consider listings that have an expires_at (set by auto-expiry system)
+          if (!l.expires_at) continue;
+          // Skip if the hours field has a date range whose end date has passed
+          if (l.hours) {
+            const dateMatch = l.hours.match(/(\w+ \d+)\s*[–\-]\s*(\w+ \d+)/);
+            if (dateMatch) {
+              try {
+                const endDate = new Date(dateMatch[2] + ' 2026 23:59:59');
+                if (!isNaN(endDate) && endDate < now) continue; // naturally ended — skip
+              } catch(e) {}
+            }
+          }
+          toReactivate.push(l.id);
+        }
+
+        if (toReactivate.length > 0) {
+          const patch = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=in.(${toReactivate.map(id=>`"${id}"`).join(',')})`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ status: true })
+          });
+          if (!patch.ok) throw new Error('Failed to reactivate listings: ' + await patch.text());
+        }
+        result = { success: true, reactivated: toReactivate.length, ids: toReactivate };
         break;
       }
 
