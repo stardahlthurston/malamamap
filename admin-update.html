@@ -509,7 +509,7 @@ async function loadListings() {
   const sel = document.getElementById('listingSelect');
   const { data, error } = await sb
     .from('listings')
-    .select('id, name, type, hours, items, notes, address, contact_phone, website, status, main_hub, no_admin_edit')
+    .select('id, name, type, hours, items, notes, address, contact_phone, website, status, main_hub')
     .eq('status', true)
     .order('name');
 
