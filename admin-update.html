@@ -169,6 +169,31 @@
   .btn-another { padding: 0.55rem 1.1rem; background: white; color: var(--sage); border: 1.5px solid var(--sage); border-radius: 100px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; }
   .btn-another:hover { background: var(--sage-pale); }
 
+  /* ── NOTIFY PANEL ── */
+  .notify-panel { display: none; margin-top: 1.25rem; background: #f0f7f3; border: 1.5px solid rgba(58,125,92,0.25); border-radius: 12px; padding: 1.25rem 1.5rem; }
+  .notify-panel.show { display: block; }
+  .notify-panel-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--sage-deep); margin-bottom: 0.9rem; }
+  .notify-row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: flex-end; margin-bottom: 0.75rem; }
+  .notify-field { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 160px; }
+  .notify-field label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+  .notify-field select, .notify-field input[type="text"] { padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.84rem; font-family: inherit; color: var(--text); background: white; outline: none; }
+  .notify-field select:focus, .notify-field input[type="text"]:focus { border-color: var(--sage); }
+  .notify-btns { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+  .btn-notify { padding: 0.6rem 1.25rem; background: var(--sage); color: white; border: none; border-radius: 100px; font-size: 0.83rem; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 7px; transition: background 0.15s; }
+  .btn-notify:hover { background: #2f6a4c; }
+  .btn-notify:disabled { background: #aaa; cursor: default; }
+  .btn-skip { padding: 0.6rem 1rem; background: white; color: var(--muted); border: 1.5px solid #ddd; border-radius: 100px; font-size: 0.83rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-skip:hover { color: var(--text); border-color: #bbb; }
+  .notify-result { font-size: 0.8rem; font-weight: 600; padding: 0.45rem 0.85rem; border-radius: 8px; display: none; }
+  .notify-result.ok  { display: inline-block; background: var(--sage-pale); color: var(--sage-deep); }
+  .notify-result.err { display: inline-block; background: #fdf0ef; color: var(--red); }
+  @keyframes notifySpin { to { transform: rotate(360deg); } }
+  .notify-spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: notifySpin 0.7s linear infinite; flex-shrink: 0; }
+
+  /* ── NO-EDIT WARNING ── */
+  .no-edit-warning { background: #fff8e6; border: 1.5px solid #e6a817; border-radius: 10px; padding: 10px 14px; margin-bottom: 0.75rem; font-size: 0.8rem; font-weight: 700; color: #7a5c1a; display: none; }
+  .no-edit-warning.show { display: block; }
+
   /* ── PUSH / ACTIONS ── */
   .push-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
   .btn-push { padding: 0.75rem 2rem; background: var(--sage); color: white; border: none; border-radius: 100px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
@@ -209,6 +234,7 @@
     <select class="listing-select" id="listingSelect" onchange="onListingSelect()">
       <option value="">Loading listings…</option>
     </select>
+    <div class="no-edit-warning" id="noEditWarning">⚠️ This listing owner has requested no further admin edits. Proceed with care.</div>
     <div id="listingTypeBadges"></div>
 
     <div class="current-data" id="currentData">
@@ -383,6 +409,34 @@
       <a href="#" id="viewListingBtn" target="_blank" class="btn-view">View listing →</a>
       <button class="btn-another" onclick="startAnother()">Update another listing →</button>
     </div>
+
+    <!-- Notify owner panel -->
+    <div class="notify-panel" id="notifyPanel">
+      <p class="notify-panel-title">📬 Notify listing owner?</p>
+      <div class="notify-row">
+        <div class="notify-field">
+          <label for="notifyCategory">Change category</label>
+          <select id="notifyCategory" onchange="onCategoryChange()">
+            <option value="hours">Hours / Schedule update</option>
+            <option value="items">Items or needs updated</option>
+            <option value="type">Listing type changed</option>
+            <option value="contact">Contact info updated</option>
+            <option value="notes">Notes / description edited</option>
+            <option value="hub_badge">Fully Stocked Hub badge added</option>
+            <option value="custom">✏️ Custom message</option>
+          </select>
+        </div>
+        <div class="notify-field" style="flex:2;min-width:220px;">
+          <label for="notifySummary">Short note to owner <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional, editable)</span></label>
+          <input type="text" id="notifySummary" placeholder="e.g. Updated hours based on your latest post">
+        </div>
+      </div>
+      <div class="notify-btns">
+        <button class="btn-notify" id="notifyBtn" onclick="sendNotification()">Send notification →</button>
+        <button class="btn-skip" onclick="dismissNotify()">Don't notify</button>
+        <span class="notify-result" id="notifyResult"></span>
+      </div>
+    </div>
   </div>
 
 </div><!-- end #app -->
@@ -454,7 +508,7 @@ async function loadListings() {
   const sel = document.getElementById('listingSelect');
   const { data, error } = await sb
     .from('listings')
-    .select('id, name, type, hours, items, notes, address, contact_phone, website, status, main_hub')
+    .select('id, name, type, hours, items, notes, address, contact_phone, website, status, main_hub, no_admin_edit')
     .eq('status', true)
     .order('name');
 
@@ -474,8 +528,12 @@ function onListingSelect() {
   if (!selectedListing) {
     box.classList.remove('show');
     badges.style.display = 'none';
+    document.getElementById('noEditWarning').classList.remove('show');
     return;
   }
+
+  // ── No-edit warning ──
+  document.getElementById('noEditWarning').classList.toggle('show', !!selectedListing.no_admin_edit);
 
   // ── Type badges ──
   const type = selectedListing.type || '';
@@ -776,11 +834,17 @@ async function pushUpdate() {
       selectedListing.status   = payload.status;
       selectedListing.main_hub = payload.main_hub;
       if (payload.type) selectedListing.type = payload.type;
-      // Show post-save navigation
+      // Show post-save navigation and notify panel
       const postSave = document.getElementById('postSaveActions');
       postSave.classList.add('show');
       document.getElementById('viewListingBtn').href =
         `https://www.malamamap.org/malama-listing.html?id=${selectedListing.id}`;
+      // Reset any previous notify state then show panel
+      document.getElementById('notifyBtn').disabled = false;
+      document.getElementById('notifyBtn').innerHTML = 'Send notification →';
+      document.getElementById('notifyBtn').style.background = '';
+      document.getElementById('notifySummary').dataset.edited = '';
+      showNotifyPanel(payload);
       onListingSelect();
     }
   } catch (err) {
@@ -790,6 +854,89 @@ async function pushUpdate() {
 
   btn.disabled = false;
   btn.textContent = 'Update listing →';
+}
+
+// ══════════════════════════════════════
+// NOTIFY OWNER
+// ══════════════════════════════════════
+const AUTO_SUMMARIES = {
+  hours:    'Updated your listing\'s hours based on the latest information we had.',
+  items:    'Updated the items / needs list on your listing.',
+  type:     'Updated the listing type to better match what your location offers.',
+  contact:  'Updated the contact info on your listing.',
+  notes:    'Updated the notes / description on your listing.',
+  hub_badge:'Your location has been designated as a Fully Stocked Hub on Mālama Map.',
+  custom:   '',
+};
+
+function autoSelectCategory(payload) {
+  if (payload.main_hub) return 'hub_badge';
+  if (payload.hours)    return 'hours';
+  if (payload.items && payload.items.length) return 'items';
+  if (payload.type)     return 'type';
+  if (payload.address || payload.contact_phone || payload.website) return 'contact';
+  if (payload.notes)    return 'notes';
+  return 'custom';
+}
+
+function showNotifyPanel(payload) {
+  const cat = autoSelectCategory(payload);
+  document.getElementById('notifyCategory').value = cat;
+  document.getElementById('notifySummary').value  = AUTO_SUMMARIES[cat] || '';
+  document.getElementById('notifyResult').className = 'notify-result';
+  document.getElementById('notifyPanel').classList.add('show');
+}
+
+function onCategoryChange() {
+  const cat = document.getElementById('notifyCategory').value;
+  const summaryEl = document.getElementById('notifySummary');
+  if (!summaryEl.dataset.edited) summaryEl.value = AUTO_SUMMARIES[cat] || '';
+}
+
+// Mark summary as manually edited so auto-fill stops overriding
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.getElementById('notifySummary');
+  if (s) s.addEventListener('input', () => { s.dataset.edited = '1'; });
+});
+
+function dismissNotify() {
+  document.getElementById('notifyPanel').classList.remove('show');
+}
+
+async function sendNotification() {
+  const btn    = document.getElementById('notifyBtn');
+  const result = document.getElementById('notifyResult');
+  const category = document.getElementById('notifyCategory').value;
+  const summary  = document.getElementById('notifySummary').value.trim();
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="notify-spinner"></div> Sending…';
+  result.className = 'notify-result';
+
+  try {
+    const resp = await fetch('/api/notify-listing-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        listingId:  selectedListing.id,
+        category,
+        summary,
+        authUserId: ADMIN_UID
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'Failed');
+    result.textContent  = '✅ Notification sent';
+    result.className    = 'notify-result ok';
+    btn.textContent     = 'Sent ✓';
+    btn.style.background = 'var(--sage-deep)';
+    setTimeout(() => { document.getElementById('notifyPanel').classList.remove('show'); }, 2200);
+  } catch(err) {
+    result.textContent = 'Error: ' + err.message;
+    result.className   = 'notify-result err';
+    btn.disabled = false;
+    btn.innerHTML = 'Send notification →';
+  }
 }
 
 // ══════════════════════════════════════
@@ -803,6 +950,7 @@ function resetTool() {
   document.getElementById('reviewSection').classList.remove('show');
   document.getElementById('resultMsg').className = 'result-msg';
   document.getElementById('postSaveActions').classList.remove('show');
+  document.getElementById('notifyPanel').classList.remove('show');
   ['extractedHours','extractedGiving','extractedAccepting','extractedItems','extractedNotes'].forEach(id => {
     document.getElementById(id).value = '';
   });
