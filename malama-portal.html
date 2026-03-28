@@ -1799,7 +1799,7 @@ async function geocodeAddress(address) {
     const d = await r.json();
     if (d.results && d.results[0]) return { lat: d.results[0].geometry.location.lat, lng: d.results[0].geometry.location.lng };
   } catch(e) {}
-  return { lat: 21.3069, lng: -157.8583 };
+  return null;
 }
 
 // ══════════════════════════════════════
@@ -1877,7 +1877,10 @@ async function openEditModal(id) {
       }, 120);
     }
     document.getElementById('editStatus').value = String(l.status);
-    document.getElementById('editAddress').value = l.address || '';
+    const editAddrEl = document.getElementById('editAddress');
+    editAddrEl.value = l.address || '';
+    editAddrEl.dataset.lat = l.lat || '';
+    editAddrEl.dataset.lng = l.lng || '';
     document.getElementById('editPhone').value = l.contact_phone || '';
     // ── Restore hours — parse saved string back into dropdowns ──
     // Format saved as: "Every day · 9:00 AM – 5:00 PM · From Mar 23 · Until further notice"
@@ -2195,6 +2198,10 @@ async function saveListing() {
     coords = { lat: parseFloat(addrInput.dataset.lat), lng: parseFloat(addrInput.dataset.lng) };
   } else {
     coords = await geocodeAddress(address);
+    if (!coords) {
+      const existing = window._editOriginalListing;
+      coords = (existing?.lat && existing?.lng) ? { lat: existing.lat, lng: existing.lng } : { lat: 21.3069, lng: -157.8583 };
+    }
   }
 
   // Override hours to 24/7 if checkbox checked
