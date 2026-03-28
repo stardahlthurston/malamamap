@@ -958,13 +958,14 @@ function renderModalCustomItemPills(items) {
   if (!container) return;
   container.innerHTML = '';
   items.forEach(val => {
+    const displayVal = val.replace(/^(GIVING|ACCEPTING):/,''); // strip prefix for display only
     const pill = document.createElement('div');
     pill.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:var(--sage-pale);color:var(--sage-deep);border:1.5px solid var(--sage-light);border-radius:100px;padding:5px 12px;font-size:0.82rem;font-weight:700;font-family:Nunito,sans-serif;';
     const safeVal = val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    pill.innerHTML = '<span>'+val+'</span><button type="button" onclick="removeModalCustomItem(this,\''+safeVal+'\')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:1.1rem;line-height:1;padding:0;">×</button>';
+    pill.innerHTML = '<span>'+displayVal+'</span><button type="button" onclick="removeModalCustomItem(this,\''+safeVal+'\')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:1.1rem;line-height:1;padding:0;">×</button>';
     container.appendChild(pill);
   });
-  if (hidden) hidden.value = items.join(', ');
+  if (hidden) hidden.value = items.join(', '); // keep prefixes in hidden field
 }
 
 const VOL_TYPE_OPTIONS = [
@@ -1854,9 +1855,13 @@ async function openEditModal(id) {
     nameFieldEdit.value = l.name || '';
     nameFieldEdit.dataset.userEdited = 'true';
     nameFieldEdit.dataset.autoFilled = 'false';
+    // Cache original listing for hours preservation on save
+    window._editOriginalListing = l;
     // Restore skills direction
-    if (l.type === 'skills_labor' && l.skills_direction) {
+    if ((l.type||'').includes('skills_labor') && l.skills_direction) {
       selectSkillsDir(l.skills_direction);
+      const contactEmailEl = document.getElementById('editContactEmail');
+      if (contactEmailEl) contactEmailEl.value = l.contact_email || '';
     }
     // Restore volunteer data
     restoreVolData(l);
@@ -1962,7 +1967,7 @@ async function openEditModal(id) {
       const clean = i.replace(/^(GIVING|ACCEPTING):/,'');
       return !knownValues.includes(clean);
     });
-    renderModalCustomItemPills(customItems.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')));
+    renderModalCustomItemPills(customItems); // keep GIVING:/ACCEPTING: prefixes in hidden input
 
     // Giving link
     if (l.giving_url) {
@@ -2120,7 +2125,7 @@ async function saveListing() {
   const closeTime = document.getElementById('editHoursClose')?.value || '';
   const dateFrom = document.getElementById('editDateFrom')?.value || '';
   const dateUntil = document.getElementById('editDateUntil')?.value || '';
-  const existingListing = myListings.find(x => x.id === document.getElementById('editId').value);
+  const existingListing = myListings.find(x => x.id === document.getElementById('editId').value) || window._editOriginalListing;
   const userTouchedHours = days.length > 0 || openTime || closeTime || dateFrom || dateUntil
     || document.getElementById('untilFurtherNotice')?.checked;
   let hoursText = '';
@@ -2217,6 +2222,7 @@ async function saveListing() {
     event_date: document.getElementById('ongoingToggle')?.dataset.active === 'true' ? 'ongoing' : (document.getElementById('editEventDate')?.value || null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim() || null,
     volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim() || null,
+    contact_email: document.getElementById('editContactEmail')?.value.trim() || null,
     expires_at: new Date(Date.now() + 72 * 3600000).toISOString(),
     user_id: currentUser.id
   };
