@@ -117,6 +117,45 @@ export default async function handler(req, res) {
         break;
       }
 
+      case 'reactivate_auto_expired': {
+        // Find all inactive listings, reactivate ones that were closed by expires_at
+        // but NOT ones whose hours date range has genuinely passed.
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?select=id,hours,expires_at&status=eq.false`, {
+          headers
+        });
+        if (!r.ok) throw new Error('Failed to fetch inactive listings: ' + await r.text());
+        const inactive = await r.json();
+
+        const now = new Date();
+        const toReactivate = [];
+        for (const l of (inactive || [])) {
+          // Only consider listings that have an expires_at (set by auto-expiry system)
+          if (!l.expires_at) continue;
+          // Skip if the hours field has a date range whose end date has passed
+          if (l.hours) {
+            const dateMatch = l.hours.match(/(\w+ \d+)\s*[–\-]\s*(\w+ \d+)/);
+            if (dateMatch) {
+              try {
+                const endDate = new Date(dateMatch[2] + ' 2026 23:59:59');
+                if (!isNaN(endDate) && endDate < now) continue; // naturally ended — skip
+              } catch(e) {}
+            }
+          }
+          toReactivate.push(l.id);
+        }
+
+        if (toReactivate.length > 0) {
+          const patch = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=in.(${toReactivate.map(id=>`"${id}"`).join(',')})`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ status: true })
+          });
+          if (!patch.ok) throw new Error('Failed to reactivate listings: ' + await patch.text());
+        }
+        result = { success: true, reactivated: toReactivate.length, ids: toReactivate };
+        break;
+      }
+
       default:
         return res.status(400).json({ error: 'Unknown action: ' + action });
     }

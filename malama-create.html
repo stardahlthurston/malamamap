@@ -1133,7 +1133,6 @@ async function loadEditListing(id) {
   // Store original data for edit preservation
   window._editListingId = id;
   window._editOriginalHours = data.hours || '';
-  window._editOriginalExpiresAt = data.expires_at || '';
   window._editOriginalAddress = data.address || '';
 }
 
@@ -1320,14 +1319,11 @@ async function saveListing() {
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
     volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim()||null,
     skills_direction: window._skillsDir || 'offering',
-    expires_at: (() => { const untilFurther = document.getElementById('untilFurtherNotice')?.checked; return untilFurther ? null : new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); })()
   };
 
   const editId = window._editListingId;
   let error;
   if (editId) {
-    // Preserve original expires_at and address on edit
-    if (window._editOriginalExpiresAt) payload.expires_at = window._editOriginalExpiresAt;
     // Don't overwrite user_id on edit
     ({ error } = await sb.from('listings').update(payload).eq('id', editId));
   } else {

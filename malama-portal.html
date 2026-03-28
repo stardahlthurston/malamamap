@@ -1234,12 +1234,6 @@ function renderListingsPage() {
     return;
   }
 
-  const expiringListing = myListings.find(l => {
-    if (!l.status) return false;
-    const hrs = (new Date(l.expires_at) - new Date()) / 3600000;
-    return hrs < 24 && hrs > 0;
-  });
-
   let displayListings = showClosedChecked ? myListings : myListings.filter(l => l.status);
   if (portalSearchQuery) {
     displayListings = displayListings.filter(l => {
@@ -1259,7 +1253,6 @@ function renderListingsPage() {
       <p class="page-subtitle">${getDisplayName(currentUser)} · ${myListings.length} listing${myListings.length > 1 ? 's' : ''} · ${myListings.filter(l => l.status).length} active</p></div>
       <a class="btn btn-primary" href="malama-create.html?new=1">+ Add new listing</a>
     </div>
-    ${expiringListing ? `<div class="expiry-banner"><div style="font-size:1.4rem;">⏳</div><p class="expiry-text"><strong>A listing expires soon.</strong> Renew it to keep your pin active on the map.</p></div>` : ''}
     <div class="stats-row">
       <div class="stat-card"><p class="stat-label">Active listings</p><p class="stat-val">${myListings.filter(l => l.status).length}</p><p class="stat-sub">Visible to public</p></div>
       <div class="stat-card"><p class="stat-label">Total listings</p><p class="stat-val">${myListings.length}</p><p class="stat-sub">All time</p></div>
@@ -1278,7 +1271,6 @@ function renderListingsPage() {
 }
 
 function renderListingCard(l) {
-  const expHrs = Math.max(0, Math.round((new Date(l.expires_at) - new Date()) / 3600000));
   const rawItems = Array.isArray(l.items) ? l.items : [];
   const givingItems = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
   const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
@@ -1318,12 +1310,10 @@ function renderListingCard(l) {
         </div>
       </div>
       <div class="card-footer">
-        <p class="expiry-note">⏱ Expires in ${expHrs} hrs — renew to stay visible</p>
         <div class="card-actions">
           <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red);" onclick="deleteListing('${l.id}')">Delete</button>
           ${isSuperAdmin(currentUser?.id) ? `<button class="btn btn-outline btn-sm" onclick="openShareModal('${l.id}')">Share</button>` : ''}
           <a class="btn btn-outline btn-sm" href="malama-create.html?edit=${l.id}">Edit listing</a>
-          <button class="btn btn-primary btn-sm" onclick="renewListing('${l.id}')">Renew</button>
         </div>
       </div>
     </div>`;
@@ -1770,16 +1760,6 @@ async function toggleStatus(id, val) {
   await loadListings();
 }
 
-// ══════════════════════════════════════
-// RENEW
-// ══════════════════════════════════════
-async function renewListing(id) {
-  const newExpiry = new Date(Date.now() + 72 * 3600000).toISOString();
-  const { error } = await sb.from('listings').update({ expires_at: newExpiry }).eq('id', id);
-  if (error) { showToast('Error renewing listing'); return; }
-  showToast('🌺 Listing renewed for 72 hours!');
-  await loadListings();
-}
 
 async function deleteListing(id) {
   if (!confirm('Are you sure you want to delete this listing? This cannot be undone.')) return;
@@ -2246,14 +2226,12 @@ async function saveListing() {
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim() || null,
     volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim() || null,
     contact_email: document.getElementById('editContactEmail')?.value.trim() || null,
-    expires_at: new Date(Date.now() + 72 * 3600000).toISOString(),
     user_id: currentUser.id
   };
 
   let error;
   if (id) {
     delete payload.user_id;
-    delete payload.expires_at;
     // ADMIN OVERRIDE — service key bypasses all RLS, no exceptions
     console.log('[ADMIN SAVE] id:', id, 'isAdmin:', isAdmin(currentUser.id), 'uid:', currentUser.id);
     if (isAdmin(currentUser.id)) {
@@ -3386,16 +3364,11 @@ async function autoExpireListings(sb2) {
   // Find listings that are within a date range and that range has now passed
   // Check listings where hours contains a date range like "Mar 23 – Mar 24"
   const now = new Date();
-  const { data: activeListing } = await sb2.from('listings').select('id, hours, expires_at').eq('status', true);
+  const { data: activeListing } = await sb2.from('listings').select('id, hours').eq('status', true);
   if (!activeListing?.length) return 0;
 
   const toClose = [];
   activeListing.forEach(l => {
-    // Check expires_at first
-    if (l.expires_at && new Date(l.expires_at) < now) {
-      toClose.push(l.id);
-      return;
-    }
     // Check if hours string has a date range that's passed
     // Pattern: "Mar 23" or "March 23" at the end or "From Mar 23 – Mar 24"
     if (l.hours) {
@@ -3573,12 +3546,6 @@ async function renderAdminPage() {
   const active = allListings.filter(l => l.status);
   const inactive = allListings.filter(l => !l.status);
   const pendingApproval = allListings.filter(l => l.pending_approval);
-  const expiringSoon = allListings.filter(l => {
-    if (!l.expires_at || !l.status) return false;
-    const exp = new Date(l.expires_at);
-    return exp > now && exp < soon;
-  });
-  const expired = allListings.filter(l => l.status && l.expires_at && new Date(l.expires_at) < now);
   const unclaimed = allListings.filter(l => isAdmin(l.user_id));
   const ownedByOthers = allListings.filter(l => l.user_id && !isAdmin(l.user_id) && l.user_id !== currentUser.id);
   const ownedByMe = allListings.filter(l => l.user_id === currentUser.id);
@@ -3589,7 +3556,6 @@ async function renderAdminPage() {
     </div>
 
     <!-- STATS ROW -->
-    ${expiredCount > 0 ? `<div style="background:var(--red-pale);border:1.5px solid rgba(192,57,43,0.2);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.82rem;font-weight:600;color:var(--red);">⏰ Auto-closed ${expiredCount} expired listing${expiredCount>1?'s':''} — their date range has passed.</div>` : ''}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.5rem;">
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:var(--sage);">${active.length}</p>
@@ -3603,15 +3569,6 @@ async function renderAdminPage() {
         <p class="admin-stat-num" style="color:#2e6b6b;">${ownedByOthers.length}</p>
         <p class="admin-stat-label">User-created</p>
         <p style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Not admin-owned</p>
-      </div>
-      <div class="admin-stat-card" style="cursor:pointer;transition:border-color 0.2s;" onclick="document.getElementById('adminExpiringSoon')?.scrollIntoView({behavior:'smooth'})">
-        <p class="admin-stat-num" style="color:var(--gold);">${expiringSoon.length}</p>
-        <p class="admin-stat-label">Expiring soon</p>
-        <p style="font-size:0.62rem;color:var(--gold);margin-top:3px;">↓ View below</p>
-      </div>
-      <div class="admin-stat-card">
-        <p class="admin-stat-num" style="color:var(--red);">${expired.length}</p>
-        <p class="admin-stat-label">Expired</p>
       </div>
       <div class="admin-stat-card">
         <p class="admin-stat-num" style="color:var(--blue);">${unclaimed.length}</p>
@@ -3648,35 +3605,6 @@ async function renderAdminPage() {
         <p style="font-size:0.62rem;color:#7b5ea7;margin-top:3px;">↓ Click to view</p>
       </div>
     </div>
-
-    <!-- EXPIRING SOON -->
-    ${expiringSoon.length ? `
-    <div id="adminExpiringSoon">
-      <p class="admin-section-title">⏰ Expiring within 24 hours</p>
-      <div style="background:white;border:1.5px solid rgba(201,152,58,0.3);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;">
-        <table class="admin-table">
-          <thead><tr>
-            <th>Name</th><th>Location</th><th>Expires</th><th>Owner</th><th>Actions</th>
-          </tr></thead>
-          <tbody>${expiringSoon.map(l => {
-            const exp = new Date(l.expires_at);
-            const hrsLeft = Math.round((exp - now) / (1000*60*60));
-            return `
-            <tr class="expiring-soon">
-              <td style="font-weight:700;">${escHtml(l.name)}</td>
-              <td style="color:var(--text-muted);font-size:0.78rem;">${escHtml(l.location || l.address || '—')}</td>
-              <td style="font-size:0.78rem;font-weight:700;color:var(--gold);">${hrsLeft}hr${hrsLeft!==1?'s':''} left</td>
-              <td style="font-size:0.75rem;color:var(--text-muted);">${ownerMap[l.user_id] || '—'}</td>
-              <td>
-                <button class="admin-action-btn" style="color:var(--sage);border-color:var(--sage);" onclick="extendListing('${l.id}')">+7 days</button>
-                <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);margin-left:4px;" onclick="openEditModal('${l.id}')">Edit</button>
-              </td>
-            </tr>`;
-          }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>` : '<div id="adminExpiringSoon"></div>'}
 
     <!-- PENDING VERIFICATIONS -->
     ${einRequests.length ? `
@@ -3776,7 +3704,7 @@ async function renderAdminPage() {
         <option value="open" selected>Active only</option>
         <option value="">All listings</option>
         <option value="closed">Inactive</option>
-        <option value="expiring">Expiring soon</option>
+
         <option value="unclaimed">Admin-owned</option>
         <option value="community">Community-owned</option>
         <option value="need">I Need Help page</option>
@@ -3789,7 +3717,7 @@ async function renderAdminPage() {
       <table class="admin-table" id="adminListingsTable">
         <thead><tr>
           <th>Status</th><th>Listing name</th><th>Area</th><th>Type</th><th>Shows on</th>
-          <th>Owner</th><th style="width:65px;">Updated</th><th style="width:65px;">Expires</th><th>Actions</th>
+          <th>Owner</th><th style="width:65px;">Updated</th><th>Actions</th>
         </tr></thead>
         <tbody id="adminTableBody">
           ${renderAdminRows(allListings, claims, ownerMap)}
@@ -3812,15 +3740,11 @@ function renderAdminRows(listings, claims, ownerMap={}) {
     volunteer_event:'Volunteer', medical_assistance:'Medical', skills_labor:'Skills'
   };
   return listings.map(l => {
-    const isExpiring = l.expires_at && new Date(l.expires_at) > now && new Date(l.expires_at) < new Date(now.getTime()+24*60*60*1000);
-    const isExpired = l.expires_at && new Date(l.expires_at) < now;
     const isUnclaimed = isAdmin(l.user_id);
-    const rowClass = isExpired ? 'expired' : isExpiring ? 'expiring-soon' : '';
-    const expiresStr = l.expires_at ? new Date(l.expires_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const updatedStr = l.updated_at ? new Date(l.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const hasClaim = claims?.some(c => c.listing_id === l.id);
 
-    return `<tr class="${rowClass}" data-id="${l.id}" data-name="${(l.name||'').toLowerCase()}" data-area="${(l.location||'').toLowerCase()}" data-status="${l.status?'open':'closed'}" data-type="${l.type||''}" data-unclaimed="${isUnclaimed}" data-community="${!isUnclaimed && l.user_id !== '04e3776b-b75f-4701-888e-511a9cf21382'}" data-expiring="${isExpiring}">
+    return `<tr data-id="${l.id}" data-name="${(l.name||'').toLowerCase()}" data-area="${(l.location||'').toLowerCase()}" data-status="${l.status?'open':'closed'}" data-type="${l.type||''}" data-unclaimed="${isUnclaimed}" data-community="${!isUnclaimed && l.user_id !== '04e3776b-b75f-4701-888e-511a9cf21382'}">
       <td>
         <span class="${l.status ? 'status-dot-open' : 'status-dot-closed'}"></span>
         <button class="admin-action-btn" style="font-size:0.62rem;color:${l.status?'var(--sage)':'var(--text-muted)'};border-color:${l.status?'var(--sage)':'#ccc'};" onclick="toggleAdminStatus('${l.id}',${l.status},this)">
@@ -3829,8 +3753,6 @@ function renderAdminRows(listings, claims, ownerMap={}) {
       </td>
       <td>
         <a href="malama-listing.html?id=${l.id}" target="_blank" style="font-weight:700;color:var(--sage-deep);text-decoration:none;">${l.name||'Untitled'}</a>
-        ${isExpiring ? '<span class="admin-tag tag-expiring" style="margin-left:5px;">Expiring</span>' : ''}
-        ${isExpired ? '<span class="admin-tag tag-expired" style="margin-left:5px;">Expired</span>' : ''}
         ${hasClaim ? '<span class="admin-tag" style="background:#f3eeff;color:#7b5ea7;margin-left:5px;">Claim pending</span>' : ''}
       </td>
       <td style="color:var(--sage);font-weight:600;">${l.location || '—'}</td>
@@ -3854,7 +3776,6 @@ function renderAdminRows(listings, claims, ownerMap={}) {
             : '—'}
       </td>
       <td style="color:var(--text-muted);font-size:0.75rem;">${updatedStr}</td>
-      <td style="font-size:0.75rem;color:${isExpiring?'#c9983a':isExpired?'var(--red)':'var(--text-muted)'};">${expiresStr}</td>
       <td style="white-space:nowrap;">
         <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);" onclick="openEditModal('${l.id}')">Edit</button>
         <button class="admin-action-btn" style="color:var(--gold);border-color:var(--gold);margin-left:3px;" onclick="extendListing('${l.id}')">+7d</button>
@@ -4008,13 +3929,12 @@ function filterAdminTable() {
     const rowStatus = row.dataset.status;
     const rowType = row.dataset.type || '';
     const isUnclaimed = row.dataset.unclaimed === 'true';
-    const isExpiring = row.dataset.expiring === 'true';
     let show = true;
     if (q && !name.includes(q) && !rowArea.includes(q)) show = false;
     if (area && !rowArea.includes(area)) show = false;
     if (status === 'open' && rowStatus !== 'open') show = false;
     if (status === 'closed' && rowStatus !== 'closed') show = false;
-    if (status === 'expiring' && !isExpiring) show = false;
+
     if (status === 'unclaimed' && !isUnclaimed) show = false;
     if (status === 'community' && row.dataset.community !== 'true') show = false;
     if (status === 'need' && !NEED_TYPES.includes(rowType)) show = false;
