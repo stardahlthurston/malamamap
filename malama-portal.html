@@ -4112,9 +4112,18 @@ function toTitleCase(str) {
 }
 
 // ── Form items (which items appear in new listing form) stored in localStorage ──
-function getFormItems() {
-  try { return new Set(JSON.parse(localStorage.getItem('malama_form_items') || '[]')); }
-  catch(e) { return new Set(); }
+function getFormItems(allKeys) {
+  try {
+    const stored = localStorage.getItem('malama_form_items');
+    // First-ever visit: default ALL items to shown so the shelf isn't empty
+    if (stored === null && allKeys) {
+      const all = new Set(allKeys);
+      saveFormItems(all);
+      return all;
+    }
+    return new Set(JSON.parse(stored || '[]'));
+  }
+  catch(e) { return new Set(allKeys || []); }
 }
 function saveFormItems(set) {
   try { localStorage.setItem('malama_form_items', JSON.stringify([...set])); } catch(e) {}
@@ -4169,7 +4178,8 @@ function renderItemsUI(itemMap) {
   const el = document.getElementById('itemsMgrContent');
   if (!el) return;
 
-  const formItems = getFormItems();
+  const allKeys = Object.keys(itemMap);
+  const formItems = getFormItems(allKeys);
   const sorted = Object.entries(itemMap).sort((a,b) => b[1].listingIds.size - a[1].listingIds.size);
   const shownEntries  = sorted.filter(([k]) =>  formItems.has(k));
   const hiddenEntries = sorted.filter(([k]) => !formItems.has(k));
