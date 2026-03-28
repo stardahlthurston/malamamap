@@ -4561,7 +4561,8 @@ async function confirmCombineItems() {
     for (const id of (itemMap[key]?.listingIds || [])) affectedListingIds.add(id);
   }
 
-  let successCount = 0;
+  // Build all updates first, then send to API (service key bypasses RLS for all listings)
+  const listingUpdates = [];
   for (const listingId of affectedListingIds) {
     const listing = _itemsAllListings.find(l => l.id === listingId);
     if (!listing) continue;
@@ -4575,10 +4576,16 @@ async function confirmCombineItems() {
       }
       return raw;
     });
-    const deduped = [...new Set(newItems)];
-    const { error } = await sb.from('listings').update({ items: deduped }).eq('id', listingId);
-    if (!error) successCount++;
+    listingUpdates.push({ id: listingId, items: [...new Set(newItems)] });
   }
+
+  const resp = await fetch('/api/admin-action', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'merge_items', authUserId: currentUser.id, listingUpdates })
+  });
+  const json = await resp.json();
+  const successCount = json.updated ?? 0;
 
   // Show success state inside modal before closing
   if (confirmBtn) {
@@ -4618,7 +4625,7 @@ async function _deleteItemsFromListings(keys) {
   const affectedIds = new Set();
   for (const k of keys) for (const id of (itemMap[k]?.listingIds || [])) affectedIds.add(id);
 
-  let count = 0;
+  const listingUpdates = [];
   for (const listingId of affectedIds) {
     const listing = _itemsAllListings.find(l => l.id === listingId);
     if (!listing) continue;
@@ -4627,9 +4634,17 @@ async function _deleteItemsFromListings(keys) {
       const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
       return !keys.includes(display.toLowerCase());
     });
-    const { error } = await sb.from('listings').update({ items: newItems }).eq('id', listingId);
-    if (!error) count++;
+    listingUpdates.push({ id: listingId, items: newItems });
   }
+
+  const resp = await fetch('/api/admin-action', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'delete_items', authUserId: currentUser.id, listingUpdates })
+  });
+  const json = await resp.json();
+  const count = json.updated ?? 0;
+
   _selectedItemKeys.clear();
   showToast(`🗑 Removed from ${count} listing${count !== 1 ? 's' : ''}`);
   await loadItemsManager();

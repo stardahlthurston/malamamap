@@ -137,6 +137,26 @@ export default async function handler(req, res) {
         break;
       }
 
+      // Bulk update items arrays across any listing — bypasses RLS via service key
+      case 'merge_items':
+      case 'delete_items': {
+        const { listingUpdates } = req.body;
+        if (!Array.isArray(listingUpdates) || !listingUpdates.length)
+          throw new Error('listingUpdates array required');
+        let successCount = 0;
+        for (const { id, items } of listingUpdates) {
+          if (!id || !Array.isArray(items)) continue;
+          const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${id}`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ items })
+          });
+          if (r.ok) successCount++;
+        }
+        result = { success: true, updated: successCount };
+        break;
+      }
+
       case 'reactivate_auto_expired': {
         // Find all inactive listings, reactivate ones that were closed by expires_at
         // but NOT ones whose hours date range has genuinely passed.
