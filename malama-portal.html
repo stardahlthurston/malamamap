@@ -3510,11 +3510,8 @@ async function renderAdminPage() {
     console.log(`Auto-closed ${expiredCount} expired listing(s)`);
   }
 
-  // Super admin sees all listings, sub-admins see only their own
+  // All admins (super and sub) see all listings
   let adminQuery = sb2.from('listings').select('*').order('created_at', { ascending: false });
-  if (!isSuperAdmin(currentUser.id)) {
-    adminQuery = adminQuery.eq('user_id', currentUser.id);
-  }
   const { data: allListings, error } = await adminQuery;
   if (error) { main.innerHTML = `<p style="color:var(--red);">Error loading listings: ${error.message}</p>`; return; }
 

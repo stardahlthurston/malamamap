@@ -131,9 +131,9 @@ let activeFilter = 'all';
 async function loadListings() {
   const { data, error } = await sb
     .from('listings')
-    .select('id,name,website,notes,location,verified,status')
+    .select('id,name,website,giving_url,notes,location,verified,status')
     .eq('status', true)
-    .ilike('type', '%financial_giving%')
+    .or('type.ilike.%financial_giving%,giving_url.not.is.null')
     .order('name', { ascending: true });
 
   const grid = document.getElementById('cardGrid');
@@ -169,7 +169,7 @@ function render() {
           </div>
           <p class="card-summary">${l.notes || ''}</p>
           <div class="card-actions">
-            ${l.website ? `<span class="btn-donate">Donate →</span>` : ''}
+            ${(l.website || l.giving_url) ? `<span class="btn-donate">Donate →</span>` : ''}
           </div>
         </div>
       </div>
