@@ -490,7 +490,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <input type="text" class="modal-input" id="editName" placeholder="Select a type and address first">
     <p style="font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:-8px;margin-bottom:0.75rem;">Auto-fills as <em>Your Name — Listing Type</em>. Edit freely.</p>
 
-    <p class="modal-label">Contact phone</p>
+    <p class="modal-label">Contact phone <span style="font-size:0.7rem;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-muted);">— visible to the public</span></p>
     <input type="tel" class="modal-input" id="editPhone" placeholder="(808) 555-0000">
 
     <p class="modal-label">Days open</p>
@@ -542,11 +542,11 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.5rem;">
       <div>
-        <p class="modal-label">Available from <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></p>
+        <p class="modal-label">Available from <span style="color:var(--red);">*</span></p>
         <input type="date" class="modal-input" id="editDateFrom">
       </div>
       <div>
-        <p class="modal-label">Available until</p>
+        <p class="modal-label">Available until <span style="color:var(--red);">*</span></p>
         <input type="date" class="modal-input" id="editDateUntil" placeholder="">
       </div>
     </div>
@@ -2122,6 +2122,16 @@ async function saveListing() {
   console.log('[SAVE CHECK] type:', type);
   if (!type) { console.warn('[SAVE BLOCKED] no type'); showToast('Please select a listing type'); return; }
 
+  // Date validation — start date required unless ongoing; end date required unless ongoing or "until further notice"
+  const _isOngoing = document.getElementById('ongoingToggle')?.dataset.active === 'true';
+  if (!_isOngoing) {
+    const _dateFrom = document.getElementById('editDateFrom')?.value || '';
+    const _dateUntil = document.getElementById('editDateUntil')?.value || '';
+    const _untilFurther = document.getElementById('untilFurtherNotice')?.checked;
+    if (!_dateFrom) { showToast('Please enter a start date — or mark as Ongoing'); return; }
+    if (!_dateUntil && !_untilFurther) { showToast('Please enter an end date — or check "Until further notice"'); return; }
+  }
+
   // Build hours string — only rebuild if user touched the fields, otherwise keep original
   const days = getSelectedDays();
   const openTime = document.getElementById('editHoursOpen')?.value || '';
@@ -2167,25 +2177,31 @@ async function saveListing() {
     hours = existingListing?.hours || '';
   }
 
-  // Items — preserve GIVING:/ACCEPTING: prefixes from original data
+  // Items — apply GIVING:/ACCEPTING: prefix based on listing type
   const checked = [...document.querySelectorAll('#itemCheckboxGrid input:checked')].map(cb => cb.value);
   const custom = smartSplit(document.getElementById('editCustomItems').value).filter(Boolean);
   const origItems = window._editOriginalItems || [];
-  const hasPrefix = origItems.some(i => i.startsWith('GIVING:') || i.startsWith('ACCEPTING:'));
+  const currentType = document.getElementById('editType').value;
+  const isSupply = currentType.includes('supply_station');
+  const isDropoff = currentType.includes('donation_dropoff');
   let items;
-  if (id && hasPrefix) {
-    // Editing a listing that uses GIVING:/ACCEPTING: prefixes
-    // For checked items: find their original prefixed version, or keep unprefixed
+  if (isSupply || isDropoff) {
     const rebuilt = [];
     checked.forEach(val => {
       const origGiving = origItems.find(i => i === 'GIVING:'+val);
       const origAccepting = origItems.find(i => i === 'ACCEPTING:'+val);
       if (origGiving) rebuilt.push(origGiving);
-      if (origAccepting) rebuilt.push(origAccepting);
-      if (!origGiving && !origAccepting) rebuilt.push(val);
+      else if (origAccepting) rebuilt.push(origAccepting);
+      else if (isSupply && !isDropoff) rebuilt.push('GIVING:'+val);
+      else if (isDropoff && !isSupply) rebuilt.push('ACCEPTING:'+val);
+      else rebuilt.push('GIVING:'+val); // both types: default to giving
     });
-    // Custom items: keep as-is (they already have prefixes if they had them)
-    custom.forEach(val => rebuilt.push(val));
+    custom.forEach(val => {
+      if (val.startsWith('GIVING:') || val.startsWith('ACCEPTING:')) rebuilt.push(val);
+      else if (isSupply && !isDropoff) rebuilt.push('GIVING:'+val);
+      else if (isDropoff && !isSupply) rebuilt.push('ACCEPTING:'+val);
+      else rebuilt.push(val);
+    });
     items = rebuilt;
   } else {
     items = [...checked, ...custom];

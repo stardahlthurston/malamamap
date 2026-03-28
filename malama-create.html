@@ -268,7 +268,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       </div>
     </div>
     <div class="field">
-      <label>Contact phone</label>
+      <label>Contact phone <span style="font-size:0.72rem;font-weight:500;color:var(--text-muted);">— visible to the public</span></label>
       <input type="tel" id="editPhone" placeholder="(808) 555-0000">
     </div>
   </div>
@@ -285,7 +285,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
         <label class="day-label"><input type="checkbox" value="Fri" class="day-check"> Fri</label>
         <label class="day-label"><input type="checkbox" value="Sat" class="day-check"> Sat</label>
         <label class="day-label"><input type="checkbox" value="Sun" class="day-check"> Sun</label>
-        <label class="day-label" style="border-color:var(--sage);background:var(--sage-pale);color:var(--sage-deep);"><input type="checkbox" value="Daily" class="day-check"> Every day</label>
+        <label class="day-label"><input type="checkbox" value="Daily" class="day-check"> Every day</label>
       </div>
     </div>
     <div class="field-row">
@@ -308,18 +308,14 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     <div id="altHoursContainer"></div>
     <button type="button" id="addAltHoursBtn" onclick="addAltHours()" style="background:none;border:1.5px dashed #ccc;border-radius:10px;padding:0.5rem 1rem;font-size:0.78rem;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:0.75rem;width:100%;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--sage)';this.style.color='var(--sage)'" onmouseout="this.style.borderColor='#ccc';this.style.color='var(--text-muted)'">+ Different hours for other days</button>
     <div class="field-row">
-      <div class="field"><label>Available from</label><input type="date" id="editDateFrom"></div>
-      <div class="field"><label>Available until</label><input type="date" id="editDateUntil"></div>
+      <div class="field"><label>Available from <span style="color:var(--red);">*</span></label><input type="date" id="editDateFrom"></div>
+      <div class="field"><label>Available until <span style="color:var(--red);">*</span></label><input type="date" id="editDateUntil"></div>
     </div>
     <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;font-weight:700;cursor:pointer;margin-bottom:0.75rem;color:var(--sage-deep);">
       <input type="checkbox" id="untilFurtherNotice" style="accent-color:var(--sage);width:15px;height:15px;"
         onchange="(function(cb){ const el=document.getElementById('editDateUntil'); el.disabled=cb.checked; el.style.opacity=cb.checked?'0.4':''; el.style.cursor=cb.checked?'not-allowed':''; if(cb.checked)el.value=''; })(this)">
       Until further notice
     </label>
-    <div class="toggle-row">
-      <div class="toggle-info"><p>Currently open</p><span>Toggle off if temporarily closed</span></div>
-      <label class="toggle"><input type="checkbox" id="editStatus" checked><span class="toggle-slider"></span></label>
-    </div>
   </div>
 
   <div id="itemsSection">
@@ -1230,6 +1226,17 @@ async function saveListing() {
     hasError = true;
   }
   if (hasError) return;
+
+  // Date validation — start date required unless ongoing; end date required unless ongoing or "until further notice"
+  const _isOngoing = document.getElementById('ongoingToggle')?.dataset.active === 'true';
+  if (!_isOngoing) {
+    const _dateFrom = document.getElementById('editDateFrom')?.value || '';
+    const _dateUntil = document.getElementById('editDateUntil')?.value || '';
+    const _untilFurther = document.getElementById('untilFurtherNotice')?.checked;
+    if (!_dateFrom) { showToast('Please enter a start date — or mark as Ongoing'); return; }
+    if (!_dateUntil && !_untilFurther) { showToast('Please enter an end date — or check "Until further notice"'); return; }
+  }
+
   const address = city ? `${streetAddr}, ${city}, HI ${zip}` : `${streetAddr}, HI ${zip}`;
 
   const btn = document.getElementById('submitBtn');
@@ -1297,7 +1304,7 @@ async function saveListing() {
 
   const payload = {
     name, type: primaryType,
-    status: document.getElementById('editStatus').checked,
+    status: true,
     location: document.getElementById('editLocation')?.value || '',
     address, lat: coords.lat, lng: coords.lng,
     hours: hours||null,
