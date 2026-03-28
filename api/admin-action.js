@@ -137,6 +137,20 @@ export default async function handler(req, res) {
         break;
       }
 
+      case 'create_listing': {
+        const { payload } = req.body;
+        if (!payload) throw new Error('payload required');
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/listings`, {
+          method: 'POST',
+          headers: { ...headers, 'Prefer': 'return=representation' },
+          body: JSON.stringify(payload)
+        });
+        if (!r.ok) throw new Error('Failed to create listing: ' + await r.text());
+        const created = await r.json();
+        result = { success: true, message: 'Listing created', id: created[0]?.id };
+        break;
+      }
+
       // Bulk update items arrays across any listing — bypasses RLS via service key
       case 'merge_items':
       case 'delete_items': {
