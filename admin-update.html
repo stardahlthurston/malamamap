@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Admin Update Tool</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sage: #3a7d5c;
+    --sage-pale: #edf7f1;
+    --sage-deep: #1a3d2b;
+    --red: #c0392b;
+    --bg: #f5f6f4;
+    --card: #ffffff;
+    --border: #e0e4e0;
+    --text: #1a1a1a;
+    --muted: #6b7a6b;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── PASSWORD GATE ── */
+  #gate {
+    position: fixed; inset: 0;
+    background: var(--sage-deep);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  #gate.hidden { display: none; }
+
+  .gate-box {
+    background: #1f4d35;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+  .gate-box h1 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .gate-box p {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.78rem;
+    margin-bottom: 1.5rem;
+  }
+  .gate-box input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    outline: none;
+  }
+  .gate-box input::placeholder { color: rgba(255,255,255,0.3); }
+  .gate-box input:focus { border-color: rgba(255,255,255,0.5); }
+  .gate-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #3a7d5c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .gate-btn:hover { background: #4a9d72; }
+  .gate-error {
+    color: #ff8080;
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+    display: none;
+  }
+  .gate-error.show { display: block; }
+
+  /* ── MAIN APP ── */
+  #app { display: none; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  #app.visible { display: block; }
+
+  .app-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-header .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--sage);
+    flex-shrink: 0;
+  }
+  .app-header h1 { font-size: 1rem; font-weight: 600; color: var(--sage-deep); }
+  .app-header span { color: var(--muted); font-size: 0.8rem; }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  /* ── LISTING SELECTOR ── */
+  select.listing-select {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-size: 0.88rem;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 1rem;
+    outline: none;
+  }
+  select.listing-select:focus { border-color: var(--sage); }
+
+  .current-data {
+    background: var(--sage-pale);
+    border: 1px solid rgba(58,125,92,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    display: none;
+  }
+  .current-data.show { display: block; }
+  .current-row { margin-bottom: 0.85rem; }
+  .current-row:last-child { margin-bottom: 0; }
+  .current-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sage-deep);
+    margin-bottom: 0.3rem;
+  }
+  .current-value {
+    font-size: 0.85rem;
+    color: var(--text);
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+  .current-value.empty { color: var(--muted); font-style: italic; }
+
+  /* ── UPLOAD AREA ── */
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: var(--sage);
+    background: var(--sage-pale);
+  }
+  .upload-area input[type="file"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+  .upload-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+  .upload-text { font-size: 0.85rem; color: var(--muted); }
+  .upload-text strong { color: var(--text); }
+
+  /* ── PROCESSING LOG ── */
+  #processingLog { display: none; margin-top: 1rem; }
+  #processingLog.show { display: block; }
+  .log-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.82rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-item.done { color: var(--sage-deep); }
+  .log-item.error { color: var(--red); }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--sage);
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── REVIEW STEP ── */
+  #reviewSection { display: none; }
+  #reviewSection.show { display: block; }
+
+  .review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  @media (max-width: 600px) { .review-grid { grid-template-columns: 1fr; } }
+
+  .review-col-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .review-col-label.extracted { color: var(--sage-deep); }
+
+  .review-field { margin-bottom: 1rem; }
+  .review-field label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .review-field textarea, .review-field .static-value {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+    color: var(--text);
+    background: white;
+    outline: none;
+    min-height: 70px;
+  }
+  .review-field textarea:focus { border-color: var(--sage); }
+  .review-field .static-value {
+    background: #fafafa;
+    color: var(--muted);
+    cursor: default;
+    white-space: pre-wrap;
+  }
+  .review-field .static-value.empty { font-style: italic; }
+
+  /* ── PUSH BUTTON ── */
+  .push-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .btn-push {
+    padding: 0.75rem 2rem;
+    background: var(--sage);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .btn-push:hover { background: #2f6a4c; }
+  .btn-push:disabled { background: #aaa; cursor: default; }
+
+  .result-msg {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    display: none;
+  }
+  .result-msg.success {
+    display: inline-block;
+    background: var(--sage-pale);
+    color: var(--sage-deep);
+  }
+  .result-msg.error {
+    display: inline-block;
+    background: #fdf0ef;
+    color: var(--red);
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     PASSWORD GATE
+══════════════════════════════════════ -->
+<div id="gate">
+  <div class="gate-box">
+    <h1>Mālama Map</h1>
+    <p>Admin update tool — enter password to continue</p>
+    <input type="password" id="passwordInput" placeholder="Password" autocomplete="off"
+      onkeydown="if(event.key==='Enter') checkPassword()">
+    <button class="gate-btn" onclick="checkPassword()">Enter</button>
+    <p class="gate-error" id="gateError">Incorrect password. Try again.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div id="app">
+
+  <div class="app-header">
+    <div class="dot"></div>
+    <h1>Mālama Map — Admin Update Tool</h1>
+    <span>Internal use only</span>
+  </div>
+
+  <!-- 1. LISTING SELECTOR -->
+  <div class="section">
+    <p class="section-title">1 — Select a listing</p>
+    <select class="listing-select" id="listingSelect" onchange="onListingSelect()">
+      <option value="">Loading listings…</option>
+    </select>
+
+    <div class="current-data" id="currentData">
+      <div class="current-row">
+        <div class="current-label">Hours</div>
+        <div class="current-value" id="currentHours"></div>
+      </div>
+      <div class="current-row">
+        <div class="current-label">Items</div>
+        <div class="current-value" id="currentItems"></div>
+      </div>
+      <div class="current-row">
+        <div class="current-label">Notes</div>
+        <div class="current-value" id="currentNotes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. SCREENSHOT UPLOAD -->
+  <div class="section">
+    <p class="section-title">2 — Upload screenshots</p>
+    <div class="upload-area" id="uploadArea"
+      ondragover="event.preventDefault(); this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="onDrop(event)">
+      <input type="file" id="fileInput" accept="image/*" multiple onchange="onFilePick(event)">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text"><strong>Click to upload</strong> or drag and drop<br>JPG, PNG, HEIC — multiple allowed</div>
+    </div>
+
+    <div id="processingLog"></div>
+  </div>
+
+  <!-- 3. REVIEW & EDIT -->
+  <div class="section" id="reviewSection">
+    <p class="section-title">3 — Review & edit before pushing</p>
+
+    <div class="review-grid">
+      <!-- LEFT: current -->
+      <div>
+        <p class="review-col-label">Current</p>
+
+        <div class="review-field">
+          <label>Hours</label>
+          <div class="static-value" id="reviewCurrentHours"></div>
+        </div>
+        <div class="review-field">
+          <label>Items</label>
+          <div class="static-value" id="reviewCurrentItems"></div>
+        </div>
+        <div class="review-field">
+          <label>Notes</label>
+          <div class="static-value" id="reviewCurrentNotes"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: extracted (editable) -->
+      <div>
+        <p class="review-col-label extracted">Extracted from screenshot</p>
+
+        <div class="review-field">
+          <label>Hours</label>
+          <textarea id="extractedHours" rows="3" placeholder="No hours extracted"></textarea>
+        </div>
+        <div class="review-field">
+          <label>Items (one per line)</label>
+          <textarea id="extractedItems" rows="5" placeholder="No items extracted"></textarea>
+        </div>
+        <div class="review-field">
+          <label>Notes</label>
+          <textarea id="extractedNotes" rows="3" placeholder="No notes extracted"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem;" class="push-row">
+      <button class="btn-push" id="pushBtn" onclick="pushUpdate()">Update listing →</button>
+      <span class="result-msg" id="resultMsg"></span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════
+// SUPABASE — same setup as the rest of the codebase
+// ══════════════════════════════════════
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Admin UUID used for the admin-action endpoint auth check
+// (same UUID used throughout admin-action.js)
+const ADMIN_UID = '04e3776b-b75f-4701-888e-511a9cf21382';
+
+let allListings = [];
+let selectedListing = null;
+
+// ══════════════════════════════════════
+// PASSWORD GATE
+// ══════════════════════════════════════
+function checkPassword() {
+  const val = document.getElementById('passwordInput').value;
+  const err = document.getElementById('gateError');
+  if (val === 'malama2026') {
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    loadListings();
+  } else {
+    err.classList.add('show');
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+// ══════════════════════════════════════
+// LISTING SELECTOR
+// ══════════════════════════════════════
+async function loadListings() {
+  const sel = document.getElementById('listingSelect');
+  const { data, error } = await sb
+    .from('listings')
+    .select('id, name, hours, items, notes')
+    .order('name');
+
+  if (error) {
+    sel.innerHTML = '<option value="">Error loading listings</option>';
+    return;
+  }
+
+  allListings = data || [];
+  sel.innerHTML = '<option value="">— Select a listing —</option>' +
+    allListings.map(l => `<option value="${l.id}">${escHtml(l.name || 'Unnamed')}</option>`).join('');
+}
+
+function onListingSelect() {
+  const sel = document.getElementById('listingSelect');
+  const id = sel.value;
+  selectedListing = allListings.find(l => l.id === id) || null;
+
+  const box = document.getElementById('currentData');
+  if (!selectedListing) { box.classList.remove('show'); return; }
+
+  const hours = selectedListing.hours || '';
+  const items = Array.isArray(selectedListing.items)
+    ? selectedListing.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')).join('\n')
+    : (selectedListing.items || '');
+  const notes = selectedListing.notes || '';
+
+  setEl('currentHours',  hours  || '—', !hours);
+  setEl('currentItems',  items  || '—', !items);
+  setEl('currentNotes',  notes  || '—', !notes);
+  box.classList.add('show');
+
+  // Mirror into the review step's "Current" column
+  setStaticReview('reviewCurrentHours', hours);
+  setStaticReview('reviewCurrentItems', items);
+  setStaticReview('reviewCurrentNotes', notes);
+}
+
+function setEl(id, text, isEmpty) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.toggle('empty', !!isEmpty);
+}
+
+function setStaticReview(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = text || '—';
+  el.classList.toggle('empty', !text);
+}
+
+// ══════════════════════════════════════
+// IMAGE UPLOAD
+// ══════════════════════════════════════
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadArea').classList.remove('drag-over');
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  if (files.length) processFiles(files);
+}
+
+function onFilePick(e) {
+  const files = [...e.target.files];
+  if (files.length) processFiles(files);
+  e.target.value = ''; // reset so same file can be re-uploaded
+}
+
+async function processFiles(files) {
+  if (!selectedListing) {
+    alert('Please select a listing first.');
+    return;
+  }
+
+  const log = document.getElementById('processingLog');
+  log.innerHTML = '';
+  log.classList.add('show');
+
+  // Accumulated extracted values across multiple images
+  let mergedHours = '';
+  let mergedItems = [];
+  let mergedNotes = '';
+
+  for (const file of files) {
+    const logItem = addLogItem(log, `Reading ${file.name}…`);
+
+    try {
+      const { base64, mediaType } = await readFileAsBase64(file);
+      updateLogItem(logItem, `Sending ${file.name} to Claude…`);
+
+      const resp = await fetch('/api/update-from-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: base64, media_type: mediaType })
+      });
+      const result = await resp.json();
+
+      if (!resp.ok || result.error) {
+        updateLogItem(logItem, `${file.name} — error: ${result.error || 'Unknown'}`, 'error');
+        continue;
+      }
+
+      if (result.parsed) {
+        const p = result.parsed;
+        if (p.hours && !mergedHours) mergedHours = p.hours;
+        if (Array.isArray(p.items)) mergedItems.push(...p.items);
+        else if (typeof p.items === 'string' && p.items) mergedItems.push(p.items);
+        if (p.notes && !mergedNotes) mergedNotes = p.notes;
+        updateLogItem(logItem, `${file.name} — extracted`, 'done');
+      } else {
+        // Parsing failed — show raw text in notes
+        if (!mergedNotes) mergedNotes = result.raw || '(no data)';
+        updateLogItem(logItem, `${file.name} — JSON parse failed, raw text shown in Notes`, 'done');
+      }
+
+    } catch (err) {
+      updateLogItem(logItem, `${file.name} — ${err.message}`, 'error');
+    }
+  }
+
+  // Populate the review fields
+  document.getElementById('extractedHours').value = mergedHours;
+  document.getElementById('extractedItems').value = [...new Set(mergedItems)].join('\n');
+  document.getElementById('extractedNotes').value = mergedNotes;
+
+  document.getElementById('reviewSection').classList.add('show');
+  document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      const base64 = dataUrl.split(',')[1];
+      const mediaType = file.type || 'image/jpeg';
+      resolve({ base64, mediaType });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function addLogItem(container, text) {
+  const div = document.createElement('div');
+  div.className = 'log-item';
+  div.innerHTML = `<div class="spinner"></div><span>${escHtml(text)}</span>`;
+  container.appendChild(div);
+  return div;
+}
+
+function updateLogItem(el, text, state) {
+  const icon = state === 'done' ? '✅' : state === 'error' ? '❌' : '';
+  el.innerHTML = icon
+    ? `<span style="width:14px;text-align:center;flex-shrink:0;">${icon}</span><span>${escHtml(text)}</span>`
+    : `<div class="spinner"></div><span>${escHtml(text)}</span>`;
+  if (state) el.classList.add(state);
+}
+
+// ══════════════════════════════════════
+// PUSH UPDATE
+// ══════════════════════════════════════
+async function pushUpdate() {
+  if (!selectedListing) { alert('No listing selected.'); return; }
+
+  const btn = document.getElementById('pushBtn');
+  const msg = document.getElementById('resultMsg');
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+  msg.className = 'result-msg';
+
+  const hoursVal = document.getElementById('extractedHours').value.trim();
+  const itemsRaw = document.getElementById('extractedItems').value.trim();
+  const notesVal = document.getElementById('extractedNotes').value.trim();
+
+  // Convert items textarea (one per line) back to array
+  const itemsArr = itemsRaw
+    ? itemsRaw.split('\n').map(s => s.trim()).filter(Boolean)
+    : [];
+
+  const payload = {
+    hours: hoursVal || null,
+    items: itemsArr,
+    notes: notesVal || null
+  };
+
+  try {
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update_listing',
+        authUserId: ADMIN_UID,
+        listingId: selectedListing.id,
+        payload
+      })
+    });
+    const result = await resp.json();
+
+    if (!resp.ok || result.error) {
+      msg.textContent = 'Error: ' + (result.error || resp.statusText);
+      msg.className = 'result-msg error';
+    } else {
+      msg.textContent = '✅ Listing updated successfully';
+      msg.className = 'result-msg success';
+
+      // Refresh in-memory listing so "Current" column reflects the save
+      selectedListing.hours = hoursVal || null;
+      selectedListing.items = itemsArr;
+      selectedListing.notes = notesVal || null;
+      onListingSelect();
+    }
+  } catch (err) {
+    msg.textContent = 'Network error: ' + err.message;
+    msg.className = 'result-msg error';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Update listing →';
+}
+
+// ══════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
