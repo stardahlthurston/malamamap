@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
+        max_tokens: 2048,
         messages: [{
           role: 'user',
           content: [
@@ -36,7 +36,22 @@ export default async function handler(req, res) {
             },
             {
               type: 'text',
-              text: 'This is a screenshot from social media about a disaster relief hub. Please extract any updated hours, any list of items they need or are giving out, and any important notes. Return only a JSON object with keys: hours, items, notes. No explanation, no markdown, just the raw JSON.'
+              text: `This is a screenshot from social media about a disaster relief or donation hub in Hawaii.
+
+Extract the following and return ONLY a raw JSON object — no markdown, no explanation:
+
+{
+  "hours": "operating hours or date/time info as a single string, e.g. 'Open daily 8am–5pm' or 'As of 3/25 6am'. Empty string if not found.",
+  "location": "drop-off address or location name if visible. Empty string if not found.",
+  "items": ["flat array of strings — every individual item mentioned, one per entry, no categories, no bullets. Include ALL items from ALL categories."],
+  "notes": "any important notes such as restrictions, warnings, or extra instructions as a single string. Empty string if not found."
+}
+
+Rules:
+- items MUST be a flat array of plain strings, never an object or nested structure
+- Include every single item listed regardless of category — flatten all categories into one list
+- If items are listed under headers like 'Shelter', 'Food', etc., still include all of them in the flat array
+- Capture the 'as of' date/time in the hours field if no other hours are given`
             }
           ]
         }]

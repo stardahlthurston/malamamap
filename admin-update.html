@@ -569,13 +569,30 @@ async function processFiles(files) {
       if (result.parsed) {
         const p = result.parsed;
         if (p.hours && !mergedHours) mergedHours = p.hours;
-        if (Array.isArray(p.items)) mergedItems.push(...p.items);
-        else if (typeof p.items === 'string' && p.items) mergedItems.push(p.items);
-        if (p.notes && !mergedNotes) mergedNotes = p.notes;
-        updateLogItem(logItem, `${file.name} — extracted`, 'done');
+        // Flatten items whether AI returns a flat array, nested object, or string
+        if (Array.isArray(p.items)) {
+          p.items.forEach(i => {
+            if (typeof i === 'string') mergedItems.push(i);
+            else if (Array.isArray(i)) mergedItems.push(...i.filter(x => typeof x === 'string'));
+          });
+        } else if (p.items && typeof p.items === 'object') {
+          // AI returned categorised object — flatten all values
+          Object.values(p.items).forEach(v => {
+            if (Array.isArray(v)) mergedItems.push(...v.filter(x => typeof x === 'string'));
+            else if (typeof v === 'string') mergedItems.push(v);
+          });
+        } else if (typeof p.items === 'string' && p.items) {
+          mergedItems.push(p.items);
+        }
+        // Append location to notes if found
+        if (p.location && !mergedNotes.includes(p.location)) {
+          mergedNotes = [p.location, mergedNotes].filter(Boolean).join('\n');
+        }
+        if (p.notes) mergedNotes = [mergedNotes, p.notes].filter(Boolean).join('\n');
+        updateLogItem(logItem, `${file.name} — extracted ${Array.isArray(p.items) ? p.items.length : '?'} items`, 'done');
       } else {
-        // Parsing failed — show raw text in notes
-        if (!mergedNotes) mergedNotes = result.raw || '(no data)';
+        // Parsing failed — show raw text in notes so nothing is lost
+        mergedNotes = [mergedNotes, result.raw || '(no data)'].filter(Boolean).join('\n---\n');
         updateLogItem(logItem, `${file.name} — JSON parse failed, raw text shown in Notes`, 'done');
       }
 
