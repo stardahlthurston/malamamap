@@ -4312,31 +4312,43 @@ async function confirmCombineItems() {
   const itemMap = window._itemMap || {};
   const keys = [..._selectedItemKeys];
 
+  // Show loading state on the confirm button
+  const confirmBtn = document.querySelector('#combineModal button[onclick="confirmCombineItems()"]');
+  const cancelBtn  = document.querySelector('#combineModal button:first-of-type');
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;"><svg style="animation:spin360 0.7s linear infinite;flex-shrink:0;" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="rgba(255,255,255,0.4)" stroke-width="2"/><path d="M7 1.5a5.5 5.5 0 0 1 5.5 5.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>Merging…</span>';
+  }
+  if (cancelBtn) cancelBtn.disabled = true;
+
+  // Inject spinner keyframes if not already present
+  if (!document.getElementById('spinStyle')) {
+    const s = document.createElement('style');
+    s.id = 'spinStyle';
+    s.textContent = '@keyframes spin360 { to { transform: rotate(360deg); } }';
+    document.head.appendChild(s);
+  }
+
   // Collect all listings that have any of the selected items
   const affectedListingIds = new Set();
   for (const key of keys) {
     for (const id of (itemMap[key]?.listingIds || [])) affectedListingIds.add(id);
   }
 
-  // For each affected listing, replace selected items with newName, keeping prefix if any
-  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   let successCount = 0;
   for (const listingId of affectedListingIds) {
     const listing = _itemsAllListings.find(l => l.id === listingId);
     if (!listing) continue;
     const rawItems = Array.isArray(listing.items) ? listing.items : [];
-    let replaced = false;
     const newItems = rawItems.map(raw => {
       const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
       const key = display.toLowerCase();
       if (keys.includes(key)) {
-        replaced = true;
         const prefix = raw.startsWith('GIVING:') ? 'GIVING:' : raw.startsWith('ACCEPTING:') ? 'ACCEPTING:' : '';
         return prefix + newName;
       }
       return raw;
     });
-    // Dedupe
     const deduped = [...new Set(newItems)];
     const r = await fetch(`https://wvplmqmqlnftlpyrqnle.supabase.co/rest/v1/listings?id=eq.${listingId}`, {
       method: 'PATCH',
@@ -4351,9 +4363,22 @@ async function confirmCombineItems() {
     if (r.ok) successCount++;
   }
 
+  // Show success state inside modal before closing
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = `✅ Merged into "${newName}"`;
+    confirmBtn.style.background = 'var(--sage)';
+  }
+
+  // Brief pause so user sees the confirmation, then close
+  await new Promise(r => setTimeout(r, 900));
+
   document.getElementById('combineModal').style.display = 'none';
+  if (confirmBtn) { confirmBtn.innerHTML = 'Merge &amp; update listings'; confirmBtn.style.background = ''; }
+  if (cancelBtn)  cancelBtn.disabled = false;
+
   _selectedItemKeys.clear();
-  showToast(`🔗 Combined into "${newName}" across ${successCount} listing${successCount !== 1 ? 's' : ''}`);
+  showToast(`🔀 Merged into "${newName}" across ${successCount} listing${successCount !== 1 ? 's' : ''}`);
   await loadItemsManager();
 }
 
