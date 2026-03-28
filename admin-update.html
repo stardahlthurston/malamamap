@@ -12,6 +12,8 @@
     --sage: #3a7d5c;
     --sage-pale: #edf7f1;
     --sage-deep: #1a3d2b;
+    --gold: #c9983a;
+    --gold-pale: #fdf4e3;
     --red: #c0392b;
     --bg: #f5f6f4;
     --card: #ffffff;
@@ -21,301 +23,129 @@
     --radius: 12px;
   }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 14px;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; background: var(--bg); color: var(--text); min-height: 100vh; }
 
   /* ── PASSWORD GATE ── */
-  #gate {
-    position: fixed; inset: 0;
-    background: var(--sage-deep);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000;
-  }
+  #gate { position: fixed; inset: 0; background: var(--sage-deep); display: flex; align-items: center; justify-content: center; z-index: 1000; }
   #gate.hidden { display: none; }
-
-  .gate-box {
-    background: #1f4d35;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    padding: 2.5rem 2rem;
-    width: 100%;
-    max-width: 360px;
-    text-align: center;
-  }
-  .gate-box h1 {
-    color: white;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-  .gate-box p {
-    color: rgba(255,255,255,0.5);
-    font-size: 0.78rem;
-    margin-bottom: 1.5rem;
-  }
-  .gate-box input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    background: rgba(255,255,255,0.08);
-    color: white;
-    font-size: 1rem;
-    text-align: center;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.75rem;
-    outline: none;
-  }
+  .gate-box { background: #1f4d35; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2.5rem 2rem; width: 100%; max-width: 360px; text-align: center; }
+  .gate-box h1 { color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .gate-box p { color: rgba(255,255,255,0.5); font-size: 0.78rem; margin-bottom: 1.5rem; }
+  .gate-box input { width: 100%; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.08); color: white; font-size: 1rem; text-align: center; letter-spacing: 0.08em; margin-bottom: 0.75rem; outline: none; }
   .gate-box input::placeholder { color: rgba(255,255,255,0.3); }
   .gate-box input:focus { border-color: rgba(255,255,255,0.5); }
-  .gate-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: #3a7d5c;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
+  .gate-btn { width: 100%; padding: 0.75rem; background: #3a7d5c; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
   .gate-btn:hover { background: #4a9d72; }
-  .gate-error {
-    color: #ff8080;
-    font-size: 0.8rem;
-    margin-top: 0.75rem;
-    display: none;
-  }
+  .gate-error { color: #ff8080; font-size: 0.8rem; margin-top: 0.75rem; display: none; }
   .gate-error.show { display: block; }
 
   /* ── MAIN APP ── */
-  #app { display: none; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  #app { display: none; max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
   #app.visible { display: block; }
-
-  .app-header {
-    display: flex; align-items: center; gap: 0.75rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .app-header .dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: var(--sage);
-    flex-shrink: 0;
-  }
+  .app-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+  .app-header .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--sage); flex-shrink: 0; }
   .app-header h1 { font-size: 1rem; font-weight: 600; color: var(--sage-deep); }
   .app-header span { color: var(--muted); font-size: 0.8rem; }
 
-  .section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
-  }
-  .section-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 1rem;
-  }
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+  .section-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
 
   /* ── LISTING SELECTOR ── */
-  select.listing-select {
-    width: 100%;
-    padding: 0.65rem 0.9rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: white;
-    font-size: 0.88rem;
-    color: var(--text);
-    cursor: pointer;
-    margin-bottom: 1rem;
-    outline: none;
-  }
+  select.listing-select { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.88rem; color: var(--text); cursor: pointer; margin-bottom: 0.75rem; outline: none; }
   select.listing-select:focus { border-color: var(--sage); }
 
-  .current-data {
-    background: var(--sage-pale);
-    border: 1px solid rgba(58,125,92,0.2);
-    border-radius: 8px;
-    padding: 1rem 1.1rem;
-    display: none;
-  }
+  .type-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-right: 5px; margin-bottom: 6px; }
+  .type-badge.dropoff { background: var(--gold-pale); color: #7a5c1a; }
+  .type-badge.supply  { background: var(--sage-pale); color: var(--sage-deep); }
+  .type-badge.other   { background: #f0f0ec; color: var(--muted); }
+  #listingTypeBadges { margin-bottom: 0.75rem; display: none; }
+
+  .current-data { background: var(--sage-pale); border: 1px solid rgba(58,125,92,0.2); border-radius: 8px; padding: 1rem 1.1rem; display: none; }
   .current-data.show { display: block; }
   .current-row { margin-bottom: 0.85rem; }
   .current-row:last-child { margin-bottom: 0; }
-  .current-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--sage-deep);
-    margin-bottom: 0.3rem;
-  }
-  .current-value {
-    font-size: 0.85rem;
-    color: var(--text);
-    white-space: pre-wrap;
-    line-height: 1.5;
-  }
+  .current-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sage-deep); margin-bottom: 0.3rem; }
+  .current-value { font-size: 0.85rem; color: var(--text); white-space: pre-wrap; line-height: 1.5; }
   .current-value.empty { color: var(--muted); font-style: italic; }
 
   /* ── UPLOAD AREA ── */
-  .upload-area {
-    border: 2px dashed var(--border);
-    border-radius: 10px;
-    padding: 2.5rem 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.15s;
-    position: relative;
-  }
-  .upload-area:hover, .upload-area.drag-over {
-    border-color: var(--sage);
-    background: var(--sage-pale);
-  }
-  .upload-area input[type="file"] {
-    position: absolute; inset: 0;
-    opacity: 0; cursor: pointer;
-    width: 100%; height: 100%;
-  }
+  .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 2.5rem 1rem; text-align: center; cursor: pointer; transition: all 0.15s; position: relative; }
+  .upload-area:hover, .upload-area.drag-over { border-color: var(--sage); background: var(--sage-pale); }
+  .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .upload-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
   .upload-text { font-size: 0.85rem; color: var(--muted); }
   .upload-text strong { color: var(--text); }
 
+  .manual-edit-link { display: block; text-align: center; margin-top: 1rem; font-size: 0.82rem; font-weight: 600; color: var(--sage); cursor: pointer; text-decoration: underline; }
+  .manual-edit-link:hover { color: var(--sage-deep); }
+
   /* ── PROCESSING LOG ── */
   #processingLog { display: none; margin-top: 1rem; }
   #processingLog.show { display: block; }
-  .log-item {
-    display: flex; align-items: center; gap: 0.6rem;
-    font-size: 0.82rem;
-    padding: 0.45rem 0;
-    border-bottom: 1px solid var(--border);
-    color: var(--muted);
-  }
+  .log-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border); color: var(--muted); }
   .log-item:last-child { border-bottom: none; }
   .log-item.done { color: var(--sage-deep); }
   .log-item.error { color: var(--red); }
-  .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--sage);
-    border-radius: 50%;
-    flex-shrink: 0;
-    animation: spin 0.7s linear infinite;
-  }
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--sage); border-radius: 50%; flex-shrink: 0; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── CLARIFICATION PROMPT ── */
+  #clarificationSection { display: none; }
+  #clarificationSection.show { display: block; }
+  .clarify-card { background: var(--gold-pale); border: 1.5px solid rgba(201,152,58,0.3); border-radius: 12px; padding: 1.25rem 1.5rem; }
+  .clarify-title { font-size: 0.85rem; font-weight: 700; color: #7a5c1a; margin-bottom: 0.35rem; }
+  .clarify-sub { font-size: 0.78rem; color: #8a6a2a; margin-bottom: 1rem; line-height: 1.5; }
+  .clarify-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .clarify-btn { padding: 0.6rem 1.1rem; border-radius: 100px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; border: 1.5px solid; transition: all 0.15s; }
+  .clarify-btn.accepting { background: white; color: #7a5c1a; border-color: var(--gold); }
+  .clarify-btn.accepting:hover { background: var(--gold-pale); }
+  .clarify-btn.giving { background: white; color: var(--sage-deep); border-color: var(--sage); }
+  .clarify-btn.giving:hover { background: var(--sage-pale); }
+  .clarify-btn.both { background: white; color: var(--muted); border-color: #ccc; }
+  .clarify-btn.both:hover { background: #f5f5f5; }
 
   /* ── REVIEW STEP ── */
   #reviewSection { display: none; }
   #reviewSection.show { display: block; }
 
-  .review-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-  }
-  @media (max-width: 600px) { .review-grid { grid-template-columns: 1fr; } }
+  .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 620px) { .review-grid { grid-template-columns: 1fr; } }
 
-  .review-col-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.75rem;
-  }
+  .review-col-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
   .review-col-label.extracted { color: var(--sage-deep); }
 
   .review-field { margin-bottom: 1rem; }
-  .review-field label {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 0.3rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .review-field label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .review-field textarea, .review-field input[type="text"], .review-field .static-value {
+    width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.85rem; font-family: inherit; line-height: 1.5; color: var(--text); background: white; outline: none;
   }
-  .review-field textarea, .review-field .static-value {
-    width: 100%;
-    padding: 0.6rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-family: inherit;
-    line-height: 1.5;
-    resize: vertical;
-    color: var(--text);
-    background: white;
-    outline: none;
-    min-height: 70px;
-  }
-  .review-field textarea:focus { border-color: var(--sage); }
-  .review-field .static-value {
-    background: #fafafa;
-    color: var(--muted);
-    cursor: default;
-    white-space: pre-wrap;
-  }
+  .review-field textarea { resize: vertical; min-height: 70px; }
+  .review-field textarea:focus, .review-field input[type="text"]:focus { border-color: var(--sage); }
+  .review-field .static-value { background: #fafafa; color: var(--muted); cursor: default; white-space: pre-wrap; min-height: 40px; }
   .review-field .static-value.empty { font-style: italic; }
 
-  /* ── PUSH BUTTON ── */
-  .push-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  .btn-push {
-    padding: 0.75rem 2rem;
-    background: var(--sage);
-    color: white;
-    border: none;
-    border-radius: 100px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-    font-family: inherit;
-  }
+  /* item section labels inside review */
+  .items-section-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; display: inline-block; margin-bottom: 0.3rem; }
+  .items-section-label.accepting { background: var(--gold-pale); color: #7a5c1a; }
+  .items-section-label.giving    { background: var(--sage-pale); color: var(--sage-deep); }
+  .items-section-label.plain     { background: #f0f0ec; color: var(--muted); }
+
+  /* ── PUSH / ACTIONS ── */
+  .push-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .btn-push { padding: 0.75rem 2rem; background: var(--sage); color: white; border: none; border-radius: 100px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
   .btn-push:hover { background: #2f6a4c; }
   .btn-push:disabled { background: #aaa; cursor: default; }
-
-  .result-msg {
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.5rem 0.9rem;
-    border-radius: 8px;
-    display: none;
-  }
-  .result-msg.success {
-    display: inline-block;
-    background: var(--sage-pale);
-    color: var(--sage-deep);
-  }
-  .result-msg.error {
-    display: inline-block;
-    background: #fdf0ef;
-    color: var(--red);
-  }
+  .btn-clear { padding: 0.75rem 1.25rem; background: white; color: var(--muted); border: 1.5px solid #ddd; border-radius: 100px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .btn-clear:hover { border-color: var(--red); color: var(--red); }
+  .result-msg { font-size: 0.85rem; font-weight: 600; padding: 0.5rem 0.9rem; border-radius: 8px; display: none; }
+  .result-msg.success { display: inline-block; background: var(--sage-pale); color: var(--sage-deep); }
+  .result-msg.error   { display: inline-block; background: #fdf0ef; color: var(--red); }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════
-     PASSWORD GATE
-══════════════════════════════════════ -->
+<!-- PASSWORD GATE -->
 <div id="gate">
   <div class="gate-box">
     <h1>Mālama Map</h1>
@@ -327,11 +157,8 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MAIN APP
-══════════════════════════════════════ -->
+<!-- MAIN APP -->
 <div id="app">
-
   <div class="app-header">
     <div class="dot"></div>
     <h1>Mālama Map — Admin Update Tool</h1>
@@ -344,15 +171,32 @@
     <select class="listing-select" id="listingSelect" onchange="onListingSelect()">
       <option value="">Loading listings…</option>
     </select>
+    <div id="listingTypeBadges"></div>
 
     <div class="current-data" id="currentData">
       <div class="current-row">
         <div class="current-label">Hours</div>
         <div class="current-value" id="currentHours"></div>
       </div>
-      <div class="current-row">
+      <div class="current-row" id="currentGivingRow" style="display:none;">
+        <div class="current-label">🟢 Giving out</div>
+        <div class="current-value" id="currentGiving"></div>
+      </div>
+      <div class="current-row" id="currentAcceptingRow" style="display:none;">
+        <div class="current-label">🟡 Accepting</div>
+        <div class="current-value" id="currentAccepting"></div>
+      </div>
+      <div class="current-row" id="currentItemsRow" style="display:none;">
         <div class="current-label">Items</div>
         <div class="current-value" id="currentItems"></div>
+      </div>
+      <div class="current-row">
+        <div class="current-label">Address</div>
+        <div class="current-value" id="currentAddress"></div>
+      </div>
+      <div class="current-row">
+        <div class="current-label">Phone</div>
+        <div class="current-value" id="currentPhone"></div>
       </div>
       <div class="current-row">
         <div class="current-label">Notes</div>
@@ -361,7 +205,7 @@
     </div>
   </div>
 
-  <!-- 2. SCREENSHOT UPLOAD -->
+  <!-- 2. UPLOAD SCREENSHOTS -->
   <div class="section">
     <p class="section-title">2 — Upload screenshots</p>
     <div class="upload-area" id="uploadArea"
@@ -372,87 +216,109 @@
       <div class="upload-icon">📸</div>
       <div class="upload-text"><strong>Click to upload</strong> or drag and drop<br>JPG, PNG, HEIC — multiple allowed</div>
     </div>
-
     <div id="processingLog"></div>
+    <span class="manual-edit-link" onclick="openManualEdit()">Or edit this listing manually without a photo →</span>
   </div>
 
-  <!-- 3. REVIEW & EDIT -->
+  <!-- 3. CLARIFICATION (mixed-type listings only) -->
+  <div class="section" id="clarificationSection">
+    <p class="section-title">3 — Clarify items</p>
+    <div class="clarify-card">
+      <p class="clarify-title">This listing is both a Supply Station and a Donation Drop-off</p>
+      <p class="clarify-sub">Are the items extracted from these screenshots for accepting donations, giving out supplies, or both? You can adjust individual items in the next step.</p>
+      <div class="clarify-btns">
+        <button class="clarify-btn accepting" onclick="applyClarification('accepting')">📦 All Accepting donations</button>
+        <button class="clarify-btn giving"    onclick="applyClarification('giving')">🛖 All Giving out supplies</button>
+        <button class="clarify-btn both"      onclick="applyClarification('both')">Both — I'll split them below</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. REVIEW & EDIT -->
   <div class="section" id="reviewSection">
-    <p class="section-title">3 — Review & edit before pushing</p>
+    <p class="section-title" id="reviewSectionTitle">3 — Review & edit before pushing</p>
 
     <div class="review-grid">
       <!-- LEFT: current -->
       <div>
         <p class="review-col-label">Current</p>
-
-        <div class="review-field">
-          <label>Hours</label>
-          <div class="static-value" id="reviewCurrentHours"></div>
+        <div class="review-field"><label>Hours</label><div class="static-value" id="reviewCurrentHours"></div></div>
+        <div class="review-field" id="reviewCurrentGivingWrap" style="display:none;">
+          <span class="items-section-label giving">🟢 Giving out</span>
+          <div class="static-value" id="reviewCurrentGiving"></div>
         </div>
-        <div class="review-field">
+        <div class="review-field" id="reviewCurrentAcceptingWrap" style="display:none;">
+          <span class="items-section-label accepting">🟡 Accepting</span>
+          <div class="static-value" id="reviewCurrentAccepting"></div>
+        </div>
+        <div class="review-field" id="reviewCurrentItemsWrap" style="display:none;">
           <label>Items</label>
           <div class="static-value" id="reviewCurrentItems"></div>
         </div>
-        <div class="review-field">
-          <label>Notes</label>
-          <div class="static-value" id="reviewCurrentNotes"></div>
-        </div>
+        <div class="review-field"><label>Address</label><div class="static-value" id="reviewCurrentAddress"></div></div>
+        <div class="review-field"><label>Phone</label><div class="static-value" id="reviewCurrentPhone"></div></div>
+        <div class="review-field"><label>Notes</label><div class="static-value" id="reviewCurrentNotes"></div></div>
       </div>
 
       <!-- RIGHT: extracted (editable) -->
       <div>
-        <p class="review-col-label extracted">Extracted from screenshot</p>
+        <p class="review-col-label extracted">Extracted / edit</p>
+        <div class="review-field"><label>Hours</label><textarea id="extractedHours" rows="2" placeholder="e.g. Open daily 8am–5pm"></textarea></div>
 
-        <div class="review-field">
-          <label>Hours</label>
-          <textarea id="extractedHours" rows="3" placeholder="No hours extracted"></textarea>
+        <!-- Giving out (supply station) -->
+        <div class="review-field" id="extractedGivingWrap" style="display:none;">
+          <span class="items-section-label giving">🟢 Giving out — one per line</span>
+          <textarea id="extractedGiving" rows="6" placeholder="Items being distributed…"></textarea>
         </div>
-        <div class="review-field">
-          <label>Items (one per line)</label>
-          <textarea id="extractedItems" rows="5" placeholder="No items extracted"></textarea>
+
+        <!-- Accepting (donation drop-off) -->
+        <div class="review-field" id="extractedAcceptingWrap" style="display:none;">
+          <span class="items-section-label accepting">🟡 Accepting — one per line</span>
+          <textarea id="extractedAccepting" rows="6" placeholder="Items being accepted…"></textarea>
         </div>
-        <div class="review-field">
-          <label>Notes</label>
-          <textarea id="extractedNotes" rows="3" placeholder="No notes extracted"></textarea>
+
+        <!-- Plain items (neither) -->
+        <div class="review-field" id="extractedItemsWrap" style="display:none;">
+          <label>Items — one per line</label>
+          <textarea id="extractedItems" rows="6" placeholder="Items…"></textarea>
         </div>
+
+        <div class="review-field"><label>Address</label><input type="text" id="extractedAddress" placeholder="Leave blank to keep current"></div>
+        <div class="review-field"><label>Phone</label><input type="text" id="extractedPhone" placeholder="Leave blank to keep current"></div>
+        <div class="review-field"><label>Notes</label><textarea id="extractedNotes" rows="3" placeholder="Important notes…"></textarea></div>
       </div>
     </div>
 
-    <div style="margin-top: 1.5rem;" class="push-row">
+    <div class="push-row">
       <button class="btn-push" id="pushBtn" onclick="pushUpdate()">Update listing →</button>
+      <button class="btn-clear" onclick="resetTool()">✕ Clear & start over</button>
       <span class="result-msg" id="resultMsg"></span>
     </div>
   </div>
 
-</div>
+</div><!-- end #app -->
 
 <script>
-// ══════════════════════════════════════
-// SUPABASE — same setup as the rest of the codebase
-// ══════════════════════════════════════
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Admin UUID used for the admin-action endpoint auth check
-// (same UUID used throughout admin-action.js)
 const ADMIN_UID = '04e3776b-b75f-4701-888e-511a9cf21382';
 
-let allListings = [];
+let allListings   = [];
 let selectedListing = null;
+let pendingItems  = []; // items waiting for clarification (mixed-type listings)
 
 // ══════════════════════════════════════
 // PASSWORD GATE
 // ══════════════════════════════════════
 function checkPassword() {
   const val = document.getElementById('passwordInput').value;
-  const err = document.getElementById('gateError');
   if (val === 'malama2026') {
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('app').classList.add('visible');
     loadListings();
   } else {
-    err.classList.add('show');
+    document.getElementById('gateError').classList.add('show');
     document.getElementById('passwordInput').value = '';
     document.getElementById('passwordInput').focus();
   }
@@ -465,55 +331,127 @@ async function loadListings() {
   const sel = document.getElementById('listingSelect');
   const { data, error } = await sb
     .from('listings')
-    .select('id, name, hours, items, notes')
+    .select('id, name, type, hours, items, notes, address, contact_phone')
     .eq('status', true)
     .order('name');
 
-  if (error) {
-    sel.innerHTML = '<option value="">Error loading listings</option>';
-    return;
-  }
-
+  if (error) { sel.innerHTML = '<option value="">Error loading listings</option>'; return; }
   allListings = data || [];
   sel.innerHTML = '<option value="">— Select a listing —</option>' +
     allListings.map(l => `<option value="${l.id}">${escHtml(l.name || 'Unnamed')}</option>`).join('');
 }
 
 function onListingSelect() {
-  const sel = document.getElementById('listingSelect');
-  const id = sel.value;
+  const id = document.getElementById('listingSelect').value;
   selectedListing = allListings.find(l => l.id === id) || null;
 
   const box = document.getElementById('currentData');
-  if (!selectedListing) { box.classList.remove('show'); return; }
+  const badges = document.getElementById('listingTypeBadges');
 
-  const hours = selectedListing.hours || '';
-  const items = Array.isArray(selectedListing.items)
-    ? selectedListing.items.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')).join('\n')
-    : (selectedListing.items || '');
-  const notes = selectedListing.notes || '';
+  if (!selectedListing) {
+    box.classList.remove('show');
+    badges.style.display = 'none';
+    return;
+  }
 
-  setEl('currentHours',  hours  || '—', !hours);
-  setEl('currentItems',  items  || '—', !items);
-  setEl('currentNotes',  notes  || '—', !notes);
+  // ── Type badges ──
+  const type = selectedListing.type || '';
+  const hasDropoff = type.includes('donation_dropoff');
+  const hasSupply  = type.includes('supply_station');
+  const badgeHTML = [];
+  if (hasSupply)  badgeHTML.push('<span class="type-badge supply">🛖 Supply Station</span>');
+  if (hasDropoff) badgeHTML.push('<span class="type-badge dropoff">📦 Donation Drop-off</span>');
+  type.split(',').forEach(t => {
+    t = t.trim();
+    if (t && t !== 'donation_dropoff' && t !== 'supply_station') {
+      const labels = { shelter:'🏠 Shelter', volunteer_event:'🙋 Volunteers', medical_assistance:'🏥 Medical', skills_labor:'🔧 Skills & Labor' };
+      badgeHTML.push(`<span class="type-badge other">${labels[t] || t}</span>`);
+    }
+  });
+  badges.innerHTML = badgeHTML.join('');
+  badges.style.display = badgeHTML.length ? 'block' : 'none';
+
+  // ── Split items by prefix ──
+  const rawItems = Array.isArray(selectedListing.items) ? selectedListing.items : [];
+  const givingItems    = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
+  const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
+  const plainItems     = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+
+  // ── Populate current data panel ──
+  setEl('currentHours',   selectedListing.hours   || '—', !selectedListing.hours);
+  setEl('currentAddress', selectedListing.address || '—', !selectedListing.address);
+  setEl('currentPhone',   selectedListing.contact_phone || '—', !selectedListing.contact_phone);
+  setEl('currentNotes',   selectedListing.notes   || '—', !selectedListing.notes);
+
+  showCurrentItemRow('currentGivingRow',    'currentGiving',    givingItems);
+  showCurrentItemRow('currentAcceptingRow', 'currentAccepting', acceptingItems);
+  showCurrentItemRow('currentItemsRow',     'currentItems',     plainItems);
+
   box.classList.add('show');
 
-  // Mirror into the review step's "Current" column
-  setStaticReview('reviewCurrentHours', hours);
-  setStaticReview('reviewCurrentItems', items);
-  setStaticReview('reviewCurrentNotes', notes);
+  // ── Mirror into review "Current" column ──
+  setStaticReview('reviewCurrentHours',   selectedListing.hours);
+  setStaticReview('reviewCurrentAddress', selectedListing.address);
+  setStaticReview('reviewCurrentPhone',   selectedListing.contact_phone);
+  setStaticReview('reviewCurrentNotes',   selectedListing.notes);
+
+  showReviewCurrentItems('reviewCurrentGivingWrap',    'reviewCurrentGiving',    givingItems);
+  showReviewCurrentItems('reviewCurrentAcceptingWrap', 'reviewCurrentAccepting', acceptingItems);
+  showReviewCurrentItems('reviewCurrentItemsWrap',     'reviewCurrentItems',     plainItems);
+
+  // ── Show correct extracted item sections ──
+  document.getElementById('extractedGivingWrap').style.display    = hasSupply  ? 'block' : 'none';
+  document.getElementById('extractedAcceptingWrap').style.display = hasDropoff ? 'block' : 'none';
+  document.getElementById('extractedItemsWrap').style.display     = (!hasSupply && !hasDropoff) ? 'block' : 'none';
 }
 
-function setEl(id, text, isEmpty) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.classList.toggle('empty', !!isEmpty);
+function showCurrentItemRow(rowId, valueId, items) {
+  const row = document.getElementById(rowId);
+  const el  = document.getElementById(valueId);
+  if (items.length) {
+    el.textContent = items.join('\n');
+    el.classList.remove('empty');
+    row.style.display = 'block';
+  } else {
+    row.style.display = 'none';
+  }
 }
 
-function setStaticReview(id, text) {
-  const el = document.getElementById(id);
-  el.textContent = text || '—';
-  el.classList.toggle('empty', !text);
+function showReviewCurrentItems(wrapId, valueId, items) {
+  const wrap = document.getElementById(wrapId);
+  const el   = document.getElementById(valueId);
+  if (items.length) {
+    el.textContent = items.join('\n');
+    el.classList.remove('empty');
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════
+// MANUAL EDIT (no photo)
+// ══════════════════════════════════════
+function openManualEdit() {
+  if (!selectedListing) { alert('Please select a listing first.'); return; }
+
+  const rawItems = Array.isArray(selectedListing.items) ? selectedListing.items : [];
+  const givingItems    = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
+  const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
+  const plainItems     = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+
+  // Pre-fill with current values so user can edit in place
+  document.getElementById('extractedHours').value    = selectedListing.hours || '';
+  document.getElementById('extractedGiving').value   = givingItems.join('\n');
+  document.getElementById('extractedAccepting').value = acceptingItems.join('\n');
+  document.getElementById('extractedItems').value    = plainItems.join('\n');
+  document.getElementById('extractedAddress').value  = '';
+  document.getElementById('extractedPhone').value    = '';
+  document.getElementById('extractedNotes').value    = selectedListing.notes || '';
+
+  document.getElementById('reviewSectionTitle').textContent = '3 — Edit listing directly';
+  document.getElementById('reviewSection').classList.add('show');
+  document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ══════════════════════════════════════
@@ -525,31 +463,29 @@ function onDrop(e) {
   const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
   if (files.length) processFiles(files);
 }
-
 function onFilePick(e) {
   const files = [...e.target.files];
   if (files.length) processFiles(files);
-  e.target.value = ''; // reset so same file can be re-uploaded
+  e.target.value = '';
 }
 
 async function processFiles(files) {
-  if (!selectedListing) {
-    alert('Please select a listing first.');
-    return;
-  }
+  if (!selectedListing) { alert('Please select a listing first.'); return; }
 
   const log = document.getElementById('processingLog');
   log.innerHTML = '';
   log.classList.add('show');
+  // Hide previous review/clarification while re-processing
+  document.getElementById('clarificationSection').classList.remove('show');
+  document.getElementById('reviewSection').classList.remove('show');
 
-  // Accumulated extracted values across multiple images
   let mergedHours = '';
   let mergedItems = [];
   let mergedNotes = '';
+  let mergedAddress = '';
 
   for (const file of files) {
     const logItem = addLogItem(log, `Reading ${file.name}…`);
-
     try {
       const { base64, mediaType } = await compressImage(file);
       updateLogItem(logItem, `Sending ${file.name} to Claude…`);
@@ -569,14 +505,15 @@ async function processFiles(files) {
       if (result.parsed) {
         const p = result.parsed;
         if (p.hours && !mergedHours) mergedHours = p.hours;
-        // Flatten items whether AI returns a flat array, nested object, or string
+        if (p.location && !mergedAddress) mergedAddress = p.location;
+
+        // Flatten items (handles flat array, nested object, or string)
         if (Array.isArray(p.items)) {
           p.items.forEach(i => {
             if (typeof i === 'string') mergedItems.push(i);
             else if (Array.isArray(i)) mergedItems.push(...i.filter(x => typeof x === 'string'));
           });
         } else if (p.items && typeof p.items === 'object') {
-          // AI returned categorised object — flatten all values
           Object.values(p.items).forEach(v => {
             if (Array.isArray(v)) mergedItems.push(...v.filter(x => typeof x === 'string'));
             else if (typeof v === 'string') mergedItems.push(v);
@@ -584,34 +521,149 @@ async function processFiles(files) {
         } else if (typeof p.items === 'string' && p.items) {
           mergedItems.push(p.items);
         }
-        // Append location to notes if found
-        if (p.location && !mergedNotes.includes(p.location)) {
-          mergedNotes = [p.location, mergedNotes].filter(Boolean).join('\n');
-        }
+
         if (p.notes) mergedNotes = [mergedNotes, p.notes].filter(Boolean).join('\n');
-        updateLogItem(logItem, `${file.name} — extracted ${Array.isArray(p.items) ? p.items.length : '?'} items`, 'done');
+        const count = Array.isArray(p.items) ? p.items.length : mergedItems.length;
+        updateLogItem(logItem, `${file.name} — extracted ${count} items`, 'done');
       } else {
-        // Parsing failed — show raw text in notes so nothing is lost
         mergedNotes = [mergedNotes, result.raw || '(no data)'].filter(Boolean).join('\n---\n');
         updateLogItem(logItem, `${file.name} — JSON parse failed, raw text shown in Notes`, 'done');
       }
-
     } catch (err) {
       updateLogItem(logItem, `${file.name} — ${err.message}`, 'error');
     }
   }
 
-  // Populate the review fields
-  document.getElementById('extractedHours').value = mergedHours;
-  document.getElementById('extractedItems').value = [...new Set(mergedItems)].join('\n');
-  document.getElementById('extractedNotes').value = mergedNotes;
+  // Deduplicate items
+  mergedItems = [...new Set(mergedItems)];
 
+  // Always populate hours, address, notes
+  document.getElementById('extractedHours').value   = mergedHours;
+  document.getElementById('extractedAddress').value = mergedAddress;
+  document.getElementById('extractedNotes').value   = mergedNotes;
+  document.getElementById('reviewSectionTitle').textContent = '4 — Review & edit before pushing';
+
+  const type = selectedListing.type || '';
+  const hasDropoff = type.includes('donation_dropoff');
+  const hasSupply  = type.includes('supply_station');
+
+  if (hasDropoff && hasSupply) {
+    // Mixed — ask user to clarify before showing review
+    pendingItems = mergedItems;
+    document.getElementById('clarificationSection').classList.add('show');
+    document.getElementById('clarificationSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    // Auto-route items based on type
+    routeItems(mergedItems, hasDropoff ? 'accepting' : hasSupply ? 'giving' : 'plain');
+    document.getElementById('reviewSection').classList.add('show');
+    document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ══════════════════════════════════════
+// CLARIFICATION
+// ══════════════════════════════════════
+function applyClarification(choice) {
+  routeItems(pendingItems, choice);
+  document.getElementById('clarificationSection').classList.remove('show');
   document.getElementById('reviewSection').classList.add('show');
   document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Compress image using Canvas before sending — resizes to max 1400px
-// and re-encodes as JPEG. Keeps iPhone photos well under Vercel's body limit.
+function routeItems(items, choice) {
+  const flat = items.join('\n');
+  document.getElementById('extractedGiving').value    = (choice === 'giving' || choice === 'both') ? flat : '';
+  document.getElementById('extractedAccepting').value = (choice === 'accepting' || choice === 'both') ? flat : '';
+  document.getElementById('extractedItems').value     = choice === 'plain' ? flat : '';
+}
+
+// ══════════════════════════════════════
+// PUSH UPDATE
+// ══════════════════════════════════════
+async function pushUpdate() {
+  if (!selectedListing) { alert('No listing selected.'); return; }
+
+  const btn = document.getElementById('pushBtn');
+  const msg = document.getElementById('resultMsg');
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+  msg.className = 'result-msg';
+
+  const hoursVal   = document.getElementById('extractedHours').value.trim();
+  const addressVal = document.getElementById('extractedAddress').value.trim();
+  const phoneVal   = document.getElementById('extractedPhone').value.trim();
+  const notesVal   = document.getElementById('extractedNotes').value.trim();
+
+  const givingRaw    = document.getElementById('extractedGiving').value.trim();
+  const acceptingRaw = document.getElementById('extractedAccepting').value.trim();
+  const plainRaw     = document.getElementById('extractedItems').value.trim();
+
+  const toArr = (raw, prefix) =>
+    raw ? raw.split('\n').map(s => s.trim()).filter(Boolean).map(s => prefix + s) : [];
+
+  const itemsArr = [
+    ...toArr(givingRaw,    'GIVING:'),
+    ...toArr(acceptingRaw, 'ACCEPTING:'),
+    ...toArr(plainRaw,     '')
+  ];
+
+  const payload = { items: itemsArr };
+  if (hoursVal)   payload.hours         = hoursVal;
+  if (notesVal)   payload.notes         = notesVal;
+  if (addressVal) payload.address       = addressVal;
+  if (phoneVal)   payload.contact_phone = phoneVal;
+
+  try {
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_listing', authUserId: ADMIN_UID, listingId: selectedListing.id, payload })
+    });
+    const result = await resp.json();
+
+    if (!resp.ok || result.error) {
+      msg.textContent = 'Error: ' + (result.error || resp.statusText);
+      msg.className = 'result-msg error';
+    } else {
+      msg.textContent = '✅ Listing updated successfully';
+      msg.className = 'result-msg success';
+      // Refresh in-memory listing
+      if (hoursVal)   selectedListing.hours         = hoursVal;
+      if (notesVal)   selectedListing.notes         = notesVal;
+      if (addressVal) selectedListing.address       = addressVal;
+      if (phoneVal)   selectedListing.contact_phone = phoneVal;
+      selectedListing.items = itemsArr;
+      onListingSelect();
+    }
+  } catch (err) {
+    msg.textContent = 'Network error: ' + err.message;
+    msg.className = 'result-msg error';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Update listing →';
+}
+
+// ══════════════════════════════════════
+// RESET
+// ══════════════════════════════════════
+function resetTool() {
+  pendingItems = [];
+  document.getElementById('processingLog').innerHTML = '';
+  document.getElementById('processingLog').classList.remove('show');
+  document.getElementById('clarificationSection').classList.remove('show');
+  document.getElementById('reviewSection').classList.remove('show');
+  document.getElementById('resultMsg').className = 'result-msg';
+  ['extractedHours','extractedGiving','extractedAccepting','extractedItems','extractedNotes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('extractedAddress').value = '';
+  document.getElementById('extractedPhone').value   = '';
+}
+
+// ══════════════════════════════════════
+// IMAGE COMPRESSION
+// ══════════════════════════════════════
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -627,8 +679,7 @@ function compressImage(file) {
           else { width = Math.round(width * MAX / height); height = MAX; }
         }
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
         resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
@@ -639,6 +690,9 @@ function compressImage(file) {
   });
 }
 
+// ══════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════
 function addLogItem(container, text) {
   const div = document.createElement('div');
   div.className = 'log-item';
@@ -646,7 +700,6 @@ function addLogItem(container, text) {
   container.appendChild(div);
   return div;
 }
-
 function updateLogItem(el, text, state) {
   const icon = state === 'done' ? '✅' : state === 'error' ? '❌' : '';
   el.innerHTML = icon
@@ -654,78 +707,18 @@ function updateLogItem(el, text, state) {
     : `<div class="spinner"></div><span>${escHtml(text)}</span>`;
   if (state) el.classList.add(state);
 }
-
-// ══════════════════════════════════════
-// PUSH UPDATE
-// ══════════════════════════════════════
-async function pushUpdate() {
-  if (!selectedListing) { alert('No listing selected.'); return; }
-
-  const btn = document.getElementById('pushBtn');
-  const msg = document.getElementById('resultMsg');
-  btn.disabled = true;
-  btn.textContent = 'Updating…';
-  msg.className = 'result-msg';
-
-  const hoursVal = document.getElementById('extractedHours').value.trim();
-  const itemsRaw = document.getElementById('extractedItems').value.trim();
-  const notesVal = document.getElementById('extractedNotes').value.trim();
-
-  // Convert items textarea (one per line) back to array
-  const itemsArr = itemsRaw
-    ? itemsRaw.split('\n').map(s => s.trim()).filter(Boolean)
-    : [];
-
-  const payload = {
-    hours: hoursVal || null,
-    items: itemsArr,
-    notes: notesVal || null
-  };
-
-  try {
-    const resp = await fetch('/api/admin-action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'update_listing',
-        authUserId: ADMIN_UID,
-        listingId: selectedListing.id,
-        payload
-      })
-    });
-    const result = await resp.json();
-
-    if (!resp.ok || result.error) {
-      msg.textContent = 'Error: ' + (result.error || resp.statusText);
-      msg.className = 'result-msg error';
-    } else {
-      msg.textContent = '✅ Listing updated successfully';
-      msg.className = 'result-msg success';
-
-      // Refresh in-memory listing so "Current" column reflects the save
-      selectedListing.hours = hoursVal || null;
-      selectedListing.items = itemsArr;
-      selectedListing.notes = notesVal || null;
-      onListingSelect();
-    }
-  } catch (err) {
-    msg.textContent = 'Network error: ' + err.message;
-    msg.className = 'result-msg error';
-  }
-
-  btn.disabled = false;
-  btn.textContent = 'Update listing →';
+function setEl(id, text, isEmpty) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.toggle('empty', !!isEmpty);
 }
-
-// ══════════════════════════════════════
-// UTILITIES
-// ══════════════════════════════════════
+function setStaticReview(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = text || '—';
+  el.classList.toggle('empty', !text);
+}
 function escHtml(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
