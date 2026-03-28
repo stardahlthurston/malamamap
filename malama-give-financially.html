@@ -49,10 +49,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .content{padding:1.1rem 1.25rem 3rem;max-width:760px;margin:0 auto;}
 .cards{display:flex;flex-direction:column;gap:0.85rem;}
 
-.card{background:white;border:1.5px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:box-shadow 0.2s,border-color 0.2s;}
-.card:hover{box-shadow:0 3px 14px rgba(0,0,0,0.08);border-color:rgba(201,152,58,0.3);}
-.card-logo{width:52px;height:52px;border-radius:10px;flex-shrink:0;background:var(--gold-pale);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;}
-.card-logo img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
+.card{background:white;border:1.5px solid rgba(201,152,58,0.3);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:box-shadow 0.2s,border-color 0.2s;text-decoration:none;color:inherit;display:block;}
+.card:hover{box-shadow:0 3px 14px rgba(0,0,0,0.08);border-color:rgba(201,152,58,0.6);}
+.card-inner{display:flex;align-items:flex-start;gap:1rem;}
 .card-body{flex:1;min-width:0;}
 .card-top{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:5px;}
 .card-name{font-size:1rem;font-weight:800;color:var(--text-dark);}
@@ -105,9 +104,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 <div class="filter-bar">
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
   <div class="chip-divider"></div>
-  <button class="chip" data-filter="Org" onclick="setFilter('Org',this)">🏛 Org</button>
-  <button class="chip" data-filter="Church" onclick="setFilter('Church',this)">⛪ Church</button>
-  <button class="chip" data-filter="Resource" onclick="setFilter('Resource',this)">🤝 Resource</button>
+  <button class="chip" data-filter="Org" onclick="setFilter('Org',this)">Organization</button>
+  <button class="chip" data-filter="Church" onclick="setFilter('Church',this)">Church</button>
+  <button class="chip" data-filter="Resource" onclick="setFilter('Resource',this)">Resource</button>
 </div>
 
 <div class="content">
@@ -160,20 +159,21 @@ function render() {
   }
 
   grid.innerHTML = list.map(l => `
-    <div class="card">
-      <div class="card-logo">💛</div>
-      <div class="card-body">
-        <div class="card-top">
-          <span class="card-name">${l.name || 'Unnamed'}</span>
-          ${l.location ? `<span class="badge-cat">${l.location}</span>` : ''}
-          ${l.verified ? `<span class="badge-verified">✅ Verified</span>` : ''}
-        </div>
-        <p class="card-summary">${l.notes || ''}</p>
-        <div class="card-actions">
-          ${l.website ? `<a href="${l.website}" target="_blank" rel="noopener" class="btn-donate">💛 Donate →</a>` : ''}
+    <a class="card" href="malama-listing.html?id=${l.id}">
+      <div class="card-inner">
+        <div class="card-body">
+          <div class="card-top">
+            <span class="card-name">${l.name || 'Unnamed'}</span>
+            ${l.location ? `<span class="badge-cat">${l.location}</span>` : ''}
+            ${l.verified ? `<span class="badge-verified">✓ Verified</span>` : ''}
+          </div>
+          <p class="card-summary">${l.notes || ''}</p>
+          <div class="card-actions">
+            ${l.website ? `<span class="btn-donate">Donate →</span>` : ''}
+          </div>
         </div>
       </div>
-    </div>
+    </a>
   `).join('');
 }
 
