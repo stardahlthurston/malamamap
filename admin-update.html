@@ -510,7 +510,6 @@ async function loadListings() {
   const { data, error } = await sb
     .from('listings')
     .select('id, name, type, hours, items, notes, address, contact_phone, website, status, main_hub')
-    .eq('status', true)
     .order('name');
 
   if (error) { sel.innerHTML = '<option value="">Error loading listings</option>'; return; }
