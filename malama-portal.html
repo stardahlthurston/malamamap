@@ -4229,9 +4229,9 @@ function renderItemsUI(itemMap) {
                 }).join('')}
               </div>
               <button onclick='dismissSuggestion(${escapedKey})'
-                      title="Not duplicates — hide this suggestion"
-                      style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:0.85rem;color:#ccc;padding:2px 4px;line-height:1;transition:color 0.15s;"
-                      onmouseover="this.style.color='#999'" onmouseout="this.style.color='#ccc'">✕</button>
+                      title="Not duplicates — hide this"
+                      style="flex-shrink:0;background:#f0f0f0;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:0.7rem;font-weight:700;color:#888;padding:3px 7px;line-height:1;transition:all 0.15s;font-family:'Nunito',sans-serif;white-space:nowrap;"
+                      onmouseover="this.style.background='#e0e0e0';this.style.color='#555'" onmouseout="this.style.background='#f0f0f0';this.style.color='#888'">Not a match</button>
             </div>
             <p style="font-size:0.72rem;color:var(--text-muted);margin:0 0 0.5rem;">${totalListings} listing${totalListings !== 1 ? 's' : ''} affected</p>
             <button onclick='preselectMerge(${escapedKeys})'
@@ -4307,6 +4307,10 @@ function renderItemsUI(itemMap) {
           <div style="max-height:440px;overflow-y:auto;padding-right:2px;">
             ${similarHtml}
           </div>
+          ${similarGroups.length > visibleGroups.length ? `
+            <button onclick="resetDismissedSuggestions()" style="margin-top:0.65rem;width:100%;background:none;border:none;font-size:0.72rem;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:'Nunito',sans-serif;text-align:center;padding:0.3rem;">
+              ↩ Show ${similarGroups.length - visibleGroups.length} hidden suggestion${similarGroups.length - visibleGroups.length !== 1 ? 's' : ''}
+            </button>` : ''}
         </div>
       </div>
     </div>
@@ -4487,6 +4491,10 @@ function dismissSuggestion(key) {
     dismissed.add(key);
     localStorage.setItem('malama_dismissed_suggestions', JSON.stringify([...dismissed]));
   } catch(e) {}
+  renderItemsUI(window._itemMap || {});
+}
+function resetDismissedSuggestions() {
+  try { localStorage.removeItem('malama_dismissed_suggestions'); } catch(e) {}
   renderItemsUI(window._itemMap || {});
 }
 
