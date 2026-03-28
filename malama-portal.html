@@ -418,6 +418,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       <input type="url" class="modal-input" id="editVolunteerSignupUrl" placeholder="https://signupgenius.com/your-link">
     </div>
     <div id="volunteerNeedsExtras" style="display:none;">
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7b5ea7;margin-bottom:0.4rem;">🙋 Volunteers Needed — Roles</p>
       <p class="modal-label" id="volunteerNeedsLabel">What kind of volunteers are needed?</p>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;" id="volTypeChips"></div>
       <div style="display:flex;gap:6px;margin-top:4px;">
@@ -440,7 +441,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
       </label>
     </div>
     <div id="skillsExtras" style="display:none;">
-      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2e6b6b;margin-bottom:0.4rem;margin-top:0.5rem;">🔧 Skills & Labor Details</p>
+      <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2e6b6b;margin-bottom:0.4rem;margin-top:0.5rem;">🔧 Skills & Labor</p>
       <p class="modal-label">Are you providing or looking for skills?</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.85rem;">
         <div id="dirOffering" onclick="selectSkillsDir('offering')"
@@ -457,6 +458,12 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
         </div>
       </div>
       <input type="hidden" id="editSkillsDirection" value="offering">
+      <p class="modal-label">What skills are involved?</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;" id="skillsTypeChips"></div>
+      <div style="display:flex;gap:6px;margin-top:4px;margin-bottom:0.85rem;">
+        <input type="text" id="skillsTypeCustomInput" class="modal-input" placeholder="Add skill type…" style="flex:1;margin-bottom:0;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSkillsChip();}">
+        <button type="button" onclick="addSkillsChip()" style="padding:0.5rem 0.85rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;">+ Add</button>
+      </div>
       <p class="modal-label">Contact email for requests</p>
       <input type="email" class="modal-input" id="editContactEmail" placeholder="you@email.com">
     </div>
@@ -572,10 +579,18 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
         <label class="item-check-label"><input type="checkbox" value="Pet food &amp; supplies"> Pet food &amp; supplies</label>
         <label class="item-check-label"><input type="checkbox" value="Towels"> Towels</label>
         <label class="item-check-label"><input type="checkbox" value="Water"> Water</label>
+        <label class="item-check-label"><input type="checkbox" value="Pressure washers"> Pressure washers</label>
+        <label class="item-check-label"><input type="checkbox" value="Wheelbarrows"> Wheelbarrows</label>
         <label class="item-check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)"> Work supplies</label>
       </div>
-      <p class="modal-label">Anything else?</p>
-      <input type="text" class="modal-input" id="editCustomItems" placeholder="e.g. Ice packs (one item per entry, hit + to add more)">
+      <p class="modal-label">Anything else? <span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:0.78rem;">Type and hit + to add</span></p>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+        <input type="text" class="modal-input" id="customItemInput" placeholder="e.g. Ice" style="flex:1;margin-bottom:0;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addModalCustomItem();}">
+        <button type="button" onclick="addModalCustomItem()" style="width:40px;height:40px;border-radius:100px;background:var(--sage);color:white;border:none;font-size:1.3rem;cursor:pointer;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+      </div>
+      <div id="customItemPills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;"></div>
+      <input type="hidden" id="editCustomItems">
     </div>
 
     <!-- VOLUNTEER TOGGLE — shows for supply_station, donation_dropoff, medical_assistance -->
@@ -841,8 +856,9 @@ function selectType(type) {
 
   // Show extras if any selected type needs them
   document.getElementById('eventExtras').style.display = selectedTypes.includes('volunteer_event') ? 'block' : 'none';
-  document.getElementById('volunteerNeedsExtras').style.display = (selectedTypes.includes('volunteer_event') || selectedTypes.includes('skills_labor')) ? 'block' : 'none';
-  if (selectedTypes.includes('volunteer_event') || selectedTypes.includes('skills_labor')) initVolTypeChips();
+  document.getElementById('volunteerNeedsExtras').style.display = selectedTypes.includes('volunteer_event') ? 'block' : 'none';
+  if (selectedTypes.includes('volunteer_event')) initVolTypeChips();
+  if (selectedTypes.includes('skills_labor')) initSkillsChips();
   document.getElementById('shelterExtras').style.display = selectedTypes.includes('shelter') ? 'block' : 'none';
   // If both supply_station and donation_dropoff are selected, auto-check and hide the dropoff toggle
   const hasBoth = selectedTypes.includes('supply_station') && selectedTypes.includes('donation_dropoff');
@@ -868,22 +884,16 @@ function selectType(type) {
   // Dynamic items section title
   const itemsTitle = document.getElementById('itemsSectionTitle');
   if (itemsTitle) {
-    const ACCEPTING_TYPES = ['donation_dropoff','accepting'];
-    const hasAccepting = selectedTypes.some(t => ACCEPTING_TYPES.includes(t));
-    itemsTitle.textContent = hasAccepting ? "What you're accepting" : "What you're offering";
-  }
-  // Update volunteer needs label based on selected types
-  const volLabel = document.getElementById('volunteerNeedsLabel');
-  if (volLabel) {
-    if (selectedTypes.includes('skills_labor') && selectedTypes.includes('volunteer_event')) {
-      volLabel.textContent = 'What skills do you need?';
-      document.getElementById('editVolunteerNeeds').placeholder = 'e.g. Plumbing, electrical, construction';
-    } else if (selectedTypes.includes('skills_labor')) {
-      volLabel.textContent = 'What skills do you need?';
-      document.getElementById('editVolunteerNeeds').placeholder = 'e.g. Plumbing, electrical, construction';
+    const hasSupply = selectedTypes.includes('supply_station');
+    const hasDropoff = selectedTypes.includes('donation_dropoff') || selectedTypes.includes('accepting');
+    if (hasSupply && hasDropoff) {
+      itemsTitle.textContent = "🛖 Supply Station — What you're giving out";
+    } else if (hasSupply) {
+      itemsTitle.textContent = "🛖 Supply Station — What you're giving out";
+    } else if (hasDropoff) {
+      itemsTitle.textContent = "📦 Donation Drop-off — What you're accepting";
     } else {
-      volLabel.textContent = 'What kind of volunteers are needed?';
-      document.getElementById('editVolunteerNeeds').placeholder = 'e.g. Mud removal, debris clearing';
+      itemsTitle.textContent = "What you're offering";
     }
   }
   // Auto-fill name if not user-edited
@@ -917,6 +927,46 @@ function toggleOngoing() {
   }
 }
 
+function addModalCustomItem() {
+  const input = document.getElementById('customItemInput');
+  const val = input?.value.trim();
+  if (!val) return;
+  const hidden = document.getElementById('editCustomItems');
+  const existing = hidden.value ? hidden.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  if (existing.map(s=>s.toLowerCase()).includes(val.toLowerCase())) { input.value=''; return; }
+  existing.push(val);
+  hidden.value = existing.join(', ');
+  const pill = document.createElement('div');
+  pill.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:var(--sage-pale);color:var(--sage-deep);border:1.5px solid var(--sage-light);border-radius:100px;padding:5px 12px;font-size:0.82rem;font-weight:700;font-family:Nunito,sans-serif;';
+  const safeVal = val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  pill.innerHTML = '<span>'+val+'</span><button type="button" onclick="removeModalCustomItem(this,\''+safeVal+'\')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:1.1rem;line-height:1;padding:0;">×</button>';
+  document.getElementById('customItemPills').appendChild(pill);
+  input.value = '';
+  input.focus();
+}
+
+function removeModalCustomItem(btn, val) {
+  btn.closest('div').remove();
+  const hidden = document.getElementById('editCustomItems');
+  const updated = (hidden.value||'').split(',').map(s=>s.trim()).filter(s=>s.toLowerCase()!==val.toLowerCase());
+  hidden.value = updated.join(', ');
+}
+
+function renderModalCustomItemPills(items) {
+  const container = document.getElementById('customItemPills');
+  const hidden = document.getElementById('editCustomItems');
+  if (!container) return;
+  container.innerHTML = '';
+  items.forEach(val => {
+    const pill = document.createElement('div');
+    pill.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:var(--sage-pale);color:var(--sage-deep);border:1.5px solid var(--sage-light);border-radius:100px;padding:5px 12px;font-size:0.82rem;font-weight:700;font-family:Nunito,sans-serif;';
+    const safeVal = val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    pill.innerHTML = '<span>'+val+'</span><button type="button" onclick="removeModalCustomItem(this,\''+safeVal+'\')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:1.1rem;line-height:1;padding:0;">×</button>';
+    container.appendChild(pill);
+  });
+  if (hidden) hidden.value = items.join(', ');
+}
+
 const VOL_TYPE_OPTIONS = [
   'General help','Drivers / transportation','Loading & unloading','Food distribution',
   'Registration / check-in','Medical support','Translation / interpreter','Child care',
@@ -947,12 +997,12 @@ function toggleVolType(type, el) {
     el.style.borderColor = '#7b5ea7'; el.style.background = '#f3eeff'; el.style.color = '#7b5ea7';
     el.classList.add('selected');
   }
-  document.getElementById('editVolunteerNeeds').value = _selectedVolTypes.join(', ');
+  syncVolNeedsField();
 }
 
 function removeVolType(type) {
   _selectedVolTypes = _selectedVolTypes.filter(t => t !== type);
-  document.getElementById('editVolunteerNeeds').value = _selectedVolTypes.join(', ');
+  syncVolNeedsField();
   initVolTypeChips();
 }
 
@@ -961,9 +1011,57 @@ function addVolType() {
   const val = input?.value.trim();
   if (!val || _selectedVolTypes.includes(val)) { if (input) input.value = ''; return; }
   _selectedVolTypes.push(val);
-  document.getElementById('editVolunteerNeeds').value = _selectedVolTypes.join(', ');
+  syncVolNeedsField();
   if (input) input.value = '';
   initVolTypeChips();
+}
+
+function syncVolNeedsField() {
+  const combined = [..._selectedVolTypes, ..._selectedSkillTypes].filter(Boolean);
+  document.getElementById('editVolunteerNeeds').value = combined.join(', ');
+}
+
+let _selectedSkillTypes = [];
+
+function initSkillsChips() {
+  const container = document.getElementById('skillsTypeChips');
+  if (!container) return;
+  container.innerHTML = VOL_TYPE_OPTIONS.map(type => {
+    const sel = _selectedSkillTypes.includes(type);
+    return `<span onclick="toggleSkillsChip('${type.replace(/'/g,"\\'")}',this)"
+      style="display:inline-block;padding:5px 12px;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;border:1.5px solid ${sel?'#2e6b6b':'#ddd'};background:${sel?'#e8f5f2':'white'};color:${sel?'#1a4a4a':'var(--text-mid)'};">${type}</span>`;
+  }).join('') + _selectedSkillTypes.filter(t => !VOL_TYPE_OPTIONS.includes(t)).map(type =>
+    `<span onclick="toggleSkillsChip('${type.replace(/'/g,"\\'")}',this)"
+      style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;border:1.5px solid #2e6b6b;background:#e8f5f2;color:#1a4a4a;">${type}
+      <span onclick="event.stopPropagation();removeSkillsChip('${type.replace(/'/g,"\\'")}');" style="font-size:0.9rem;line-height:1;">×</span></span>`
+  ).join('');
+}
+
+function toggleSkillsChip(type, el) {
+  if (_selectedSkillTypes.includes(type)) {
+    _selectedSkillTypes = _selectedSkillTypes.filter(t => t !== type);
+    el.style.borderColor = '#ddd'; el.style.background = 'white'; el.style.color = 'var(--text-mid)';
+  } else {
+    _selectedSkillTypes.push(type);
+    el.style.borderColor = '#2e6b6b'; el.style.background = '#e8f5f2'; el.style.color = '#1a4a4a';
+  }
+  syncVolNeedsField();
+}
+
+function removeSkillsChip(type) {
+  _selectedSkillTypes = _selectedSkillTypes.filter(t => t !== type);
+  syncVolNeedsField();
+  initSkillsChips();
+}
+
+function addSkillsChip() {
+  const input = document.getElementById('skillsTypeCustomInput');
+  const val = input?.value.trim();
+  if (!val || _selectedSkillTypes.includes(val)) { if (input) input.value = ''; return; }
+  _selectedSkillTypes.push(val);
+  syncVolNeedsField();
+  if (input) input.value = '';
+  initSkillsChips();
 }
 
 const MODAL_TYPE_LABELS = {
@@ -1864,7 +1962,7 @@ async function openEditModal(id) {
       const clean = i.replace(/^(GIVING|ACCEPTING):/,'');
       return !knownValues.includes(clean);
     });
-    document.getElementById('editCustomItems').value = customItems.join(', ');
+    renderModalCustomItemPills(customItems.map(i => i.replace(/^(GIVING|ACCEPTING):/,'')));
 
     // Giving link
     if (l.giving_url) {
@@ -1894,6 +1992,16 @@ async function openEditModal(id) {
       }
       if (l.volunteer_signup_url) document.getElementById('editVolunteerSignupUrl').value = l.volunteer_signup_url;
     }
+    if (typeStr.includes('skills_labor') && !typeStr.includes('volunteer_event')) {
+      // Load volunteer_needs into skills chips for skills_labor-only listings
+      if (l.volunteer_needs) {
+        _selectedSkillTypes = l.volunteer_needs.split(',').map(s => s.trim()).filter(Boolean);
+        syncVolNeedsField();
+        initSkillsChips();
+      } else {
+        _selectedSkillTypes = [];
+      }
+    }
     if (typeStr.includes('shelter')) {
       if (l.capacity) document.getElementById('editCapacity').value = l.capacity;
       document.getElementById('editPetFriendly').value = String(l.pet_friendly || false);
@@ -1918,6 +2026,7 @@ async function openEditModal(id) {
     document.getElementById('editType').value = '';
     selectedTypes = [];
     _selectedVolTypes = [];
+    _selectedSkillTypes = [];
     document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor = '#ddd'; c.style.background = 'white'; });
     clearAreaSuggestion();
     // Reset volunteer toggle
@@ -1945,6 +2054,10 @@ async function openEditModal(id) {
     document.getElementById('editNotes').value = '';
     document.getElementById('editWebsite').value = '';
     document.getElementById('editCustomItems').value = '';
+    const pillsClear = document.getElementById('customItemPills');
+    if (pillsClear) pillsClear.innerHTML = '';
+    const customInputClear = document.getElementById('customItemInput');
+    if (customInputClear) customInputClear.value = '';
     document.getElementById('givingCheck').checked = false;
     document.getElementById('givingUrlWrap').style.display = 'none';
     document.getElementById('editGivingUrl').value = '';

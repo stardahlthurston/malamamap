@@ -347,6 +347,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="First aid supplies" class="giving-item"> First aid supplies</label>
           <label class="check-label"><input type="checkbox" value="Medications" class="giving-item"> Medications</label>
           <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="giving-item"> Cleanup supplies</label>
+          <label class="check-label"><input type="checkbox" value="Pressure washers" class="giving-item"> Pressure washers</label>
+          <label class="check-label"><input type="checkbox" value="Wheelbarrows" class="giving-item"> Wheelbarrows</label>
           <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="giving-item"> Pet food & supplies</label>
           <label class="check-label"><input type="checkbox" value="Work supplies" class="giving-item"> Work supplies</label>
         </div>
@@ -385,6 +387,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Tarps" class="accepting-item"> Tarps</label>
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Squeegees" class="accepting-item"> Squeegees</label>
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Rakes & shovels" class="accepting-item"> Rakes & shovels</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Pressure washers" class="accepting-item"> Pressure washers</label>
+          <label class="check-label"><input type="checkbox" value="ACCEPTING:Wheelbarrows" class="accepting-item"> Wheelbarrows</label>
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Brooms & mops" class="accepting-item"> Brooms & mops</label>
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Bleach & Clorox wipes" class="accepting-item"> Bleach & Clorox wipes</label>
           <label class="check-label"><input type="checkbox" value="ACCEPTING:Trash bags" class="accepting-item"> Trash bags</label>
@@ -436,6 +440,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
           <label class="check-label"><input type="checkbox" value="Pet food &amp; supplies" class="item-check"> Pet food &amp; supplies</label>
           <label class="check-label"><input type="checkbox" value="Towels" class="item-check"> Towels</label>
           <label class="check-label"><input type="checkbox" value="Water" class="item-check"> Water</label>
+          <label class="check-label"><input type="checkbox" value="Pressure washers" class="item-check"> Pressure washers</label>
+          <label class="check-label"><input type="checkbox" value="Wheelbarrows" class="item-check"> Wheelbarrows</label>
           <label class="check-label"><input type="checkbox" value="Work supplies (shovels, rakes, gloves)" class="item-check"> Work supplies (shovels, rakes, gloves)</label>
         </div>
         <div style="margin-top:0.85rem;">
@@ -660,11 +666,6 @@ function addCustomItem(type) {
   pillsContainer.appendChild(pill);
   existing.push(val);
   hidden.value = existing.join(',');
-  const saved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
-  if (!saved.map(s=>s.toLowerCase()).includes(val.toLowerCase())) {
-    saved.push(val);
-    localStorage.setItem('malama_custom_items', JSON.stringify(saved));
-  }
   input.value = '';
   input.focus();
 }
@@ -1367,18 +1368,6 @@ async function saveListing() {
   } else {
     showToast('🌺 Listing is live on the map!');
   }
-  // Save custom items to localStorage for future listings
-  const customGiving = document.getElementById('givingCustomItems')?.value || '';
-  const customAccepting = document.getElementById('acceptingCustomItems')?.value || '';
-  const customDefault = document.getElementById('editCustomItems')?.value || '';
-  const allCustom = [customGiving, customAccepting, customDefault]
-    .join(',').split(',').map(s => s.trim()).filter(Boolean);
-  if (allCustom.length) {
-    const existingSaved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
-    const merged = [...new Set([...existingSaved, ...allCustom])];
-    localStorage.setItem('malama_custom_items', JSON.stringify(merged));
-  }
-
   setTimeout(() => window.location.href='malama-portal.html', 1500);
 }
 
@@ -1482,30 +1471,7 @@ function clearAllErrors() {
   document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
 }
 
-function loadCustomItems() {
-  const saved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
-  if (!saved.length) return;
-  const grids = ['givingItemsSection', 'acceptingItemsSection', 'defaultItemsSection'];
-  grids.forEach(sectionId => {
-    const section = document.getElementById(sectionId);
-    if (!section) return;
-    const grid = section.querySelector('.check-grid');
-    if (!grid) return;
-    const existingVals = [...grid.querySelectorAll('input[type=checkbox]')].map(c => c.value.replace(/^(GIVING|ACCEPTING):/,'').toLowerCase());
-    saved.forEach(item => {
-      if (!existingVals.includes(item.toLowerCase())) {
-        const label = document.createElement('label');
-        label.className = 'check-label';
-        const cls = sectionId.includes('accepting') ? 'accepting-item' : sectionId.includes('giving') ? 'giving-item' : 'item-check';
-        label.innerHTML = '<input type="checkbox" value="' + item + '" class="' + cls + '"> ' + item;
-        grid.appendChild(label);
-      }
-    });
-  });
-}
-
 init();
-loadCustomItems();
 </script>
 </body>
 </html>

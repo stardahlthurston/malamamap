@@ -138,7 +138,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 <body>
 
 <div class="topbar">
-  <a href="javascript:history.back()" class="topbar-back">
+  <a href="#" onclick="if(history.length>1){history.back();}else{window.location.href='malama-portal.html';}return false;" class="topbar-back">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Back
   </a>
@@ -169,7 +169,7 @@ const TYPE_LABELS = {
   skills_labor:'🔧 Skills & Labor', medical_assistance:'🏥 Medical Aid Station',
 };
 
-const NEEDS_TYPES = ['donation_dropoff','accepting','supply_station'];
+const NEEDS_TYPES = ['donation_dropoff','accepting'];
 
 let listing = null;
 let currentUser = null;
@@ -258,7 +258,7 @@ function renderListing(l) {
     }
 
     if (!l.date_until) {
-      if (l.hours && l.hours !== '24/7') {
+      if (l.hours && l.hours !== '24/7' && !l.hours.includes('Until further notice')) {
         parts.push('Until further notice');
       }
     }
@@ -304,11 +304,8 @@ function renderListing(l) {
       </div>
     </div>` : '';
 
-  // Owner edit button
-  const ownerActions = isOwner ? `
-    <div style="display:flex;gap:0.6rem;margin-top:1rem;flex-wrap:wrap;">
-      <a href="malama-create.html?edit=${l.id}" class="directions-btn" style="background:rgba(255,255,255,0.15);border-radius:100px;padding:0.55rem 1.2rem;font-size:0.78rem;width:auto;">✏️ Edit this listing</a>
-    </div>` : '';
+  // Edit button removed — editing is portal-only
+  const ownerActions = '';
 
   // Items sections
   let itemsHtml = '';
