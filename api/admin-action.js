@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const readKey = SUPABASE_KEY || SUPABASE_ANON;
     try {
       const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/listings?select=id,name,type,hours,items,notes,address,contact_phone,website,status,main_hub&order=name.asc`,
+        `${SUPABASE_URL}/rest/v1/listings?select=*&order=name.asc`,
         { headers: { 'apikey': readKey, 'Authorization': `Bearer ${readKey}` } }
       );
       if (!r.ok) throw new Error(await r.text());
@@ -122,16 +122,6 @@ export default async function handler(req, res) {
         if (!r.ok) throw new Error('Failed to extend listing: ' + await r.text());
         result = { success: true, message: 'Listing extended' };
         break;
-      }
-
-      case 'get_all_listings': {
-        const r = await fetch(
-          `${SUPABASE_URL}/rest/v1/listings?select=id,name,type,hours,items,notes,address,contact_phone,website,status,main_hub&order=name.asc`,
-          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
-        );
-        if (!r.ok) throw new Error('Failed to fetch listings: ' + await r.text());
-        const listings = await r.json();
-        return res.status(200).json({ success: true, listings });
       }
 
       case 'update_listing': {
