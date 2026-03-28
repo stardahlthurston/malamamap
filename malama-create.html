@@ -1033,7 +1033,11 @@ async function loadEditListing(id) {
   document.getElementById('editWebsite').value = data.website || '';
   if (data.status !== undefined) document.getElementById('editStatus').checked = data.status;
   // Load types — support both types array and single type
-  const typesToLoad = data.types && data.types.length ? data.types : data.type ? [data.type] : [];
+  const typesToLoad = data.types && data.types.length
+    ? data.types
+    : data.type
+      ? data.type.split(',').map(t => t.trim()).filter(Boolean)
+      : [];
   typesToLoad.forEach(t => {
     const card = document.querySelector(`.type-card[data-type="${t}"]`);
     if (card) toggleType(t, card);
