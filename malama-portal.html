@@ -4106,6 +4106,26 @@ function selectSkillsDir(dir) {
 let _itemsAllListings = [];
 let _selectedItemKeys = new Set();
 
+// ── Title case helper ──
+function toTitleCase(str) {
+  return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+// ── Form items (which items appear in new listing form) stored in localStorage ──
+function getFormItems() {
+  try { return new Set(JSON.parse(localStorage.getItem('malama_form_items') || '[]')); }
+  catch(e) { return new Set(); }
+}
+function saveFormItems(set) {
+  try { localStorage.setItem('malama_form_items', JSON.stringify([...set])); } catch(e) {}
+}
+function toggleFormItem(key) {
+  const fi = getFormItems();
+  if (fi.has(key)) fi.delete(key); else fi.add(key);
+  saveFormItems(fi);
+  renderItemsUI(window._itemMap || {});
+}
+
 async function renderItemsManagerPage() {
   const main = document.getElementById('mainContent');
   main.innerHTML = `
@@ -4149,31 +4169,78 @@ function renderItemsUI(itemMap) {
   const el = document.getElementById('itemsMgrContent');
   if (!el) return;
 
+  const formItems = getFormItems();
   const sorted = Object.entries(itemMap).sort((a,b) => b[1].listingIds.size - a[1].listingIds.size);
+  const shownEntries  = sorted.filter(([k]) =>  formItems.has(k));
+  const hiddenEntries = sorted.filter(([k]) => !formItems.has(k));
+
+  function pillHtml(key, info, inForm) {
+    const ek  = key.replace(/'/g,"\\'");
+    const ed  = info.display.replace(/'/g,"\\'");
+    const eqd = info.display.replace(/"/g,'&quot;');
+    const cnt = info.listingIds.size;
+    return `
+      <div class="item-row" data-key="${key}" data-display="${eqd}"
+           style="display:inline-flex;align-items:center;gap:7px;padding:7px 12px 7px 9px;
+                  background:white;border:2px solid ${inForm ? 'var(--sage)' : 'var(--border)'};
+                  border-radius:100px;cursor:pointer;transition:all 0.15s;font-size:0.83rem;
+                  ${inForm ? 'box-shadow:0 1px 5px rgba(58,125,92,0.13);' : ''}"
+           onclick="toggleFormItem('${ek}')">
+        <div class="item-checkbox"
+             style="width:14px;height:14px;border:2px solid #ccc;border-radius:3px;flex-shrink:0;
+                    display:flex;align-items:center;justify-content:center;transition:all 0.15s;"
+             onclick="event.stopPropagation();toggleItemSelect('${ek}',this.closest('.item-row'))"></div>
+        <span style="font-weight:700;color:${inForm ? 'var(--sage-deep)' : 'var(--text-dark)'};white-space:nowrap;">${escHtml(info.display)}</span>
+        <span style="font-size:0.65rem;font-weight:800;padding:1px 7px;border-radius:100px;
+                     background:${inForm ? 'var(--sage-pale)' : '#eee'};
+                     color:${inForm ? 'var(--sage)' : 'var(--muted)'};">${cnt}</span>
+        <span style="font-size:0.7rem;color:${inForm ? 'var(--sage)' : '#ccc'};">${inForm ? '●' : '○'}</span>
+        <button onclick="event.stopPropagation();deleteSingleItem('${ek}','${ed}',${cnt})"
+                style="font-size:0.62rem;font-weight:700;color:var(--red);background:none;border:none;
+                       padding:0 2px;cursor:pointer;opacity:0.45;line-height:1;">✕</button>
+      </div>`;
+  }
 
   el.innerHTML = `
     <!-- Toolbar -->
-    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem;margin-bottom:1.25rem;">
-      <input type="text" id="itemSearchInput" placeholder="Search items…" oninput="filterItemsList()" style="flex:1;min-width:180px;padding:0.55rem 0.85rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.85rem;font-family:'Nunito',sans-serif;outline:none;">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem;margin-bottom:1rem;">
+      <input type="text" id="itemSearchInput" placeholder="Search items…" oninput="filterItemsList()"
+             style="flex:1;min-width:180px;padding:0.55rem 0.85rem;border:1.5px solid var(--border);
+                    border-radius:100px;font-size:0.85rem;font-family:'Nunito',sans-serif;outline:none;">
       <button onclick="showAddItemModal()" style="padding:0.5rem 1rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Add item</button>
       <button id="combineBtn" onclick="combineSelectedItems()" style="padding:0.5rem 1rem;background:var(--blue);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:none;">🔀 Merge selected</button>
       <button id="deleteSelectedBtn" onclick="deleteSelectedItems()" style="padding:0.5rem 1rem;background:var(--red);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:none;">🗑 Delete selected</button>
     </div>
     <p id="selectionCount" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem;display:none;"></p>
 
-    <!-- Items pill grid -->
-    <div id="itemsGrid" style="display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;">
-      ${sorted.map(([key, info]) => `
-        <div class="item-row" data-key="${key}" data-display="${info.display.replace(/"/g,'&quot;')}"
-             style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:white;border:1.5px solid var(--border);border-radius:100px;cursor:pointer;transition:all 0.15s;font-size:0.82rem;"
-             onclick="showItemEditModal('${key.replace(/'/g,"\\'")}')">
-          <div style="width:14px;height:14px;border:2px solid #ccc;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" class="item-checkbox"
-               onclick="event.stopPropagation();toggleItemSelect('${key.replace(/'/g,"\\'")}',this.closest('.item-row'))"></div>
-          <span style="font-weight:600;color:var(--text-dark);white-space:nowrap;">${info.display}</span>
-          <span style="font-size:0.68rem;color:var(--text-muted);white-space:nowrap;">${info.listingIds.size}</span>
-          <button onclick="event.stopPropagation();deleteSingleItem('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',${info.listingIds.size})" style="font-size:0.65rem;font-weight:700;color:var(--red);background:none;border:none;padding:0 2px;cursor:pointer;opacity:0.7;">✕</button>
-        </div>
-      `).join('')}
+    <!-- ✓ SHOWN shelf -->
+    <div style="margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);">✓ Shown in new listing forms</span>
+        <span style="background:var(--sage-pale);color:var(--sage-deep);font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:100px;">${shownEntries.length}</span>
+      </div>
+      <div id="shownShelf" style="display:flex;flex-wrap:wrap;gap:8px;min-height:56px;
+           background:var(--sage-pale);border:2px dashed rgba(58,125,92,0.22);border-radius:14px;
+           padding:12px;align-content:flex-start;">
+        ${shownEntries.length
+          ? shownEntries.map(([k,i]) => pillHtml(k,i,true)).join('')
+          : '<p style="font-size:0.8rem;color:var(--sage);opacity:0.55;font-weight:600;width:100%;text-align:center;margin:auto;">Click items below to show them in the listing form ↓</p>'}
+      </div>
+    </div>
+
+    <!-- HIDDEN shelf -->
+    <div style="margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Hidden from forms</span>
+        <span style="background:#eee;color:var(--muted);font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:100px;">${hiddenEntries.length}</span>
+      </div>
+      <div id="hiddenShelf" style="display:flex;flex-wrap:wrap;gap:8px;min-height:56px;
+           background:#f5f6f4;border:2px dashed #e0e4e0;border-radius:14px;
+           padding:12px;align-content:flex-start;">
+        ${hiddenEntries.length
+          ? hiddenEntries.map(([k,i]) => pillHtml(k,i,false)).join('')
+          : '<p style="font-size:0.8rem;color:var(--muted);opacity:0.55;font-weight:600;width:100%;text-align:center;margin:auto;">All items are shown in forms</p>'}
+      </div>
     </div>
 
     <!-- Add item modal -->
@@ -4224,10 +4291,10 @@ function renderItemsUI(itemMap) {
 
 function filterItemsList() {
   const q = document.getElementById('itemSearchInput')?.value.toLowerCase() || '';
-  document.querySelectorAll('#itemsGrid .item-row').forEach(row => {
-    const key = row.dataset.key || '';
-    const display = row.dataset.display || '';
-    row.style.display = (!q || key.includes(q) || display.toLowerCase().includes(q)) ? 'inline-flex' : 'none';
+  document.querySelectorAll('#shownShelf .item-row, #hiddenShelf .item-row').forEach(row => {
+    const key     = row.dataset.key || '';
+    const display = (row.dataset.display || '').toLowerCase();
+    row.style.display = (!q || key.includes(q) || display.includes(q)) ? 'inline-flex' : 'none';
   });
 }
 
@@ -4269,8 +4336,9 @@ function showAddItemModal() {
 }
 
 async function confirmAddItem() {
-  const val = document.getElementById('newItemInput')?.value.trim();
-  if (!val) return;
+  const raw = document.getElementById('newItemInput')?.value.trim();
+  if (!raw) return;
+  const val = toTitleCase(raw);
   // Item is stored in localStorage as a custom item suggestion; actual listing assignment happens in listing editor
   try {
     const saved = JSON.parse(localStorage.getItem('malama_custom_items') || '[]');
@@ -4312,7 +4380,7 @@ function combineSelectedItems() {
 }
 
 async function confirmCombineItems() {
-  const newName = document.getElementById('combineNameInput')?.value.trim();
+  const newName = toTitleCase(document.getElementById('combineNameInput')?.value.trim() || '');
   if (!newName) return;
   const itemMap = window._itemMap || {};
   const keys = [..._selectedItemKeys];
@@ -4446,7 +4514,7 @@ function editItemInline(key, display, btnEl) {
 
 async function saveItemRename(key, row) {
   const input = document.getElementById('inlineRenameInput');
-  const newName = input?.value.trim();
+  const newName = toTitleCase(input?.value.trim() || '');
   if (!newName || newName.toLowerCase() === key) { await loadItemsManager(); return; }
 
   const itemMap = window._itemMap || {};
@@ -4522,7 +4590,7 @@ function closeEditItemModal() {
 async function saveEditItemModal() {
   const modal = document.getElementById('editItemModal');
   const key  = modal?.dataset.key;
-  const newName = document.getElementById('editItemNameInput')?.value.trim();
+  const newName = toTitleCase(document.getElementById('editItemNameInput')?.value.trim() || '');
   if (!newName || !key) return;
 
   if (newName.toLowerCase() === key) { closeEditItemModal(); return; }
