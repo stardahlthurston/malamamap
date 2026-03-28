@@ -196,6 +196,26 @@ export default async function handler(req, res) {
         break;
       }
 
+      case 'get_setting': {
+        const { key: sk } = req.body;
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/settings?key=eq.${encodeURIComponent(sk)}&select=value`, { headers });
+        const rows = await r.json();
+        result = { success: true, value: rows[0]?.value ?? null };
+        break;
+      }
+
+      case 'set_setting': {
+        const { key: sk, value: sv } = req.body;
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/settings`, {
+          method: 'POST',
+          headers: { ...headers, 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+          body: JSON.stringify({ key: sk, value: sv })
+        });
+        if (!r.ok) throw new Error('Failed to save setting: ' + await r.text());
+        result = { success: true };
+        break;
+      }
+
       default:
         return res.status(400).json({ error: 'Unknown action: ' + action });
     }

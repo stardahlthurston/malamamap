@@ -362,12 +362,12 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
     <hr class="sidebar-divider">
     <div class="sidebar-section">
       <p class="sidebar-label">Account</p>
-      <a class="sidebar-link" id="navVolunteers" href="#" onclick="event.preventDefault();showPage('volunteers')">🙋 Volunteers</a>
       <a class="sidebar-link" id="navProfile" href="#" onclick="event.preventDefault();showPage('profile')">Profile & Contact</a>
       <a class="sidebar-link" id="navInquiries" href="#" onclick="event.preventDefault();showPage('inquiries')" style="display:none;color:var(--sage);">📬 Inquiries</a>
       <a class="sidebar-link" id="navIssues" href="#" onclick="event.preventDefault();showPage('issues')" style="display:none;color:var(--red);">🚨 Issues</a>
       <a class="sidebar-link" id="navCommunityNeeds" href="#" onclick="event.preventDefault();showPage('communityNeeds')" style="display:none;color:var(--sage);">📋 Community Needs</a>
       <a class="sidebar-link" id="navItemsManager" href="#" onclick="event.preventDefault();showPage('items')" style="display:none;color:var(--sage);">🏷️ Needs & Offerings</a>
+      <a class="sidebar-link" id="navGiveFinancially" href="#" onclick="event.preventDefault();showPage('giveFinancially')" style="display:none;color:var(--sage);">💰 Give Financially</a>
       <a class="sidebar-link" id="navAdmin" href="#" onclick="event.preventDefault();showPage('admin')" style="display:none;color:var(--gold);">⭐ Admin Dashboard</a>
       <a class="sidebar-link" href="#" style="color:#c0392b;" onclick="signOut()">Sign out</a>
     </div>
@@ -813,6 +813,11 @@ function showPage(page) {
     renderItemsManagerPage();
     return;
   }
+  if (page === 'giveFinancially') {
+    document.getElementById('navGiveFinancially').classList.add('active');
+    renderGiveFinanciallyPage();
+    return;
+  }
   if (page === 'admin') {
     document.getElementById('navAdmin').classList.add('active');
     renderAdminPage();
@@ -1180,6 +1185,8 @@ async function init() {
     if (communityNeedsNav) communityNeedsNav.style.display = 'flex';
     const itemsManagerNav = document.getElementById('navItemsManager');
     if (itemsManagerNav) itemsManagerNav.style.display = 'flex';
+    const giveFinanciallyNav = document.getElementById('navGiveFinancially');
+    if (giveFinanciallyNav) giveFinanciallyNav.style.display = 'flex';
     const inquiriesNav = document.getElementById('navInquiries');
     if (inquiriesNav) inquiriesNav.style.display = 'flex';
     const issuesNav = document.getElementById('navIssues');
@@ -4101,6 +4108,53 @@ function selectSkillsDir(dir) {
 
 // ─── COMMUNITY NEEDS PAGE ───
 // ══════════════════════════════════════
+// GIVE FINANCIALLY PAGE
+// ══════════════════════════════════════
+async function renderGiveFinanciallyPage() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.25rem;">💰 Give Financially</h2>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">All listings offering financial giving — organizations with donation links or marked as financial giving.</p>
+    <div id="giveFinContent"><p style="color:var(--text-muted);font-size:0.85rem;">Loading…</p></div>
+  `;
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: listings, error } = await sb2
+    .from('listings')
+    .select('id,name,type,website,notes,address,status,main_hub')
+    .order('name', { ascending: true });
+  const el = document.getElementById('giveFinContent');
+  if (error) { el.innerHTML = `<p style="color:var(--red);">${error.message}</p>`; return; }
+  const financialListings = (listings || []).filter(l =>
+    (l.type && l.type.includes('financial_giving')) || l.website
+  );
+  if (!financialListings.length) {
+    el.innerHTML = `<p style="color:var(--text-muted);font-size:0.88rem;">No financial giving listings yet.</p>`;
+    return;
+  }
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      ${financialListings.map(l => `
+        <div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;">
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:4px;">
+              <span style="font-size:0.95rem;font-weight:700;color:var(--text-dark);">${l.name || 'Unnamed'}</span>
+              ${l.status ? '<span style="font-size:0.68rem;font-weight:700;background:#edf7f1;color:var(--sage-deep);padding:2px 8px;border-radius:100px;">Active</span>' : '<span style="font-size:0.68rem;font-weight:700;background:#f5f5f5;color:var(--text-muted);padding:2px 8px;border-radius:100px;">Inactive</span>'}
+              ${l.main_hub ? '<span style="font-size:0.68rem;font-weight:700;background:var(--gold-pale);color:var(--gold);padding:2px 8px;border-radius:100px;">⭐ Hub</span>' : ''}
+            </div>
+            ${l.address ? `<p style="font-size:0.78rem;color:var(--text-muted);margin:0;">${l.address}</p>` : ''}
+            ${l.notes ? `<p style="font-size:0.8rem;color:var(--text-mid);margin:4px 0 0;line-height:1.4;">${l.notes.substring(0,120)}${l.notes.length>120?'…':''}</p>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0.4rem;align-items:flex-end;flex-shrink:0;">
+            ${l.website ? `<a href="${l.website}" target="_blank" rel="noopener" style="padding:0.45rem 1rem;background:var(--sage);color:white;text-decoration:none;border-radius:100px;font-size:0.8rem;font-weight:700;">💰 Give now →</a>` : ''}
+            <a href="malama-listing.html?id=${l.id}" target="_blank" style="padding:0.4rem 0.85rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.78rem;font-weight:600;color:var(--text-mid);text-decoration:none;">View listing</a>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════
 // NEEDS & OFFERINGS ITEMS MANAGER
 // ══════════════════════════════════════
 let _itemsAllListings = [];
@@ -4142,7 +4196,40 @@ async function renderItemsManagerPage() {
     <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">All unique items across your listings. Select multiple to combine duplicates, or add/delete individually.</p>
     <div id="itemsMgrContent"><p style="color:var(--text-muted);font-size:0.85rem;">Loading…</p></div>
   `;
-  await loadItemsManager();
+  await Promise.all([loadItemsManager(), loadAlertThreshold()]);
+}
+
+async function loadAlertThreshold() {
+  try {
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_setting', key: 'item_alert_threshold', authUserId: currentUser?.id })
+    });
+    const data = await resp.json();
+    const input = document.getElementById('alertThresholdInput');
+    if (input && data.value != null) input.value = Number(data.value);
+  } catch(e) { /* use default 20 */ }
+}
+
+async function saveAlertThreshold() {
+  const input = document.getElementById('alertThresholdInput');
+  const status = document.getElementById('thresholdSaveStatus');
+  const val = Math.max(1, parseInt(input?.value) || 20);
+  if (input) input.value = val;
+  try {
+    await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'set_setting', key: 'item_alert_threshold', value: val, authUserId: currentUser?.id })
+    });
+    await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'set_setting', key: 'alerted_items', value: [], authUserId: currentUser?.id })
+    });
+    if (status) { status.style.display = 'inline'; setTimeout(() => { status.style.display = 'none'; }, 2500); }
+  } catch(e) { showToast('Could not save threshold'); }
 }
 
 async function loadItemsManager() {
@@ -4242,6 +4329,16 @@ function renderItemsUI(itemMap) {
       }).join('');
 
   el.innerHTML = `
+    <!-- Alert threshold -->
+    <div style="background:var(--gold-pale);border:1.5px solid var(--gold);border-radius:12px;padding:0.85rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
+      <span style="font-size:0.82rem;font-weight:700;color:var(--text-dark);">📬 Email me when an item hits</span>
+      <input type="number" id="alertThresholdInput" value="20" min="1" max="9999"
+        style="width:60px;padding:0.3rem 0.5rem;border:1.5px solid var(--gold);border-radius:8px;font-size:0.88rem;font-family:'Nunito',sans-serif;text-align:center;outline:none;">
+      <span style="font-size:0.82rem;font-weight:700;color:var(--text-dark);">or more listings</span>
+      <button onclick="saveAlertThreshold()" style="padding:0.35rem 1rem;background:var(--gold);color:white;border:none;border-radius:100px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Save</button>
+      <span id="thresholdSaveStatus" style="font-size:0.78rem;color:var(--sage);display:none;font-weight:700;">✓ Saved</span>
+    </div>
+
     <!-- Toolbar -->
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem;margin-bottom:0.65rem;">
       <input type="text" id="itemSearchInput" placeholder="Search items…" oninput="filterItemsList()"
