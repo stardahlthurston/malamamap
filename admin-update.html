@@ -466,6 +466,7 @@ async function loadListings() {
   const { data, error } = await sb
     .from('listings')
     .select('id, name, hours, items, notes')
+    .eq('status', true)
     .order('name');
 
   if (error) {
