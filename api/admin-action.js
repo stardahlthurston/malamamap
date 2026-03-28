@@ -104,6 +104,16 @@ export default async function handler(req, res) {
         break;
       }
 
+      case 'get_all_listings': {
+        const r = await fetch(
+          `${SUPABASE_URL}/rest/v1/listings?select=id,name,type,hours,items,notes,address,contact_phone,website,status,main_hub&order=name.asc`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (!r.ok) throw new Error('Failed to fetch listings: ' + await r.text());
+        const listings = await r.json();
+        return res.status(200).json({ success: true, listings });
+      }
+
       case 'update_listing': {
         const { payload } = req.body;
         if (!listingId || !payload) throw new Error('listingId and payload required');

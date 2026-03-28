@@ -508,13 +508,19 @@ function updateItemSections() {
 async function loadListings() {
   const sel = document.getElementById('listingSelect');
   try {
-    const resp = await fetch('/api/admin-listings');
-    if (!resp.ok) throw new Error('Server error');
-    allListings = await resp.json();
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_all_listings', authUserId: ADMIN_UID })
+    });
+    if (!resp.ok) throw new Error('Server error ' + resp.status);
+    const data = await resp.json();
+    if (!data.listings) throw new Error(data.error || 'No listings returned');
+    allListings = data.listings;
     sel.innerHTML = '<option value="">— Select a listing —</option>' +
       allListings.map(l => `<option value="${l.id}">${escHtml(l.name || 'Unnamed')}</option>`).join('');
   } catch (e) {
-    sel.innerHTML = '<option value="">Error loading listings</option>';
+    sel.innerHTML = `<option value="">Error: ${e.message}</option>`;
   }
 }
 
