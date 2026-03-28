@@ -734,13 +734,28 @@ const ADMIN_USER_ID = '04e3776b-b75f-4701-888e-511a9cf21382'; // Supabase → Au
 const SUPER_ADMIN_IDS = [
   ADMIN_USER_ID
 ];
-// ✏️ To add another admin: paste their Supabase UUID here (Supabase → Auth → Users → copy User UID)
-const SUB_ADMIN_IDS = [
+// Fallback hardcoded admins — DB list (settings: admin_ids) takes precedence
+const FALLBACK_ADMIN_IDS = [
   'af107d04-0543-40ac-8808-765e25e6ce13', // Braedyn Domeyer
 ];
-const ADMIN_IDS = [...SUPER_ADMIN_IDS, ...SUB_ADMIN_IDS];
+let ADMIN_IDS = [...SUPER_ADMIN_IDS, ...FALLBACK_ADMIN_IDS];
 function isAdmin(uid) { return ADMIN_IDS.includes(uid); }
 function isSuperAdmin(uid) { return SUPER_ADMIN_IDS.includes(uid); }
+
+// Load admin IDs from DB (settings table) and merge — no redeploy needed to add admins
+async function loadAdminIds() {
+  try {
+    const r = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'list_admins' })
+    });
+    const json = await r.json();
+    if (json.success && Array.isArray(json.ids) && json.ids.length) {
+      ADMIN_IDS = [...new Set([...SUPER_ADMIN_IDS, ...json.ids])];
+    }
+  } catch(e) { /* fall back to hardcoded list */ }
+}
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Use this instead of creating new clients everywhere
@@ -1174,6 +1189,7 @@ function getGreeting(user) {
 // INIT
 // ══════════════════════════════════════
 async function init() {
+  await loadAdminIds(); // merge DB admin list before auth check
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'malama-auth.html'; return; }
   currentUser = session.user;
@@ -3788,7 +3804,6 @@ function renderAdminRows(listings, claims, ownerMap={}) {
       <td style="color:var(--text-muted);font-size:0.75rem;">${updatedStr}</td>
       <td style="white-space:nowrap;">
         <button class="admin-action-btn" style="color:var(--blue);border-color:var(--blue);" onclick="openEditModal('${l.id}')">Edit</button>
-        <button class="admin-action-btn" style="color:var(--gold);border-color:var(--gold);margin-left:3px;" onclick="extendListing('${l.id}')">+7d</button>
         <button class="admin-action-btn" style="margin-left:3px;color:${l.verified?'var(--blue)':'#bbb'};border-color:${l.verified?'var(--blue)':'#ddd'};font-size:0.62rem;" onclick="toggleBadge('${l.id}','verified',${!l.verified},this)" title="Toggle verified badge">✓ Org</button>
         <button class="admin-action-btn" style="margin-left:2px;color:${l.nonprofit?'#5b3e8a':'#bbb'};border-color:${l.nonprofit?'#5b3e8a':'#ddd'};font-size:0.62rem;" onclick="toggleBadge('${l.id}','nonprofit',${!l.nonprofit},this)" title="Toggle nonprofit badge">✦ NP</button>
         <button class="admin-action-btn" style="margin-left:2px;color:${l.main_hub?'#0a6644':'#bbb'};border-color:${l.main_hub?'#0a6644':'#ddd'};font-size:0.62rem;" onclick="toggleBadge('${l.id}','main_hub',${!l.main_hub},this)" title="Toggle Fully Stocked Hub badge">⭐ Hub</button>

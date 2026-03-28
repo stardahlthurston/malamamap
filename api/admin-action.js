@@ -15,7 +15,20 @@ export default async function handler(req, res) {
 
   const { action, userId, claimId, listingId, authUserId, expiresAt, field, value } = req.body;
 
-  // Basic auth check — only admins can use this
+  // list_admins is public — no auth required
+  if (action === 'list_admins') {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/settings?key=eq.admin_ids&select=value`, {
+        headers: { 'apikey': SUPABASE_KEY || SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_KEY || SUPABASE_ANON}` }
+      });
+      const rows = await r.json();
+      return res.status(200).json({ success: true, ids: rows[0]?.value ?? [] });
+    } catch(e) {
+      return res.status(200).json({ success: true, ids: [] });
+    }
+  }
+
+  // All other actions require admin auth
   if (!ADMIN_IDS.includes(authUserId)) {
     return res.status(403).json({ error: 'Not authorized' });
   }
@@ -226,6 +239,21 @@ export default async function handler(req, res) {
           body: JSON.stringify({ key: sk, value: sv })
         });
         if (!r.ok) throw new Error('Failed to save setting: ' + await r.text());
+        result = { success: true };
+        break;
+      }
+
+      case 'set_admins': {
+        // Only super admins can modify the admin list
+        if (!ADMIN_IDS.includes(authUserId)) throw new Error('Not authorized');
+        const { ids } = req.body;
+        if (!Array.isArray(ids)) throw new Error('ids must be an array');
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/settings`, {
+          method: 'POST',
+          headers: { ...headers, 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+          body: JSON.stringify({ key: 'admin_ids', value: ids })
+        });
+        if (!r.ok) throw new Error('Failed to save admin list: ' + await r.text());
         result = { success: true };
         break;
       }
