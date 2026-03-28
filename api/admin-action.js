@@ -82,7 +82,7 @@ export default async function handler(req, res) {
       }
 
       case 'toggle_badge': {
-        if (!['verified', 'nonprofit'].includes(field)) throw new Error('Invalid badge field');
+        if (!['verified', 'nonprofit', 'main_hub'].includes(field)) throw new Error('Invalid badge field');
         const r = await fetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${listingId}`, {
           method: 'PATCH',
           headers,

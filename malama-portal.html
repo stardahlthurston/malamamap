@@ -117,6 +117,7 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .card-title { font-size:1rem; font-weight:700; }
 .verified-badge { display:inline-flex; align-items:center; gap:4px; background:var(--blue-pale); color:var(--blue-deep); font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 8px; border-radius:100px; }
 .nonprofit-badge { display:inline-flex; align-items:center; gap:4px; background:#f3eeff; color:#5b3e8a; font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 8px; border-radius:100px; }
+.hub-badge { display:inline-flex; align-items:center; gap:4px; background:#e6faf3; color:#0a6644; font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 8px; border-radius:100px; }
 .open-pill { font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:100px; }
 .open-pill.open { background:var(--sage-pale); color:var(--sage-deep); }
 .open-pill.closed { background:#f0f0f0; color:#888; }
@@ -1280,7 +1281,7 @@ function renderListingCard(l) {
       <div class="card-header">
         <div class="card-title-wrap">
           <a href="malama-listing.html?id=${l.id}" class="card-title" style="text-decoration:none;color:inherit;">${l.name}</a>
-          ${l.verified ? `<span class="verified-badge">✓ Verified Org</span>` : ''}${l.nonprofit ? `<span class="nonprofit-badge">✦ Nonprofit</span>` : ''}
+          ${l.verified ? `<span class="verified-badge">✓ Verified Org</span>` : ''}${l.nonprofit ? `<span class="nonprofit-badge">✦ Nonprofit</span>` : ''}${l.main_hub ? `<span class="hub-badge">⭐ Fully Stocked Hub</span>` : ''}
         </div>
         <span class="open-pill ${l.status ? 'open' : 'closed'}">${l.status ? 'Active' : 'Inactive'}</span>
       </div>
@@ -3781,6 +3782,7 @@ function renderAdminRows(listings, claims, ownerMap={}) {
         <button class="admin-action-btn" style="color:var(--gold);border-color:var(--gold);margin-left:3px;" onclick="extendListing('${l.id}')">+7d</button>
         <button class="admin-action-btn" style="margin-left:3px;color:${l.verified?'var(--blue)':'#bbb'};border-color:${l.verified?'var(--blue)':'#ddd'};font-size:0.62rem;" onclick="toggleBadge('${l.id}','verified',${!l.verified},this)" title="Toggle verified badge">✓ Org</button>
         <button class="admin-action-btn" style="margin-left:2px;color:${l.nonprofit?'#5b3e8a':'#bbb'};border-color:${l.nonprofit?'#5b3e8a':'#ddd'};font-size:0.62rem;" onclick="toggleBadge('${l.id}','nonprofit',${!l.nonprofit},this)" title="Toggle nonprofit badge">✦ NP</button>
+        <button class="admin-action-btn" style="margin-left:2px;color:${l.main_hub?'#0a6644':'#bbb'};border-color:${l.main_hub?'#0a6644':'#ddd'};font-size:0.62rem;" onclick="toggleBadge('${l.id}','main_hub',${!l.main_hub},this)" title="Toggle Fully Stocked Hub badge">⭐ Hub</button>
       </td>
     </tr>`;
   }).join('');
@@ -3990,7 +3992,7 @@ async function toggleBadge(listingId, field, value, btn) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
-    showToast(value ? (field === 'nonprofit' ? '✦ Nonprofit badge added' : '✓ Verified badge added') : 'Badge removed');
+    showToast(value ? (field === 'nonprofit' ? '✦ Nonprofit badge added' : field === 'main_hub' ? '⭐ Fully Stocked Hub badge added' : '✓ Verified badge added') : 'Badge removed');
   } catch(e) {
     // Revert on failure
     if (field === 'verified') {

@@ -95,6 +95,7 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
 .pill-closed { background: #f0f0f0; color: #888; }
 .pill-type { background: var(--gold-pale); color: #7a5c1a; }
 .pill-verified { background: var(--blue-pale); color: var(--blue-deep); display: flex; align-items: center; gap: 3px; }
+.pill-hub { background: #e6faf3; color: #0a6644; display: flex; align-items: center; gap: 3px; }
 .lc-body { padding: 0 1rem 0.85rem; }
 .lc-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0.6rem; }
 .lc-tag { font-size: 0.67rem; font-weight: 700; padding: 3px 9px; border-radius: 100px; background: var(--sage-pale); color: var(--sage-deep); }
@@ -405,6 +406,7 @@ function buildCard(l, inPopup) {
         <div class="lc-badges">
           <span class="pill ${l.open ? 'pill-open' : 'pill-closed'}">${l.open ? 'Open' : 'Closed'}</span>
           <span class="pill pill-type">${typeLabel}</span>
+          ${l.main_hub ? `<span class="pill pill-hub">⭐ Fully Stocked Hub</span>` : ''}
           ${l.verified ? `<span class="pill pill-verified">✓ Verified</span>` : ''}
         </div>
       </div>
