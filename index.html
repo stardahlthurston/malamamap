@@ -665,7 +665,6 @@
     header { padding: 0.7rem 1rem; top: 56px; }
     .header-link { display: none; }
     .header-btn { display: none; }
-    .hamburger { display: flex !important; }
     .tag { font-size: 0.62rem; padding: 3px 8px; }
     .how-grid { grid-template-columns: 1fr; }
     .below-fold { padding: 3rem 1.5rem; }
@@ -675,7 +674,7 @@
 
   /* HAMBURGER MENU */
   .hamburger {
-    display: none;
+    display: flex;
     flex-direction: column;
     gap: 5px;
     cursor: pointer;
@@ -683,6 +682,7 @@
     z-index: 310;
     background: none;
     border: none;
+    flex-shrink: 0;
   }
   .hamburger span {
     width: 22px; height: 2.5px;
@@ -704,17 +704,39 @@
 
   .mobile-menu {
     position: fixed;
-    top: 0; right: -100%;
-    width: 75%; max-width: 320px;
+    top: 0; left: -100%;
+    width: 75%; max-width: 300px;
     height: 100vh;
     background: white;
     z-index: 300;
-    transition: right 0.3s ease;
-    padding: 5rem 1.5rem 2rem;
+    transition: left 0.3s ease;
     overflow-y: auto;
-    box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
   }
-  .mobile-menu.open { right: 0; }
+  .mobile-menu.open { left: 0; }
+
+  .drawer-header {
+    background: var(--sage-deep);
+    padding: 1.1rem 1.25rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+  .drawer-header-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: white;
+  }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+  .drawer-footer-bar {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
 
   .mobile-menu-section {
     font-size: 0.65rem;
@@ -731,33 +753,31 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0.7rem 0.5rem;
-    font-size: 0.92rem;
+    padding: 0.72rem 1.25rem;
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--text-dark);
     text-decoration: none;
-    border-radius: 10px;
     transition: background 0.15s;
   }
   .mobile-menu a:hover, .mobile-menu a:active { background: var(--sage-pale); }
-  .mobile-menu a .menu-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+  .mobile-menu a .menu-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
 
   .mobile-menu .menu-divider {
     height: 1px;
     background: var(--border);
-    margin: 0.75rem 0;
+    margin: 0.5rem 0;
   }
 
   .mobile-menu .menu-cta {
     display: block;
     text-align: center;
-    padding: 0.75rem;
+    padding: 0.7rem;
     background: var(--sage);
     color: white;
     border-radius: 100px;
     font-weight: 800;
-    font-size: 0.88rem;
-    margin-top: 0.5rem;
+    font-size: 0.85rem;
   }
   .mobile-menu .menu-cta:hover { background: var(--sage-deep); }
 </style>
@@ -779,48 +799,60 @@
 
 <!-- Header -->
 <header id="hdr">
-  <div class="logo">
-    <img src="logo.png" alt="Mālama Map" style="height:42px;width:auto;flex-shrink:0;">
-    <div class="logo-text">
-      <span class="logo-name">Mālama Map</span>
-      <span class="logo-tagline">Hawaiʻi helping Hawaiʻi</span>
-    </div>
-  </div>
-  <div class="header-right">
-    <a href="malama-how.html" class="header-link">How it works</a>
-    <a href="malama-skills.html" class="header-link">Skills & Labor</a>
-    <a href="malama-requests.html" class="header-link">Community Needs</a>
-    <a href="malama-stats.html" class="header-link">Impact</a>
-    <a href="malama-give-financially.html" class="header-link" style="color:var(--gold);font-weight:700;">Give Financially</a>
-    <a href="malama-auth.html" class="header-btn btn-add">+ Add your location</a>
-    <a href="malama-auth.html" class="header-btn btn-login">Log in / Edit listing</a>
+  <div style="display:flex;align-items:center;gap:0.75rem;">
     <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
+    <div class="logo">
+      <img src="logo.png" alt="Mālama Map" style="height:42px;width:auto;flex-shrink:0;">
+      <div class="logo-text">
+        <span class="logo-name">Mālama Map</span>
+        <span class="logo-tagline">Hawaiʻi helping Hawaiʻi</span>
+      </div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="malama-skills.html" class="header-link">Skills Exchange</a>
+    <a href="malama-requests.html" class="header-link">Community Needs</a>
+    <a href="malama-give-financially.html" class="header-link" style="color:var(--gold);font-weight:700;">Give Financially</a>
+    <a href="malama-auth.html" class="header-btn btn-add">+ Add your location</a>
+    <a href="malama-auth.html" class="header-btn btn-login">Log in</a>
   </div>
 </header>
 
-<!-- Mobile slide-out menu -->
+<!-- Left-side drawer -->
 <div class="mobile-menu-overlay" id="menuOverlay" onclick="toggleMobileMenu()"></div>
 <div class="mobile-menu" id="mobileMenu">
-  <p class="mobile-menu-section">Find resources</p>
-  <a href="malama-need-help.html"><span class="menu-icon">🆘</span> I need help</a>
-  <a href="malama-want-help.html"><span class="menu-icon">🤝</span> I want to help</a>
-  <a href="malama-map-view.html"><span class="menu-icon">🗺️</span> Map view</a>
-  <a href="malama-requests.html"><span class="menu-icon">📋</span> Community needs board</a>
-  <a href="malama-skills.html"><span class="menu-icon">🔧</span> Skills & labor</a>
+  <div class="drawer-header">
+    <span style="font-size:1.3rem;">⭐</span>
+    <span class="drawer-header-logo">Mālama Map</span>
+  </div>
 
-  <div class="menu-divider"></div>
-  <p class="mobile-menu-section">Get involved</p>
-  <a href="malama-auth.html" class="menu-cta">+ Add a listing</a>
-  <a href="malama-auth.html"><span class="menu-icon">👤</span> Log in / My portal</a>
+  <div class="drawer-body">
+    <p class="mobile-menu-section" style="padding:0.9rem 1.25rem 0.2rem;">Explore</p>
+    <a href="malama-need-help.html"><span class="menu-icon">🤝</span> Get Help</a>
+    <a href="malama-give-financially.html"><span class="menu-icon">💛</span> Give Financially</a>
+    <a href="malama-skills.html"><span class="menu-icon">🧠</span> Skills Exchange</a>
+    <a href="malama-requests.html"><span class="menu-icon">📋</span> Community Needs</a>
+    <a href="malama-map-view.html"><span class="menu-icon">🗺️</span> Map View</a>
 
-  <div class="menu-divider"></div>
-  <p class="mobile-menu-section">About</p>
-  <a href="malama-how.html"><span class="menu-icon">💡</span> How it works</a>
-  <a href="malama-stats.html"><span class="menu-icon">📊</span> Impact</a>
-  <a href="malama-contact.html"><span class="menu-icon">📬</span> Contact</a>
-  <a href="malama-report.html"><span class="menu-icon">🚨</span> Report an issue</a>
+    <div class="menu-divider"></div>
+    <p class="mobile-menu-section" style="padding:0.6rem 1.25rem 0.2rem;">Contribute</p>
+    <a href="malama-auth.html" class="menu-cta" style="margin:0 1rem 0.5rem;">+ Add a Listing</a>
+    <a href="malama-requests.html?new=1"><span class="menu-icon">📝</span> Post a Need</a>
+    <a href="malama-auth.html"><span class="menu-icon">👤</span> My Account / Log In</a>
+
+    <div class="menu-divider"></div>
+    <p class="mobile-menu-section" style="padding:0.6rem 1.25rem 0.2rem;">About</p>
+    <a href="malama-how.html"><span class="menu-icon">ℹ️</span> How It Works</a>
+    <a href="malama-stats.html"><span class="menu-icon">📊</span> Impact</a>
+    <a href="malama-contact.html"><span class="menu-icon">📬</span> Contact</a>
+    <a href="malama-report.html"><span class="menu-icon">🚨</span> Report an Issue</a>
+  </div>
+
+  <div class="drawer-footer-bar">
+    <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Hawaiʻi helping Hawaiʻi</div>
+  </div>
 </div>
 
 <main>
