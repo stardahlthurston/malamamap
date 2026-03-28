@@ -1199,12 +1199,13 @@ async function signOut() {
 // LOAD LISTINGS
 // ══════════════════════════════════════
 async function loadListings() {
-  let query = sb.from('listings').select('*').order('created_at', { ascending: false });
-  // Super admin sees all listings, sub-admins see only their own
-  if (!isSuperAdmin(currentUser.id)) {
-    query = query.eq('user_id', currentUser.id);
-  }
-  const { data, error } = await query;
+  // My Listings always shows only YOUR listings — admin access to all listings
+  // is handled separately inside renderAdminPage()
+  const { data, error } = await sb
+    .from('listings')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
   if (error) { console.error(error); return; }
   myListings = data || [];
   if (currentPage === 'listings') renderListingsPage();
@@ -1216,6 +1217,9 @@ async function loadListings() {
 function handlePortalSearch(val) {
   portalSearchQuery = val.trim().toLowerCase();
   renderListingsPage();
+  // Restore focus after re-render (full re-render destroys the input element)
+  const input = document.getElementById('portalListingSearch');
+  if (input) { input.focus(); input.setSelectionRange(val.length, val.length); }
 }
 
 function renderListingsPage() {
