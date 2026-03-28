@@ -1,6 +1,8 @@
 // Admin actions endpoint — uses service role key to bypass RLS
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+// Anon key used as fallback for read-only operations when service key isn't set
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 
 // ✏️ To add another admin: paste their Supabase UUID here (Supabase → Auth → Users → copy User UID)
 const ADMIN_IDS = [
@@ -10,7 +12,6 @@ const ADMIN_IDS = [
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
-  if (!SUPABASE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
   const { action, userId, claimId, listingId, authUserId, expiresAt, field, value } = req.body;
 
@@ -18,6 +19,25 @@ export default async function handler(req, res) {
   if (!ADMIN_IDS.includes(authUserId)) {
     return res.status(403).json({ error: 'Not authorized' });
   }
+
+  // Read-only actions work with anon key if service key isn't set yet
+  if (action === 'get_all_listings') {
+    const readKey = SUPABASE_KEY || SUPABASE_ANON;
+    try {
+      const r = await fetch(
+        `${SUPABASE_URL}/rest/v1/listings?select=id,name,type,hours,items,notes,address,contact_phone,website,status,main_hub&order=name.asc`,
+        { headers: { 'apikey': readKey, 'Authorization': `Bearer ${readKey}` } }
+      );
+      if (!r.ok) throw new Error(await r.text());
+      const listings = await r.json();
+      return res.status(200).json({ success: true, listings });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // All write actions require the service key
+  if (!SUPABASE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
   const headers = {
     'apikey': SUPABASE_KEY,
