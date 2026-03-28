@@ -4151,7 +4151,7 @@ function renderItemsUI(itemMap) {
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem;margin-bottom:1.25rem;">
       <input type="text" id="itemSearchInput" placeholder="Search items…" oninput="filterItemsList()" style="flex:1;min-width:180px;padding:0.55rem 0.85rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.85rem;font-family:'Nunito',sans-serif;outline:none;">
       <button onclick="showAddItemModal()" style="padding:0.5rem 1rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Add item</button>
-      <button id="combineBtn" onclick="combineSelectedItems()" style="padding:0.5rem 1rem;background:var(--blue);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:none;">🔗 Combine selected</button>
+      <button id="combineBtn" onclick="combineSelectedItems()" style="padding:0.5rem 1rem;background:var(--blue);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:none;">🔀 Merge selected</button>
       <button id="deleteSelectedBtn" onclick="deleteSelectedItems()" style="padding:0.5rem 1rem;background:var(--red);color:white;border:none;border-radius:100px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:none;">🗑 Delete selected</button>
     </div>
     <p id="selectionCount" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem;display:none;"></p>
@@ -4161,11 +4161,11 @@ function renderItemsUI(itemMap) {
       ${sorted.map(([key, info]) => `
         <div class="item-row" data-key="${key}" data-display="${info.display.replace(/"/g,'&quot;')}"
              style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:white;border:1.5px solid var(--border);border-radius:100px;cursor:pointer;transition:all 0.15s;font-size:0.82rem;"
-             onclick="toggleItemSelect('${key.replace(/'/g,"\\'")}', this)">
-          <div style="width:14px;height:14px;border:2px solid #ccc;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" class="item-checkbox"></div>
+             onclick="showItemEditModal('${key.replace(/'/g,"\\'")}')">
+          <div style="width:14px;height:14px;border:2px solid #ccc;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" class="item-checkbox"
+               onclick="event.stopPropagation();toggleItemSelect('${key.replace(/'/g,"\\'")}',this.closest('.item-row'))"></div>
           <span style="font-weight:600;color:var(--text-dark);white-space:nowrap;">${info.display}</span>
           <span style="font-size:0.68rem;color:var(--text-muted);white-space:nowrap;">${info.listingIds.size}</span>
-          <button onclick="event.stopPropagation();editItemInline('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',this)" style="font-size:0.65rem;font-weight:700;color:var(--sage);background:none;border:none;padding:0 2px;cursor:pointer;opacity:0.7;">✏️</button>
           <button onclick="event.stopPropagation();deleteSingleItem('${key.replace(/'/g,"\\'")}','${info.display.replace(/'/g,"\\'")}',${info.listingIds.size})" style="font-size:0.65rem;font-weight:700;color:var(--red);background:none;border:none;padding:0 2px;cursor:pointer;opacity:0.7;">✕</button>
         </div>
       `).join('')}
@@ -4185,16 +4185,32 @@ function renderItemsUI(itemMap) {
       </div>
     </div>
 
-    <!-- Combine modal -->
+    <!-- Combine / Merge modal -->
     <div id="combineModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
-      <div style="background:white;border-radius:16px;padding:2rem 1.5rem;max-width:420px;width:90%;font-family:'Nunito',sans-serif;">
-        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin:0 0 0.5rem;">Combine items</h3>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;">Choose a name for the combined item. All listings that have any of the selected items will be updated.</p>
-        <p id="combineListPreview" style="font-size:0.78rem;color:var(--blue);font-weight:600;margin-bottom:0.75rem;"></p>
-        <input type="text" id="combineNameInput" placeholder="Combined item name" style="width:100%;padding:0.65rem 0.85rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;box-sizing:border-box;outline:none;margin-bottom:1rem;">
+      <div style="background:white;border-radius:16px;padding:2rem 1.5rem;max-width:460px;width:90%;font-family:'Nunito',sans-serif;max-height:80vh;overflow-y:auto;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin:0 0 0.35rem;">Merge items</h3>
+        <p id="combineListPreview" style="font-size:0.8rem;color:var(--blue);font-weight:600;margin-bottom:0.75rem;"></p>
+        <label style="font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Merged name</label>
+        <input type="text" id="combineNameInput" placeholder="What should the merged item be called?" style="width:100%;padding:0.65rem 0.85rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;box-sizing:border-box;outline:none;margin-bottom:1rem;">
+        <div id="combineSummary" style="font-size:0.8rem;color:var(--text-muted);background:#f5f6f4;border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:1rem;line-height:1.6;display:none;"></div>
         <div style="display:flex;gap:0.5rem;">
           <button onclick="document.getElementById('combineModal').style.display='none'" style="flex:1;padding:0.65rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;background:white;font-family:'Nunito',sans-serif;">Cancel</button>
-          <button onclick="confirmCombineItems()" style="flex:1;padding:0.65rem;background:var(--blue);color:white;border:none;border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Combine &amp; update listings</button>
+          <button onclick="confirmCombineItems()" style="flex:1;padding:0.65rem;background:var(--blue);color:white;border:none;border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Merge &amp; update listings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit item modal -->
+    <div id="editItemModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:16px;padding:2rem 1.5rem;max-width:460px;width:90%;font-family:'Nunito',sans-serif;max-height:80vh;overflow-y:auto;">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--sage-deep);margin:0 0 1rem;">Edit item</h3>
+        <label style="font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Item name</label>
+        <input type="text" id="editItemNameInput" style="width:100%;padding:0.65rem 0.85rem;border:1.5px solid var(--sage);border-radius:10px;font-size:0.95rem;font-weight:700;font-family:'Nunito',sans-serif;box-sizing:border-box;outline:none;margin-bottom:1.25rem;">
+        <label style="font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:0.5rem;">Used in <span id="editItemListingCount" style="color:var(--sage-deep);">0</span> listing(s)</label>
+        <div id="editItemListings" style="display:flex;flex-direction:column;gap:5px;margin-bottom:1.25rem;max-height:200px;overflow-y:auto;"></div>
+        <div style="display:flex;gap:0.5rem;">
+          <button onclick="closeEditItemModal()" style="flex:1;padding:0.65rem;border:1.5px solid var(--border);border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;background:white;font-family:'Nunito',sans-serif;">Cancel</button>
+          <button onclick="saveEditItemModal()" style="flex:1;padding:0.65rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Save name →</button>
         </div>
       </div>
     </div>
@@ -4266,9 +4282,26 @@ async function confirmAddItem() {
 function combineSelectedItems() {
   if (_selectedItemKeys.size < 2) return;
   const itemMap = window._itemMap || {};
-  const names = [..._selectedItemKeys].map(k => itemMap[k]?.display || k);
-  document.getElementById('combineListPreview').textContent = 'Combining: ' + names.join(' + ');
-  document.getElementById('combineNameInput').value = names[0]; // prefill with first
+  const keys = [..._selectedItemKeys];
+  const names = keys.map(k => itemMap[k]?.display || k);
+
+  // Collect all affected listings for preview
+  const affectedIds = new Set();
+  for (const k of keys) for (const id of (itemMap[k]?.listingIds || [])) affectedIds.add(id);
+  const affectedNames = [...affectedIds].map(id => {
+    const l = _itemsAllListings.find(x => x.id === id);
+    return l?.name || id;
+  });
+
+  document.getElementById('combineListPreview').textContent = 'Merging: ' + names.join(' + ');
+  document.getElementById('combineNameInput').value = names[0];
+
+  const summaryEl = document.getElementById('combineSummary');
+  if (summaryEl) {
+    summaryEl.style.display = 'block';
+    summaryEl.innerHTML = `<strong style="color:var(--text-dark);">${affectedIds.size} listing${affectedIds.size !== 1 ? 's' : ''} will be updated:</strong><br>${affectedNames.map(n => `• ${escHtml(n)}`).join('<br>')}`;
+  }
+
   const m = document.getElementById('combineModal');
   if (m) { m.style.display = 'flex'; document.getElementById('combineNameInput')?.focus(); }
 }
@@ -4414,6 +4447,80 @@ async function saveItemRename(key, row) {
     count++;
   }
   showToast(`✏️ Renamed to "${newName}" across ${count} listing${count !== 1 ? 's' : ''}`);
+  await loadItemsManager();
+}
+
+// ── Item edit modal (click-to-view-and-edit) ──
+function showItemEditModal(key) {
+  const itemMap = window._itemMap || {};
+  const info = itemMap[key];
+  if (!info) return;
+
+  const modal = document.getElementById('editItemModal');
+  if (!modal) return;
+  modal.dataset.key = key;
+
+  document.getElementById('editItemNameInput').value = info.display;
+  const listingIds = [...(info.listingIds || [])];
+  document.getElementById('editItemListingCount').textContent = listingIds.length;
+
+  const listingsEl = document.getElementById('editItemListings');
+  if (listingIds.length === 0) {
+    listingsEl.innerHTML = '<p style="font-size:0.82rem;color:var(--text-muted);font-style:italic;">No listings currently use this item.</p>';
+  } else {
+    listingsEl.innerHTML = listingIds.map(id => {
+      const listing = _itemsAllListings.find(l => l.id === id);
+      const name = listing?.name || id;
+      return `<a href="malama-listing.html?id=${escHtml(id)}" target="_blank"
+        style="font-size:0.85rem;font-weight:600;color:var(--sage-deep);text-decoration:none;
+               padding:6px 12px;background:var(--sage-pale);border-radius:8px;display:flex;
+               align-items:center;justify-content:space-between;">
+        ${escHtml(name)} <span style="opacity:0.5;font-size:0.75rem;">→</span>
+      </a>`;
+    }).join('');
+  }
+
+  modal.style.display = 'flex';
+  document.getElementById('editItemNameInput').select();
+}
+
+function closeEditItemModal() {
+  const modal = document.getElementById('editItemModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function saveEditItemModal() {
+  const modal = document.getElementById('editItemModal');
+  const key  = modal?.dataset.key;
+  const newName = document.getElementById('editItemNameInput')?.value.trim();
+  if (!newName || !key) return;
+
+  if (newName.toLowerCase() === key) { closeEditItemModal(); return; }
+
+  const itemMap = window._itemMap || {};
+  const affectedIds = itemMap[key]?.listingIds || new Set();
+  let count = 0;
+  for (const listingId of affectedIds) {
+    const listing = _itemsAllListings.find(l => l.id === listingId);
+    if (!listing) continue;
+    const rawItems = Array.isArray(listing.items) ? listing.items : [];
+    const newItems = rawItems.map(raw => {
+      const display = raw.replace(/^(GIVING|ACCEPTING):/,'').trim();
+      if (display.toLowerCase() === key) {
+        const prefix = raw.startsWith('GIVING:') ? 'GIVING:' : raw.startsWith('ACCEPTING:') ? 'ACCEPTING:' : '';
+        return prefix + newName;
+      }
+      return raw;
+    });
+    await fetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${listingId}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ items: newItems })
+    });
+    count++;
+  }
+  closeEditItemModal();
+  showToast(`✏️ Renamed "${itemMap[key]?.display || key}" → "${newName}" across ${count} listing${count !== 1 ? 's' : ''}`);
   await loadItemsManager();
 }
 

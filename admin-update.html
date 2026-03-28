@@ -131,6 +131,44 @@
   .items-section-label.giving    { background: var(--sage-pale); color: var(--sage-deep); }
   .items-section-label.plain     { background: #f0f0ec; color: var(--muted); }
 
+  /* ── TYPE CHIPS ── */
+  .type-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 0.25rem; }
+  .type-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 100px; cursor: pointer;
+    font-size: 0.78rem; font-weight: 700; font-family: inherit;
+    border: 1.5px solid #ddd; background: white; color: var(--muted);
+    transition: all 0.15s; user-select: none;
+  }
+  .type-chip:hover { border-color: var(--sage); color: var(--sage-deep); }
+  .type-chip.selected { background: var(--sage-pale); border-color: var(--sage); color: var(--sage-deep); }
+  .type-chip.selected.dropoff { background: var(--gold-pale); border-color: var(--gold); color: #7a5c1a; }
+  .type-chip.selected.medical { background: #fdf0ef; border-color: #c0392b; color: #8b1a1a; }
+  .type-chip.selected.shelter { background: #eef4ff; border-color: #4a7abf; color: #1a3a6b; }
+  .type-chip.selected.skills  { background: #f5f0ff; border-color: #7b5ea7; color: #4a2d7a; }
+
+  /* ── TOGGLES ROW ── */
+  .toggles-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .toggle-card { flex: 1; min-width: 160px; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 1rem; background: #fafafa; border: 1px solid var(--border); border-radius: 8px; }
+  .toggle-card-label strong { display: block; font-size: 0.82rem; font-weight: 700; color: var(--text); }
+  .toggle-card-label span { font-size: 0.71rem; color: var(--muted); }
+  .toggle-switch { position: relative; width: 40px; height: 22px; display: inline-block; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 22px; cursor: pointer; transition: background 0.2s; }
+  .toggle-slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle-switch input:checked + .toggle-slider { background: var(--sage); }
+  .toggle-switch.hub input:checked + .toggle-slider { background: #0a6644; }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+  .review-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0 1rem; }
+
+  /* ── POST-SAVE ACTIONS ── */
+  .post-save-actions { display: none; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+  .post-save-actions.show { display: flex; }
+  .btn-view { padding: 0.55rem 1.1rem; background: var(--sage-deep); color: white; border: none; border-radius: 100px; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-family: inherit; }
+  .btn-view:hover { opacity: 0.85; }
+  .btn-another { padding: 0.55rem 1.1rem; background: white; color: var(--sage); border: 1.5px solid var(--sage); border-radius: 100px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-another:hover { background: var(--sage-pale); }
+
   /* ── PUSH / ACTIONS ── */
   .push-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
   .btn-push { padding: 0.75rem 2rem; background: var(--sage); color: white; border: none; border-radius: 100px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
@@ -198,6 +236,10 @@
         <div class="current-label">Phone</div>
         <div class="current-value" id="currentPhone"></div>
       </div>
+      <div class="current-row" id="currentWebsiteRow">
+        <div class="current-label">Website</div>
+        <div class="current-value" id="currentWebsite"></div>
+      </div>
       <div class="current-row">
         <div class="current-label">Notes</div>
         <div class="current-value" id="currentNotes"></div>
@@ -257,12 +299,28 @@
         </div>
         <div class="review-field"><label>Address</label><div class="static-value" id="reviewCurrentAddress"></div></div>
         <div class="review-field"><label>Phone</label><div class="static-value" id="reviewCurrentPhone"></div></div>
+        <div class="review-field"><label>Name</label><div class="static-value" id="reviewCurrentName"></div></div>
+        <div class="review-field"><label>Website</label><div class="static-value" id="reviewCurrentWebsite"></div></div>
         <div class="review-field"><label>Notes</label><div class="static-value" id="reviewCurrentNotes"></div></div>
       </div>
 
       <!-- RIGHT: extracted (editable) -->
       <div>
         <p class="review-col-label extracted">Extracted / edit</p>
+
+        <!-- Listing Type chips -->
+        <div class="review-field">
+          <label>Listing Type</label>
+          <div class="type-chips" id="typeChipsContainer">
+            <button type="button" class="type-chip supply"   data-type="supply_station"    onclick="toggleTypeChip(this)">🛖 Supply Station</button>
+            <button type="button" class="type-chip dropoff"  data-type="donation_dropoff"  onclick="toggleTypeChip(this)">📦 Donation Drop-off</button>
+            <button type="button" class="type-chip shelter"  data-type="shelter"           onclick="toggleTypeChip(this)">🏠 Shelter</button>
+            <button type="button" class="type-chip"          data-type="volunteer_event"   onclick="toggleTypeChip(this)">🙋 Volunteers</button>
+            <button type="button" class="type-chip medical"  data-type="medical_assistance" onclick="toggleTypeChip(this)">🏥 Medical</button>
+            <button type="button" class="type-chip skills"   data-type="skills_labor"      onclick="toggleTypeChip(this)">🔧 Skills & Labor</button>
+          </div>
+        </div>
+
         <div class="review-field"><label>Hours</label><textarea id="extractedHours" rows="2" placeholder="e.g. Open daily 8am–5pm"></textarea></div>
 
         <!-- Giving out (supply station) -->
@@ -285,14 +343,45 @@
 
         <div class="review-field"><label>Address</label><input type="text" id="extractedAddress" placeholder="Leave blank to keep current"></div>
         <div class="review-field"><label>Phone</label><input type="text" id="extractedPhone" placeholder="Leave blank to keep current"></div>
+        <div class="review-field"><label>Name</label><input type="text" id="extractedName" placeholder="Leave blank to keep current"></div>
+        <div class="review-field"><label>Website</label><input type="text" id="extractedWebsite" placeholder="https://... (leave blank to keep current)"></div>
         <div class="review-field"><label>Notes</label><textarea id="extractedNotes" rows="3" placeholder="Important notes…"></textarea></div>
+      </div>
+    </div>
+
+    <hr class="review-divider">
+    <p class="review-col-label" style="margin-bottom:0.75rem;">Status &amp; Badges</p>
+    <div class="toggles-row">
+      <div class="toggle-card">
+        <div class="toggle-card-label">
+          <strong>Active listing</strong>
+          <span>Visible on map &amp; search</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleStatus" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-card">
+        <div class="toggle-card-label">
+          <strong>⭐ Fully Stocked Hub</strong>
+          <span>Main community hub badge</span>
+        </div>
+        <label class="toggle-switch hub">
+          <input type="checkbox" id="toggleHub">
+          <span class="toggle-slider"></span>
+        </label>
       </div>
     </div>
 
     <div class="push-row">
       <button class="btn-push" id="pushBtn" onclick="pushUpdate()">Update listing →</button>
-      <button class="btn-clear" onclick="resetTool()">✕ Clear & start over</button>
+      <button class="btn-clear" onclick="resetTool()">✕ Clear &amp; start over</button>
       <span class="result-msg" id="resultMsg"></span>
+    </div>
+    <div class="post-save-actions" id="postSaveActions">
+      <a href="#" id="viewListingBtn" target="_blank" class="btn-view">View listing →</a>
+      <button class="btn-another" onclick="startAnother()">Update another listing →</button>
     </div>
   </div>
 
@@ -304,9 +393,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_UID = '04e3776b-b75f-4701-888e-511a9cf21382';
 
-let allListings   = [];
+let allListings     = [];
 let selectedListing = null;
-let pendingItems  = []; // items waiting for clarification (mixed-type listings)
+let pendingItems    = []; // items waiting for clarification (mixed-type listings)
+let selectedTypesEdit = new Set();
 
 // ══════════════════════════════════════
 // PASSWORD GATE
@@ -325,13 +415,46 @@ function checkPassword() {
 }
 
 // ══════════════════════════════════════
+// TYPE CHIPS
+// ══════════════════════════════════════
+function toggleTypeChip(btn) {
+  const t = btn.dataset.type;
+  if (selectedTypesEdit.has(t)) {
+    selectedTypesEdit.delete(t);
+    btn.classList.remove('selected');
+  } else {
+    selectedTypesEdit.add(t);
+    btn.classList.add('selected');
+  }
+  updateItemSections();
+}
+
+function initTypeChips(typeStr) {
+  selectedTypesEdit = new Set(
+    (typeStr || '').split(',').map(t => t.trim()).filter(Boolean)
+  );
+  document.querySelectorAll('#typeChipsContainer .type-chip').forEach(btn => {
+    btn.classList.toggle('selected', selectedTypesEdit.has(btn.dataset.type));
+  });
+  updateItemSections();
+}
+
+function updateItemSections() {
+  const hasSupply  = selectedTypesEdit.has('supply_station');
+  const hasDropoff = selectedTypesEdit.has('donation_dropoff');
+  document.getElementById('extractedGivingWrap').style.display    = hasSupply  ? 'block' : 'none';
+  document.getElementById('extractedAcceptingWrap').style.display = hasDropoff ? 'block' : 'none';
+  document.getElementById('extractedItemsWrap').style.display     = (!hasSupply && !hasDropoff) ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════
 // LISTING SELECTOR
 // ══════════════════════════════════════
 async function loadListings() {
   const sel = document.getElementById('listingSelect');
   const { data, error } = await sb
     .from('listings')
-    .select('id, name, type, hours, items, notes, address, contact_phone')
+    .select('id, name, type, hours, items, notes, address, contact_phone, website, status, main_hub')
     .eq('status', true)
     .order('name');
 
@@ -381,6 +504,7 @@ function onListingSelect() {
   setEl('currentHours',   selectedListing.hours   || '—', !selectedListing.hours);
   setEl('currentAddress', selectedListing.address || '—', !selectedListing.address);
   setEl('currentPhone',   selectedListing.contact_phone || '—', !selectedListing.contact_phone);
+  setEl('currentWebsite', selectedListing.website || '—', !selectedListing.website);
   setEl('currentNotes',   selectedListing.notes   || '—', !selectedListing.notes);
 
   showCurrentItemRow('currentGivingRow',    'currentGiving',    givingItems);
@@ -393,16 +517,20 @@ function onListingSelect() {
   setStaticReview('reviewCurrentHours',   selectedListing.hours);
   setStaticReview('reviewCurrentAddress', selectedListing.address);
   setStaticReview('reviewCurrentPhone',   selectedListing.contact_phone);
+  setStaticReview('reviewCurrentName',    selectedListing.name);
+  setStaticReview('reviewCurrentWebsite', selectedListing.website);
   setStaticReview('reviewCurrentNotes',   selectedListing.notes);
 
   showReviewCurrentItems('reviewCurrentGivingWrap',    'reviewCurrentGiving',    givingItems);
   showReviewCurrentItems('reviewCurrentAcceptingWrap', 'reviewCurrentAccepting', acceptingItems);
   showReviewCurrentItems('reviewCurrentItemsWrap',     'reviewCurrentItems',     plainItems);
 
-  // ── Show correct extracted item sections ──
-  document.getElementById('extractedGivingWrap').style.display    = hasSupply  ? 'block' : 'none';
-  document.getElementById('extractedAcceptingWrap').style.display = hasDropoff ? 'block' : 'none';
-  document.getElementById('extractedItemsWrap').style.display     = (!hasSupply && !hasDropoff) ? 'block' : 'none';
+  // ── Init type chips & extracted item sections ──
+  initTypeChips(selectedListing.type);
+
+  // ── Set status & hub toggles ──
+  document.getElementById('toggleStatus').checked = selectedListing.status !== false;
+  document.getElementById('toggleHub').checked    = !!selectedListing.main_hub;
 }
 
 function showCurrentItemRow(rowId, valueId, items) {
@@ -445,8 +573,10 @@ function openManualEdit() {
   document.getElementById('extractedGiving').value   = givingItems.join('\n');
   document.getElementById('extractedAccepting').value = acceptingItems.join('\n');
   document.getElementById('extractedItems').value    = plainItems.join('\n');
-  document.getElementById('extractedAddress').value  = '';
-  document.getElementById('extractedPhone').value    = '';
+  document.getElementById('extractedAddress').value  = selectedListing.address || '';
+  document.getElementById('extractedPhone').value    = selectedListing.contact_phone || '';
+  document.getElementById('extractedName').value     = selectedListing.name || '';
+  document.getElementById('extractedWebsite').value  = selectedListing.website || '';
   document.getElementById('extractedNotes').value    = selectedListing.notes || '';
 
   document.getElementById('reviewSectionTitle').textContent = '3 — Edit listing directly';
@@ -543,9 +673,8 @@ async function processFiles(files) {
   document.getElementById('extractedNotes').value   = mergedNotes;
   document.getElementById('reviewSectionTitle').textContent = '4 — Review & edit before pushing';
 
-  const type = selectedListing.type || '';
-  const hasDropoff = type.includes('donation_dropoff');
-  const hasSupply  = type.includes('supply_station');
+  const hasDropoff = selectedTypesEdit.has('donation_dropoff');
+  const hasSupply  = selectedTypesEdit.has('supply_station');
 
   if (hasDropoff && hasSupply) {
     // Mixed — ask user to clarify before showing review
@@ -592,6 +721,8 @@ async function pushUpdate() {
   const hoursVal   = document.getElementById('extractedHours').value.trim();
   const addressVal = document.getElementById('extractedAddress').value.trim();
   const phoneVal   = document.getElementById('extractedPhone').value.trim();
+  const nameVal    = document.getElementById('extractedName').value.trim();
+  const websiteVal = document.getElementById('extractedWebsite').value.trim();
   const notesVal   = document.getElementById('extractedNotes').value.trim();
 
   const givingRaw    = document.getElementById('extractedGiving').value.trim();
@@ -607,11 +738,18 @@ async function pushUpdate() {
     ...toArr(plainRaw,     '')
   ];
 
-  const payload = { items: itemsArr };
+  const payload = {
+    items:    itemsArr,
+    status:   document.getElementById('toggleStatus').checked,
+    main_hub: document.getElementById('toggleHub').checked
+  };
+  if (selectedTypesEdit.size > 0) payload.type = [...selectedTypesEdit].join(',');
   if (hoursVal)   payload.hours         = hoursVal;
   if (notesVal)   payload.notes         = notesVal;
   if (addressVal) payload.address       = addressVal;
   if (phoneVal)   payload.contact_phone = phoneVal;
+  if (nameVal)    payload.name          = nameVal;
+  if (websiteVal) payload.website       = websiteVal;
 
   try {
     const resp = await fetch('/api/admin-action', {
@@ -632,7 +770,17 @@ async function pushUpdate() {
       if (notesVal)   selectedListing.notes         = notesVal;
       if (addressVal) selectedListing.address       = addressVal;
       if (phoneVal)   selectedListing.contact_phone = phoneVal;
-      selectedListing.items = itemsArr;
+      if (nameVal)    selectedListing.name          = nameVal;
+      if (websiteVal) selectedListing.website       = websiteVal;
+      selectedListing.items    = itemsArr;
+      selectedListing.status   = payload.status;
+      selectedListing.main_hub = payload.main_hub;
+      if (payload.type) selectedListing.type = payload.type;
+      // Show post-save navigation
+      const postSave = document.getElementById('postSaveActions');
+      postSave.classList.add('show');
+      document.getElementById('viewListingBtn').href =
+        `https://www.malamamap.org/malama-listing.html?id=${selectedListing.id}`;
       onListingSelect();
     }
   } catch (err) {
@@ -654,11 +802,24 @@ function resetTool() {
   document.getElementById('clarificationSection').classList.remove('show');
   document.getElementById('reviewSection').classList.remove('show');
   document.getElementById('resultMsg').className = 'result-msg';
+  document.getElementById('postSaveActions').classList.remove('show');
   ['extractedHours','extractedGiving','extractedAccepting','extractedItems','extractedNotes'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('extractedAddress').value = '';
   document.getElementById('extractedPhone').value   = '';
+  document.getElementById('extractedName').value    = '';
+  document.getElementById('extractedWebsite').value = '';
+}
+
+function startAnother() {
+  resetTool();
+  selectedListing = null;
+  document.getElementById('listingSelect').value = '';
+  document.getElementById('currentData').classList.remove('show');
+  document.getElementById('listingTypeBadges').style.display = 'none';
+  initTypeChips('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ══════════════════════════════════════
