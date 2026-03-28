@@ -1,15 +1,6 @@
 // Serverless function — proxies image to Anthropic and returns extracted listing fields.
 // ANTHROPIC_API_KEY stays server-side and is never sent to the browser.
 
-// Increase body limit to handle large iPhone photos (default 4.5MB is too small)
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '20mb'
-    }
-  }
-};
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

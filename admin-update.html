@@ -551,7 +551,7 @@ async function processFiles(files) {
     const logItem = addLogItem(log, `Reading ${file.name}…`);
 
     try {
-      const { base64, mediaType } = await readFileAsBase64(file);
+      const { base64, mediaType } = await compressImage(file);
       updateLogItem(logItem, `Sending ${file.name} to Claude…`);
 
       const resp = await fetch('/api/update-from-image', {
@@ -593,16 +593,31 @@ async function processFiles(files) {
   document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function readFileAsBase64(file) {
+// Compress image using Canvas before sending — resizes to max 1400px
+// and re-encodes as JPEG. Keeps iPhone photos well under Vercel's body limit.
+function compressImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = e => {
-      const dataUrl = e.target.result;
-      const base64 = dataUrl.split(',')[1];
-      const mediaType = file.type || 'image/jpeg';
-      resolve({ base64, mediaType });
-    };
     reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const MAX = 1400;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
+      };
+      img.src = e.target.result;
+    };
     reader.readAsDataURL(file);
   });
 }
