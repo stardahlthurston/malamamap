@@ -507,15 +507,15 @@ function updateItemSections() {
 // ══════════════════════════════════════
 async function loadListings() {
   const sel = document.getElementById('listingSelect');
-  const { data, error } = await sb
-    .from('listings')
-    .select('id, name, type, hours, items, notes, address, contact_phone, website, status, main_hub')
-    .order('name');
-
-  if (error) { sel.innerHTML = '<option value="">Error loading listings</option>'; return; }
-  allListings = data || [];
-  sel.innerHTML = '<option value="">— Select a listing —</option>' +
-    allListings.map(l => `<option value="${l.id}">${escHtml(l.name || 'Unnamed')}</option>`).join('');
+  try {
+    const resp = await fetch('/api/admin-listings');
+    if (!resp.ok) throw new Error('Server error');
+    allListings = await resp.json();
+    sel.innerHTML = '<option value="">— Select a listing —</option>' +
+      allListings.map(l => `<option value="${l.id}">${escHtml(l.name || 'Unnamed')}</option>`).join('');
+  } catch (e) {
+    sel.innerHTML = '<option value="">Error loading listings</option>';
+  }
 }
 
 function onListingSelect() {
