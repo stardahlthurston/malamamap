@@ -846,6 +846,10 @@ async function pushUpdate() {
       document.getElementById('notifySummary').dataset.edited = '';
       showNotifyPanel(payload);
       onListingSelect();
+      // Scroll notify panel into view so it's not missed
+      setTimeout(() => {
+        document.getElementById('notifyPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 150);
     }
   } catch (err) {
     msg.textContent = 'Network error: ' + err.message;
