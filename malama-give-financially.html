@@ -27,17 +27,14 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .topbar-btn.gold{background:var(--gold);border-color:var(--gold);color:white;}
 .topbar-btn.gold:hover{background:#b07a00;}
 
-.hero-bar{background:linear-gradient(135deg,var(--gold-deep) 0%,#b07a00 60%,var(--gold) 100%);padding:2rem 1.5rem 1.75rem;text-align:center;}
+.hero-bar{background:linear-gradient(135deg,var(--gold-deep) 0%,#b07a00 60%,var(--gold) 100%);padding:2rem 1.5rem 1.75rem;text-align:center;position:relative;}
 .hero-eyebrow{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:0.4rem;}
 .hero-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:800;color:white;margin-bottom:0.5rem;}
 .hero-sub{font-size:0.88rem;font-weight:500;color:rgba(255,255,255,0.82);max-width:480px;margin:0 auto;line-height:1.6;}
-
-.kokua-callout{background:white;border-left:4px solid var(--gold);margin:1.25rem 1.25rem 0;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
-.kokua-callout-text{flex:1;min-width:200px;}
-.kokua-callout-text p{font-size:0.82rem;font-weight:600;color:var(--text-mid);line-height:1.5;}
-.kokua-callout-text strong{color:var(--text-dark);}
-.kokua-callout-link{padding:0.45rem 1rem;background:var(--gold);color:white;border-radius:100px;font-size:0.78rem;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:background 0.2s;}
-.kokua-callout-link:hover{background:#b07a00;}
+.kokua-callout{display:inline-flex;align-items:center;gap:0.6rem;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);border-radius:100px;padding:0.45rem 0.65rem 0.45rem 0.9rem;margin-top:1.1rem;backdrop-filter:blur(4px);}
+.kokua-callout p{font-size:0.76rem;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.4;}
+.kokua-callout-link{padding:0.35rem 0.85rem;background:white;color:var(--gold-deep);border-radius:100px;font-size:0.75rem;font-weight:800;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:background 0.2s;}
+.kokua-callout-link:hover{background:rgba(255,255,255,0.9);}
 
 .filter-bar{background:white;border-bottom:2px solid var(--border);padding:0.7rem 1.25rem;display:flex;align-items:center;gap:0.5rem;overflow-x:auto;scrollbar-width:none;position:sticky;top:48px;z-index:90;}
 .filter-bar::-webkit-scrollbar{display:none;}
@@ -61,6 +58,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .card-actions{display:flex;align-items:center;gap:0.5rem;margin-top:0.65rem;}
 .btn-donate{padding:0.45rem 1.1rem;background:var(--gold);color:white;border-radius:100px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:background 0.2s;white-space:nowrap;}
 .btn-donate:hover{background:#b07a00;}
+.card-details-link{font-size:0.78rem;font-weight:700;color:var(--text-muted);text-decoration:none;padding:0.45rem 0.5rem;}
+.card-details-link:hover{color:var(--gold-deep);}
 
 .empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted);}
 .empty-state p{font-size:0.9rem;font-weight:600;}
@@ -91,15 +90,12 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <p class="hero-eyebrow">Financial giving</p>
   <h1 class="hero-title">Give Financially</h1>
   <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery efforts.</p>
+  <div class="kokua-callout">
+    <p>🌺 <strong>Family in need of support?</strong> Storm Kōkua connects families directly with donors.</p>
+    <a href="https://www.stormkokua.com" target="_blank" rel="noopener" class="kokua-callout-link">Storm Kōkua →</a>
+  </div>
 </div>
 
-<div class="kokua-callout">
-  <div style="font-size:1.6rem;flex-shrink:0;">🌺</div>
-  <div class="kokua-callout-text">
-    <p><strong>Are you a family in need of financial support?</strong> Storm Kōkua connects families directly with donors — submit your story on their site.</p>
-  </div>
-  <a href="https://www.stormkokua.org" target="_blank" rel="noopener" class="kokua-callout-link">Storm Kōkua →</a>
-</div>
 
 <div class="filter-bar">
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
@@ -131,14 +127,21 @@ let activeFilter = 'all';
 async function loadListings() {
   const { data, error } = await sb
     .from('listings')
-    .select('id,name,website,giving_url,notes,location,verified,status')
+    .select('id,name,type,website,giving_url,notes,location,verified,status')
     .eq('status', true)
     .or('type.ilike.%financial_giving%,giving_url.not.is.null')
     .order('name', { ascending: true });
 
   const grid = document.getElementById('cardGrid');
   if (error) { grid.innerHTML = `<div class="empty-state"><p style="color:var(--red);">${error.message}</p></div>`; return; }
-  allListings = data || [];
+
+  // Exclude donation drop-off listings that only have a giving_url but aren't explicitly financial_giving
+  allListings = (data || []).filter(l => {
+    const t = (l.type || '').toLowerCase();
+    if (t.includes('financial_giving')) return true;
+    if (l.giving_url && !t.includes('donation_dropoff') && !t.includes('supply_station')) return true;
+    return false;
+  });
   render();
 }
 
@@ -158,8 +161,10 @@ function render() {
     return;
   }
 
-  grid.innerHTML = list.map(l => `
-    <a class="card" href="malama-listing.html?id=${l.id}">
+  grid.innerHTML = list.map(l => {
+    const donateUrl = l.giving_url || l.website || '';
+    return `
+    <div class="card">
       <div class="card-inner">
         <div class="card-body">
           <div class="card-top">
@@ -167,14 +172,15 @@ function render() {
             ${l.location ? `<span class="badge-cat">${l.location}</span>` : ''}
             ${l.verified ? `<span class="badge-verified">✓ Verified</span>` : ''}
           </div>
-          <p class="card-summary">${l.notes || ''}</p>
+          ${l.notes ? `<p class="card-summary">${l.notes}</p>` : ''}
           <div class="card-actions">
-            ${(l.website || l.giving_url) ? `<span class="btn-donate">Donate →</span>` : ''}
+            ${donateUrl ? `<a href="${donateUrl}" target="_blank" rel="noopener" class="btn-donate" onclick="event.stopPropagation()">Donate →</a>` : ''}
+            <a href="malama-listing.html?id=${l.id}" class="card-details-link">View listing →</a>
           </div>
         </div>
       </div>
-    </a>
-  `).join('');
+    </div>
+  `}).join('');
 }
 
 loadListings();
