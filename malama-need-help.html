@@ -165,7 +165,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <button class="chip" data-filter="medical_assistance" onclick="setFilter('medical_assistance',this)">🏥 Medical</button>
   <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔧 Skills & Labor</button>
   <div class="chip-divider"></div>
-  <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Active right now</label>
+  <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Show open listings</label>
   <div class="chip-divider"></div>
   <div class="view-toggle">
     <button class="view-btn active" onclick="switchView('list',this)">
@@ -238,11 +238,29 @@ function setFilter(f, el) {
   applyFilters();
 }
 
+function isCurrentlyOpen(l) {
+  if (!l.status) return false;
+  if (l.event_date && l.event_date !== 'ongoing') {
+    const eventDate = new Date(l.event_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (eventDate < today) return false;
+  }
+  return true;
+}
+
 function applyFilters() {
   const openOnly = document.getElementById('openOnly').checked;
   filtered = allListings.filter(l => {
     if (activeFilter !== 'all' && l.type !== activeFilter) return false;
-    if (openOnly && !l.status) return false;
+    // Always hide past-dated events
+    if (l.event_date && l.event_date !== 'ongoing') {
+      const eventDate = new Date(l.event_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (eventDate < today) return false;
+    }
+    if (openOnly && !isCurrentlyOpen(l)) return false;
     return true;
   });
   renderList();
