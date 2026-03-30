@@ -114,21 +114,21 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .mobile-see-all a{color:white;font-size:0.82rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
 @media(max-width:768px){.mobile-see-all{display:block;}.topbar-right{display:none !important;}}
 
-/* MAP BOTTOM SHEET */
-.map-sheet{position:fixed;bottom:0;left:0;right:0;z-index:200;background:white;border-radius:20px 20px 0 0;padding:0 1.25rem 2rem;max-height:55vh;overflow-y:auto;transform:translateY(105%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);box-shadow:0 -4px 30px rgba(0,0,0,0.18);pointer-events:none;display:none;}
-.map-sheet.open{transform:translateY(0);pointer-events:all;}
-.sheet-top{display:flex;align-items:center;justify-content:center;padding:0.75rem 0 0.6rem;position:sticky;top:0;background:white;z-index:1;margin-bottom:0.1rem;}
-.sheet-top-handle{width:36px;height:4px;background:#ddd;border-radius:100px;}
-.sheet-top-close{position:absolute;right:0;background:rgba(0,0,0,0.06);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;color:var(--text-muted);font-size:1.1rem;display:flex;align-items:center;justify-content:center;line-height:1;font-family:'Nunito',sans-serif;}
-.sheet-top-close:hover{background:rgba(0,0,0,0.12);}
-.sheet-bar{height:4px;border-radius:4px;margin-bottom:0.85rem;}
-.sheet-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:800;color:var(--text-dark);margin-bottom:0.25rem;padding-right:1rem;}
-.sheet-addr{font-size:0.8rem;color:var(--text-muted);margin-bottom:0.55rem;}
-.sheet-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem;}
-.sheet-notes{font-size:0.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:0.6rem;}
-.sheet-btns{display:flex;gap:8px;margin-top:0.75rem;}
-.sheet-btns a{flex:1;text-align:center;padding:0.65rem 0.5rem;border-radius:100px;font-size:0.82rem;font-weight:700;text-decoration:none;font-family:'Nunito',sans-serif;transition:opacity 0.15s;}
-.sheet-btns a:hover{opacity:0.85;}
+/* MAP POPUP */
+.map-popup-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.4);}
+.map-popup-overlay.open{display:flex;align-items:flex-end;justify-content:center;}
+.map-popup-card{background:white;border-radius:20px 20px 0 0;padding:1.25rem;max-width:500px;width:100%;max-height:70vh;overflow-y:auto;animation:popupSlide 0.25s ease;}
+@keyframes popupSlide{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.map-popup-card .popup-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);}
+.map-popup-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--text-dark);margin-bottom:0.4rem;}
+.map-popup-addr{font-size:0.82rem;color:var(--text-muted);margin-bottom:0.5rem;}
+.map-popup-hours{font-size:0.82rem;color:var(--text-mid);margin-bottom:0.6rem;}
+.map-popup-items{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.75rem;}
+.map-popup-items span{font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:100px;background:var(--blue-pale);color:var(--blue-deep);}
+.map-popup-btns{display:flex;gap:8px;margin-top:0.5rem;}
+.map-popup-btns a{flex:1;text-align:center;padding:0.6rem;border-radius:100px;font-size:0.82rem;font-weight:700;text-decoration:none;font-family:'Nunito',sans-serif;}
+.map-popup-btns .btn-primary{background:var(--blue);color:white;}
+.map-popup-btns .btn-secondary{background:white;color:var(--blue);border:1.5px solid var(--blue);}
 
 /* LOADING */
 .loading{text-align:center;padding:4rem 2rem;color:var(--text-muted);}
@@ -160,10 +160,10 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 <div class="filter-bar">
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
   <div class="chip-divider"></div>
-  <button class="chip" data-filter="shelter" onclick="setFilter('shelter',this)">Shelters</button>
-  <button class="chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">Supply Stations</button>
-  <button class="chip" data-filter="medical_assistance" onclick="setFilter('medical_assistance',this)">Medical</button>
-  <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">Skills & Labor</button>
+  <button class="chip" data-filter="shelter" onclick="setFilter('shelter',this)">🏠 Shelters</button>
+  <button class="chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">🛖 Supply Stations</button>
+  <button class="chip" data-filter="medical_assistance" onclick="setFilter('medical_assistance',this)">🏥 Medical</button>
+  <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔧 Skills & Labor</button>
   <div class="chip-divider"></div>
   <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Show open listings</label>
   <div class="chip-divider"></div>
@@ -194,8 +194,6 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 <div id="mapView">
   <div id="map"></div>
 </div>
-
-<div id="mapSheet" class="map-sheet"></div>
 
 <script>
 const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
@@ -242,12 +240,103 @@ function setFilter(f, el) {
 
 function isCurrentlyOpen(l) {
   if (!l.status) return false;
+
+  // Check event date for one-time events
   if (l.event_date && l.event_date !== 'ongoing') {
     const eventDate = new Date(l.event_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (eventDate < today) return false;
   }
+
+  // No hours listed — can't determine, assume open
+  if (!l.hours) return true;
+
+  const hours = l.hours.toLowerCase().trim();
+
+  // Always-open patterns
+  if (/24\s*\/?\s*7|always\s*open|open\s*24/.test(hours)) return true;
+
+  const now = new Date();
+  const currentDay = now.getDay(); // 0=Sun, 1=Mon, ... 6=Sat
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  // Day name lookup
+  const dayMap = {
+    'sun':0,'sunday':0,'mon':1,'monday':1,'tue':2,'tues':2,'tuesday':2,
+    'wed':3,'wednesday':3,'thu':4,'thur':4,'thurs':4,'thursday':4,
+    'fri':5,'friday':5,'sat':6,'saturday':6
+  };
+
+  // --- Step 1: determine if today is an operating day ---
+  let dayMatch = null; // null = couldn't determine
+
+  if (/\bdaily\b|\bevery\s*day\b|\b7\s*days\b/.test(hours)) {
+    dayMatch = true;
+  } else if (/\bweekday/.test(hours)) {
+    dayMatch = currentDay >= 1 && currentDay <= 5;
+  } else if (/\bweekend/.test(hours)) {
+    dayMatch = currentDay === 0 || currentDay === 6;
+  } else {
+    // Day ranges like "Mon-Fri", "Monday – Saturday"
+    const rangeRx = /\b(sun(?:day)?|mon(?:day)?|tue(?:s(?:day)?)?|wed(?:nesday)?|thu(?:r(?:s(?:day)?)?)?|fri(?:day)?|sat(?:urday)?)\s*[-–—to]+\s*(sun(?:day)?|mon(?:day)?|tue(?:s(?:day)?)?|wed(?:nesday)?|thu(?:r(?:s(?:day)?)?)?|fri(?:day)?|sat(?:urday)?)\b/i;
+    const rangeMatch = hours.match(rangeRx);
+    if (rangeMatch) {
+      const s = dayMap[rangeMatch[1].toLowerCase()];
+      const e = dayMap[rangeMatch[2].toLowerCase()];
+      if (s !== undefined && e !== undefined) {
+        dayMatch = s <= e
+          ? (currentDay >= s && currentDay <= e)
+          : (currentDay >= s || currentDay <= e); // wraps (e.g. Fri-Mon)
+      }
+    }
+
+    // Individual days like "Tue, Thu" or "Tuesday and Thursday"
+    if (dayMatch === null) {
+      const found = new Set();
+      for (const [name, num] of Object.entries(dayMap)) {
+        if (new RegExp('\\b' + name + '\\b', 'i').test(hours)) found.add(num);
+      }
+      if (found.size > 0) dayMatch = found.has(currentDay);
+    }
+  }
+
+  // If we know today isn't an operating day, it's not open
+  if (dayMatch === false) return false;
+
+  // --- Step 2: check time range ---
+  // Matches "9am-5pm", "9:00 AM - 5:00 PM", "9a-5p", "9 am – 5 pm"
+  const timeRx = /(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?\s*[-–—to]+\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?/i;
+  const timeMatch = hours.match(timeRx);
+  if (timeMatch) {
+    let sH = parseInt(timeMatch[1]);
+    const sM = parseInt(timeMatch[2] || '0');
+    const sPer = (timeMatch[3] || '').toLowerCase();
+    let eH = parseInt(timeMatch[4]);
+    const eM = parseInt(timeMatch[5] || '0');
+    const ePer = (timeMatch[6] || '').toLowerCase();
+
+    // Convert to 24-hour
+    if (sPer.startsWith('p') && sH !== 12) sH += 12;
+    if (sPer.startsWith('a') && sH === 12) sH = 0;
+    if (ePer.startsWith('p') && eH !== 12) eH += 12;
+    if (ePer.startsWith('a') && eH === 12) eH = 0;
+
+    // No AM/PM given — infer (e.g. "9-5" → 9am-5pm)
+    if (!sPer && !ePer && sH >= 1 && sH <= 12 && eH >= 1 && eH <= 12 && sH > eH) {
+      eH += 12;
+    }
+
+    const startMin = sH * 60 + sM;
+    const endMin = eH * 60 + eM;
+
+    if (endMin > startMin) {
+      if (currentMinutes < startMin || currentMinutes > endMin) return false;
+    }
+    // If end < start (overnight), don't filter — ambiguous
+  }
+
+  // Couldn't fully parse → safe default: show the listing
   return true;
 }
 
@@ -380,44 +469,6 @@ function switchView(v, el) {
   if (v === 'map' && !mapReady) initMap();
 }
 
-function openMapSheet(l) {
-  const sheet = document.getElementById('mapSheet');
-  const rawItems = l.items || [];
-  const givingItems = rawItems.filter(i=>i.startsWith('GIVING:')).map(i=>i.replace('GIVING:','')).slice(0,4);
-  const plainItems = rawItems.filter(i=>!i.startsWith('GIVING:')&&!i.startsWith('ACCEPTING:')).slice(0,4);
-  const showItems = givingItems.length ? givingItems : plainItems;
-  const typeColor = !l.status ? '#888' : (TYPE_COLORS[(l.type||'').split(',')[0].trim()] || '#3a7d5c');
-  sheet.innerHTML = `
-    <div class="sheet-top">
-      <div class="sheet-top-handle"></div>
-      <button class="sheet-top-close" onclick="closeMapSheet()">×</button>
-    </div>
-    <div class="sheet-bar" style="background:${typeColor};"></div>
-    <p class="sheet-name">${l.name||'Unnamed'}</p>
-    ${l.address ? `<p class="sheet-addr">📍 ${l.address}${l.location?' · '+l.location:''}</p>` : ''}
-    <div class="sheet-pills">
-      ${(l.type||'').split(',').map(t=>t.trim()).filter(Boolean).map(t=>{const c=TYPE_COLORS[t]||'#3a7d5c';return `<span class="pill" style="background:${c}22;color:${c};">${TYPE_LABELS[t]||t}</span>`;}).join('')}
-      ${l.verified?`<span class="pill" style="background:#edf7f1;color:var(--sage-deep);">✓ Verified</span>`:''}
-      ${l.nonprofit?`<span class="pill" style="background:#f3eeff;color:#5b3e8a;">✦ Nonprofit</span>`:''}
-    </div>
-    ${l.hours?`<p style="font-size:0.8rem;color:var(--text-mid);margin-bottom:0.5rem;">🕐 ${l.hours}</p>`:''}
-    ${showItems.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem;">${showItems.map(i=>`<span class="lc-tag">${i}</span>`).join('')}</div>`:''}
-    ${l.notes?`<p class="sheet-notes">${l.notes.length>180?l.notes.slice(0,180)+'…':l.notes}</p>`:''}
-    <div class="sheet-btns">
-      ${(l.address||l.lat)?`<a href="https://maps.google.com/?q=${l.lat&&l.lng?l.lat+','+l.lng:encodeURIComponent(l.address||'')}" target="_blank" style="background:var(--blue-pale);color:var(--blue-deep);">📍 Directions</a>`:''}
-      <a href="malama-listing.html?id=${l.id}" style="background:var(--sage);color:white;">View full listing →</a>
-    </div>
-  `;
-  sheet.style.display = 'block';
-  requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
-}
-
-function closeMapSheet() {
-  const sheet = document.getElementById('mapSheet');
-  sheet.classList.remove('open');
-  setTimeout(() => { if (!sheet.classList.contains('open')) sheet.style.display = 'none'; }, 300);
-}
-
 function renderMarkers() {
   markers.forEach(m => m.map = null);
   markers = [];
@@ -434,7 +485,7 @@ function renderMarkers() {
     </svg>`;
     el.title = l.name + (l.location ? ' — ' + l.location : '');
     const marker = new window._AME({position:{lat:l.lat,lng:l.lng},map,title:l.name,content:el,zIndex:l.status?10:5});
-    marker.addListener('click', () => { openMapSheet(l); });
+    marker.addListener('click', () => { window.location.href = 'malama-listing.html?id=' + l.id; });
     markers.push(marker);
   });
 }
@@ -455,7 +506,6 @@ async function initMap() {
       {featureType:'transit',stylers:[{visibility:'off'}]}
     ]
   });
-  map.addListener('click', () => closeMapSheet());
   mapReady = true;
   renderMarkers();
 }
