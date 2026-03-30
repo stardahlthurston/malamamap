@@ -1337,12 +1337,8 @@ async function createNewListing() {
       msg.textContent = 'Error: ' + (result.error || resp.statusText);
       msg.className = 'result-msg error';
     } else {
-      msg.textContent = '✅ New listing created and live on the map!';
-      msg.className = 'result-msg success';
-      const postSave = document.getElementById('postSaveActions');
-      postSave.classList.add('show');
-      document.getElementById('viewListingBtn').href = `https://www.malamamap.org/malama-listing.html?id=${result.id}`;
-      loadListings(); // refresh dropdown for next time
+      window.location.href = `admin-success.html?type=created&id=${encodeURIComponent(result.id)}&name=${encodeURIComponent(nameVal)}`;
+      return;
     }
   } catch (err) {
     msg.textContent = 'Network error: ' + err.message;
@@ -1408,35 +1404,9 @@ async function pushUpdate() {
       msg.textContent = 'Error: ' + (result.error || resp.statusText);
       msg.className = 'result-msg error';
     } else {
-      msg.textContent = '✅ Listing updated successfully';
-      msg.className = 'result-msg success';
-      // Refresh in-memory listing
-      if (hoursVal)   selectedListing.hours         = hoursVal;
-      if (notesVal)   selectedListing.notes         = notesVal;
-      if (addressVal) selectedListing.address       = addressVal;
-      if (phoneVal)   selectedListing.contact_phone = phoneVal;
-      if (nameVal)    selectedListing.name          = nameVal;
-      if (websiteVal) selectedListing.website       = websiteVal;
-      selectedListing.items    = itemsArr;
-      selectedListing.status   = payload.status;
-      selectedListing.main_hub = payload.main_hub;
-      if (payload.type) selectedListing.type = payload.type;
-      // Show post-save navigation and notify panel
-      const postSave = document.getElementById('postSaveActions');
-      postSave.classList.add('show');
-      document.getElementById('viewListingBtn').href =
-        `https://www.malamamap.org/malama-listing.html?id=${selectedListing.id}`;
-      // Reset any previous notify state then show panel
-      document.getElementById('notifyBtn').disabled = false;
-      document.getElementById('notifyBtn').innerHTML = 'Send notification →';
-      document.getElementById('notifyBtn').style.background = '';
-      document.getElementById('notifySummary').dataset.edited = '';
-      showNotifyPanel(payload);
-      onListingSelect();
-      // Scroll notify panel into view so it's not missed
-      setTimeout(() => {
-        document.getElementById('notifyPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 150);
+      const displayName = (nameVal || selectedListing.name || '').trim();
+      window.location.href = `admin-success.html?type=updated&id=${encodeURIComponent(selectedListing.id)}&name=${encodeURIComponent(displayName)}`;
+      return;
     }
   } catch (err) {
     msg.textContent = 'Network error: ' + err.message;

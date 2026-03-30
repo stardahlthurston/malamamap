@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Success</title>
+<link rel="icon" href="logo.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sage: #3a7d5c; --sage-deep: #1a3d2b; --sage-pale: #edf7f1;
+    --gold: #c9983a; --gold-pale: #fdf4e3;
+    --bg: #f5f6f4; --border: #e0e4e0; --text: #1a1a1a; --muted: #6b7a6b;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 2rem 1.25rem;
+  }
+  .card {
+    background: white; border: 1px solid var(--border); border-radius: 20px;
+    padding: 3rem 2.5rem; max-width: 440px; width: 100%; text-align: center;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .icon-wrap {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--sage-pale); display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+  .icon-wrap svg { width: 34px; height: 34px; }
+  .heading {
+    font-size: 1.45rem; font-weight: 700; color: var(--sage-deep);
+    margin-bottom: 0.4rem; letter-spacing: -0.02em;
+  }
+  .sub {
+    font-size: 0.88rem; color: var(--muted); font-weight: 500;
+    margin-bottom: 2rem; line-height: 1.5;
+  }
+  .listing-name {
+    display: inline-block; background: var(--sage-pale);
+    color: var(--sage-deep); font-weight: 700; font-size: 0.88rem;
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 2rem;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .actions { display: flex; flex-direction: column; gap: 0.75rem; }
+  .btn-primary {
+    display: block; width: 100%; padding: 0.85rem 1.5rem;
+    background: var(--sage); color: white; border: none; border-radius: 100px;
+    font-size: 0.92rem; font-weight: 700; cursor: pointer; text-decoration: none;
+    font-family: inherit; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--sage-deep); }
+  .btn-secondary {
+    display: block; width: 100%; padding: 0.82rem 1.5rem;
+    background: white; color: var(--sage); border: 1.5px solid var(--sage);
+    border-radius: 100px; font-size: 0.92rem; font-weight: 700;
+    cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--sage-pale); }
+  .top-logo {
+    position: fixed; top: 1.25rem; left: 1.5rem;
+    font-size: 0.78rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<a href="admin-update.html" class="top-logo">← Mālama Map Admin</a>
+
+<div class="card">
+  <div class="icon-wrap">
+    <svg viewBox="0 0 34 34" fill="none">
+      <circle cx="17" cy="17" r="17" fill="#edf7f1"/>
+      <path d="M9 17l6 6 10-11" stroke="#3a7d5c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <h1 class="heading" id="heading">Listing updated!</h1>
+  <p class="sub" id="sub">The listing is live and visible on the map.</p>
+  <div class="listing-name" id="listingName" style="display:none;"></div>
+
+  <div class="actions">
+    <a id="seeBtn" href="#" class="btn-primary">See listing →</a>
+    <a id="againBtn" href="admin-update.html" class="btn-secondary">Update another listing</a>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const type = params.get('type') || 'updated';
+const id   = params.get('id')   || '';
+const name = params.get('name') || '';
+
+const isCreate = type === 'created';
+
+document.getElementById('heading').textContent  = isCreate ? 'Listing created!' : 'Listing updated!';
+document.getElementById('sub').textContent      = isCreate
+  ? 'The new listing is live and visible on the map.'
+  : 'Changes are live and visible on the map.';
+document.getElementById('againBtn').textContent = isCreate ? 'Create another listing' : 'Update another listing';
+
+if (name) {
+  const nameEl = document.getElementById('listingName');
+  nameEl.textContent = name;
+  nameEl.style.display = 'inline-block';
+}
+
+if (id) {
+  document.getElementById('seeBtn').href = 'malama-listing.html?id=' + encodeURIComponent(id);
+} else {
+  document.getElementById('seeBtn').style.display = 'none';
+}
+</script>
+</body>
+</html>
