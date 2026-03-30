@@ -131,6 +131,12 @@ body{font-family:'Nunito',sans-serif;background:#0d2a3d;color:var(--text-dark);m
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 const TYPE_LABELS = {
   shelter:'🏠 Shelter', supply_station:'🛖 Supply Station',
   donation_dropoff:'📦 Donation Drop-off', volunteer_event:'🙋 Volunteers Needed',
@@ -159,7 +165,7 @@ async function loadStats() {
   const max = sorted[0]?.[1] || 1;
   document.getElementById('neighborhoodList').innerHTML = sorted.map(([name,count]) => `
     <div class="neighborhood-row">
-      <p class="neighborhood-name">${name}</p>
+      <p class="neighborhood-name">${escapeHtml(name)}</p>
       <div class="neighborhood-bar-wrap">
         <div class="neighborhood-bar" style="width:${Math.round(count/max*100)}%"></div>
       </div>

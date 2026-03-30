@@ -254,6 +254,11 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
 const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 const ZIP_CITY = {
   "96701":"ʻAiea","96706":"ʻEwa Beach","96707":"Kapolei","96708":"Makakilo",
   "96712":"Haleʻiwa","96730":"Kahuku","96734":"Kailua","96744":"Kāneʻohe",
@@ -323,7 +328,7 @@ function createPinElement(l) {
   el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="34">
     <rect x="1" y="1" width="${w-2}" height="24" rx="12" fill="${color}"/>
     <circle cx="12" cy="13" r="3.5" fill="rgba(255,255,255,0.9)"/>
-    <text x="20" y="17" font-family="Nunito,sans-serif" font-size="9.5" font-weight="700" fill="white" letter-spacing="0.2">${label}</text>
+    <text x="20" y="17" font-family="Nunito,sans-serif" font-size="9.5" font-weight="700" fill="white" letter-spacing="0.2">${escapeHtml(label)}</text>
     <polygon points="${w/2-5},25 ${w/2},32 ${w/2+5},25" fill="${color}"/>
   </svg>`;
   return el;
@@ -397,11 +402,11 @@ function buildCard(l, inPopup) {
     <div style="${inPopup ? 'cursor:default;' : ''}">
       <div class="lc-header">
         <div class="lc-left">
-          <p class="lc-name">${l.name}</p>
-          ${l.location ? `<p class="lc-area">📍 ${l.location}</p>` : ''}
+          <p class="lc-name">${escapeHtml(l.name)}</p>
+          ${l.location ? `<p class="lc-area">📍 ${escapeHtml(l.location)}</p>` : ''}
           <p class="lc-addr">
             <svg viewBox="0 0 11 11" fill="none"><path d="M5.5 1.5C4.1 1.5 3 2.6 3 4c0 2 2.5 4.5 2.5 4.5S8 6 8 4c0-1.4-1.1-2.5-2.5-2.5z" stroke="currentColor" stroke-width="1.2"/></svg>
-            ${l.address}
+            ${escapeHtml(l.address)}
           </p>
         </div>
         <div class="lc-badges">
@@ -413,23 +418,23 @@ function buildCard(l, inPopup) {
       </div>
       <div class="lc-body">
         <div class="lc-tags">
-          ${itemsToShow.map(i => `<span class="lc-tag ${isNeed ? 'need' : ''}">${i}</span>`).join('')}
+          ${itemsToShow.map(i => `<span class="lc-tag ${isNeed ? 'need' : ''}">${escapeHtml(i)}</span>`).join('')}
           ${moreCount > 0 ? `<span class="lc-tag" style="background:#f0f0ec;color:var(--text-muted);">+${moreCount} more</span>` : ''}
         </div>
         <div class="lc-meta">
           <span class="lc-meta-item">
             <svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v3l2 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-            ${l.hours}
+            ${escapeHtml(l.hours)}
           </span>
         </div>
-        ${l.notes ? `<p class="lc-notes">${l.notes}</p>` : ''}
+        ${l.notes ? `<p class="lc-notes">${escapeHtml(l.notes)}</p>` : ''}
         <div class="lc-actions">
           <a href="https://maps.google.com/?q=${l.lat && l.lng ? l.lat+','+l.lng : encodeURIComponent(l.address)}" target="_blank" class="lc-btn btn-directions" onclick="event.stopPropagation()">
             <svg viewBox="0 0 14 14" fill="none" style="width:11px;height:11px;"><path d="M7 1l5 5-5 5M2 6h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Take me there
           </a>
-          ${l.givingUrl ? `<a href="https://${l.givingUrl}" target="_blank" class="lc-btn btn-give" onclick="event.stopPropagation()">Donate online</a>` : ''}
-          ${l.website ? `<a href="https://${l.website}" target="_blank" class="lc-btn btn-web" onclick="event.stopPropagation()">Website</a>` : ''}
+          ${l.givingUrl ? `<a href="https://${escapeHtml(l.givingUrl)}" target="_blank" class="lc-btn btn-give" onclick="event.stopPropagation()">Donate online</a>` : ''}
+          ${l.website ? `<a href="https://${escapeHtml(l.website)}" target="_blank" class="lc-btn btn-web" onclick="event.stopPropagation()">Website</a>` : ''}
         </div>
 
       </div>

@@ -98,8 +98,6 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 #mapView{display:none;height:calc(100vh - 160px);}
 #map{width:100%;height:100%;}
-
-/* MAP BOTTOM SHEET */
 .map-sheet{position:fixed;bottom:0;left:0;right:0;z-index:200;background:white;border-radius:20px 20px 0 0;padding:0 1.25rem 2rem;max-height:55vh;overflow-y:auto;transform:translateY(105%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);box-shadow:0 -4px 30px rgba(0,0,0,0.18);pointer-events:none;display:none;}
 .map-sheet.open{transform:translateY(0);pointer-events:all;}
 .sheet-top{display:flex;align-items:center;justify-content:center;padding:0.75rem 0 0.6rem;position:sticky;top:0;background:white;z-index:1;}
@@ -182,6 +180,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SURL, SKEY);
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#d4580a'};
 const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteers Needed',skills_labor:'🔍 Needs Skills & Labor',supply_station:'🛖 Supply Station',shelter:'🏠 Shelter',medical_assistance:'🏥 Medical Aid'};
@@ -391,9 +394,9 @@ function renderList() {
     <div class="listing-card" onclick="window.open('malama-listing.html?id=${l.id}','_self')" style="border-top:4px solid ${(()=>{const t=(l.type||'').split(',')[0].trim();return t==='donation_dropoff'?'var(--gold)':t==='volunteer_event'?'#7b5ea7':t==='shelter'?'var(--blue)':t==='medical_assistance'?'var(--red)':'var(--sage)'})()};">
       <div class="lc-header">
         <div>
-          <p class="lc-name">${l.name}</p>
-          ${l.location ? `<p style="font-size:0.72rem;font-weight:700;color:var(--sage);margin-bottom:2px;">📍 ${l.location}</p>` : ''}
-          <p class="lc-addr">${l.address}</p>
+          <p class="lc-name">${escapeHtml(l.name)}</p>
+          ${l.location ? `<p style="font-size:0.72rem;font-weight:700;color:var(--sage);margin-bottom:2px;">📍 ${escapeHtml(l.location)}</p>` : ''}
+          <p class="lc-addr">${escapeHtml(l.address)}</p>
         </div>
         <div class="lc-badges">
           <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Active' : 'Inactive'}</span>
@@ -402,18 +405,18 @@ function renderList() {
         </div>
       </div>
       <div class="lc-body">
-        ${isEvent && l.event_date ? `<div class="event-date-badge">📅 ${new Date(l.event_date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}${l.hours ? ' · '+l.hours : ''}</div>` : ''}
-        ${isEvent && l.volunteer_needs ? `<p class="lc-notes">Volunteers needed: ${l.volunteer_needs}</p>` : ''}
-        ${!isEvent && showItems.length ? `<div class="lc-tags">${showItems.map(i=>`<span class="lc-tag-gold">${i}</span>`).join('')}${rawItems.length>5?`<span class="lc-tag-gold" style="background:#f0f0ec;color:var(--text-muted);">+${rawItems.length-5} more</span>`:''}</div>` : ''}
+        ${isEvent && l.event_date ? `<div class="event-date-badge">📅 ${new Date(l.event_date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}${l.hours ? ' · '+escapeHtml(l.hours) : ''}</div>` : ''}
+        ${isEvent && l.volunteer_needs ? `<p class="lc-notes">Volunteers needed: ${escapeHtml(l.volunteer_needs)}</p>` : ''}
+        ${!isEvent && showItems.length ? `<div class="lc-tags">${showItems.map(i=>`<span class="lc-tag-gold">${escapeHtml(i)}</span>`).join('')}${rawItems.length>5?`<span class="lc-tag-gold" style="background:#f0f0ec;color:var(--text-muted);">+${rawItems.length-5} more</span>`:''}</div>` : ''}
         <div class="lc-meta">
-          ${!isEvent && l.hours ? `<span class="lc-meta-item">🕐 ${l.hours}</span>` : ''}
-          ${l.contact_phone ? `<span class="lc-meta-item">📞 ${l.contact_phone}</span>` : ''}
+          ${!isEvent && l.hours ? `<span class="lc-meta-item">🕐 ${escapeHtml(l.hours)}</span>` : ''}
+          ${l.contact_phone ? `<span class="lc-meta-item">📞 ${escapeHtml(l.contact_phone)}</span>` : ''}
         </div>
-        ${l.notes ? `<p class="lc-notes">${l.notes}</p>` : ''}
+        ${l.notes ? `<p class="lc-notes">${escapeHtml(l.notes)}</p>` : ''}
         <div class="lc-actions" onclick="event.preventDefault();event.stopPropagation();">
           ${l.address ? `<a href="https://maps.google.com/?q=${l.lat&&l.lng?l.lat+','+l.lng:encodeURIComponent(l.address)}" target="_blank" class="lc-btn ${isEvent ? 'btn-volunteer' : 'btn-go'}">Take me there</a>` : ''}
-          ${l.website ? `<a href="${l.website.startsWith('http')?l.website:'https://'+l.website}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
-          ${l.giving_url ? `<a href="${l.giving_url.startsWith('http')?l.giving_url:'https://'+l.giving_url}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
+          ${l.website ? `<a href="${escapeHtml(l.website.startsWith('http')?l.website:'https://'+l.website)}" target="_blank" class="lc-btn" style="color:var(--sage);background:var(--sage-pale);border-color:var(--sage-light);">Website</a>` : ''}
+          ${l.giving_url ? `<a href="${escapeHtml(l.giving_url.startsWith('http')?l.giving_url:'https://'+l.giving_url)}" target="_blank" class="lc-btn" style="color:var(--gold);background:var(--gold-pale);border-color:rgba(201,152,58,0.3);">Donate online</a>` : ''}
         </div>
         <button class="share-card-btn" data-id="${l.id}" onclick="event.preventDefault();event.stopPropagation();handleShare(this,'${l.id}')">
           <svg viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M15 7l-5-5-5 5M10 2v11M4 13v3a2 2 0 002 2h8a2 2 0 002-2v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -449,41 +452,27 @@ function switchView(v, el) {
 
 function openMapSheet(l) {
   const sheet = document.getElementById('mapSheet');
-  const rawItems = l.items || [];
-  const acceptingItems = rawItems.filter(i=>i.startsWith('ACCEPTING:')).map(i=>i.replace('ACCEPTING:','')).slice(0,4);
-  const plainItems = rawItems.filter(i=>!i.startsWith('GIVING:')&&!i.startsWith('ACCEPTING:')).slice(0,4);
-  const showItems = acceptingItems.length ? acceptingItems : plainItems;
-  const isEvent = (l.type||'').split(',').map(s=>s.trim()).includes('volunteer_event');
-  const typeColor = !l.status ? '#888' : (TYPE_COLORS[(l.type||'').split(',')[0].trim()] || '#c9983a');
+  const color = !l.status ? '#888' : (TYPE_COLORS[l.type] || '#c9983a');
+  const label = (l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(', ');
   sheet.innerHTML = `
-    <div class="sheet-top">
-      <div class="sheet-top-handle"></div>
-      <button class="sheet-top-close" onclick="closeMapSheet()">×</button>
+    <div style="position:relative;padding:0.9rem 0 0.4rem;">
+      <div style="width:36px;height:4px;background:#ddd;border-radius:2px;position:absolute;left:50%;transform:translateX(-50%);top:10px;"></div>
+      <button onclick="closeMapSheet()" style="position:absolute;right:0;top:4px;background:none;border:none;font-size:1.4rem;color:#aaa;cursor:pointer;line-height:1;">×</button>
     </div>
-    <div class="sheet-bar" style="background:${typeColor};"></div>
-    <p class="sheet-name">${l.name||'Unnamed'}</p>
-    ${l.address ? `<p class="sheet-addr">📍 ${l.address}${l.location?' · '+l.location:''}</p>` : ''}
-    <div class="sheet-pills">
-      ${(l.type||'').split(',').map(t=>t.trim()).filter(Boolean).map(t=>{const c=TYPE_COLORS[t]||'#3a7d5c';return `<span class="pill" style="background:${c}22;color:${c};">${TYPE_LABELS[t]||t}</span>`;}).join('')}
-      ${l.verified?`<span class="pill" style="background:#edf7f1;color:var(--sage-deep);">✓ Verified</span>`:''}
-      ${l.nonprofit?`<span class="pill" style="background:#f3eeff;color:#5b3e8a;">✦ Nonprofit</span>`:''}
-    </div>
-    ${isEvent && l.event_date ? `<p style="font-size:0.8rem;color:#7b5ea7;font-weight:700;margin-bottom:0.5rem;">📅 ${new Date(l.event_date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}${l.hours?' · '+l.hours:''}</p>` : (l.hours ? `<p style="font-size:0.8rem;color:var(--text-mid);margin-bottom:0.5rem;">🕐 ${l.hours}</p>` : '')}
-    ${showItems.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem;">${showItems.map(i=>`<span style="font-size:0.67rem;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--gold-pale);color:var(--gold-deep);">${i}</span>`).join('')}</div>`:''}
-    ${l.notes?`<p class="sheet-notes">${l.notes.length>180?l.notes.slice(0,180)+'…':l.notes}</p>`:''}
-    <div class="sheet-btns">
-      ${(l.address||l.lat)?`<a href="https://maps.google.com/?q=${l.lat&&l.lng?l.lat+','+l.lng:encodeURIComponent(l.address||'')}" target="_blank" style="background:var(--sage-pale);color:var(--sage-deep);">📍 Directions</a>`:''}
-      <a href="malama-listing.html?id=${l.id}" style="background:var(--sage);color:white;">View full listing →</a>
-    </div>
-  `;
+    <div style="padding-bottom:1rem;">
+      <div style="display:inline-block;background:${color};color:white;font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:100px;margin-bottom:0.5rem;">${escapeHtml(label||'Other')}</div>
+      <h3 style="margin:0 0 0.3rem;font-size:1.05rem;font-weight:800;color:#1a2e1a;">${escapeHtml(l.name||'')}</h3>
+      ${l.location ? `<p style="margin:0 0 0.8rem;font-size:0.82rem;color:#666;">📍 ${escapeHtml(l.location)}</p>` : '<div style="margin-bottom:0.8rem;"></div>'}
+      <a href="malama-listing.html?id=${encodeURIComponent(l.id)}" style="display:inline-block;background:#c9983a;color:white;font-weight:700;font-size:0.85rem;padding:0.5rem 1.2rem;border-radius:100px;text-decoration:none;">View full listing →</a>
+    </div>`;
   sheet.style.display = 'block';
-  requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
+  requestAnimationFrame(() => sheet.classList.add('open'));
 }
 
 function closeMapSheet() {
   const sheet = document.getElementById('mapSheet');
   sheet.classList.remove('open');
-  setTimeout(() => { if (!sheet.classList.contains('open')) sheet.style.display = 'none'; }, 300);
+  setTimeout(() => { sheet.style.display = 'none'; }, 300);
 }
 
 function renderMarkers() {
@@ -500,8 +489,8 @@ function renderMarkers() {
       <text x="${w/2}" y="17" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="700" fill="white">${l.status ? label : 'Inactive'}</text>
       <polygon points="${w/2-5},25 ${w/2},32 ${w/2+5},25" fill="${color}"/>
     </svg>`;
-    el.title = l.name + (l.location ? ' — ' + l.location : '');
-    const marker = new window._AME({position:{lat:l.lat,lng:l.lng},map,title:l.name,content:el});
+    el.title = escapeHtml(l.name) + (l.location ? ' — ' + escapeHtml(l.location) : '');
+    const marker = new window._AME({position:{lat:l.lat,lng:l.lng},map,title:escapeHtml(l.name),content:el});
     marker.addListener('click', () => openMapSheet(l));
     markers.push(marker);
   });

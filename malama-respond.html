@@ -176,6 +176,11 @@ const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 let needData = null;
 
 function timeAgo(dateStr) {
@@ -222,7 +227,7 @@ async function loadNeed() {
   const tagsEl = document.getElementById('needTags');
   const needs = data.needs || [];
   tagsEl.innerHTML = needs.map(n =>
-    `<span class="need-tag">${n}</span>`
+    `<span class="need-tag">${escapeHtml(n)}</span>`
   ).join('') + (data.urgency === 'urgent' ? '<span class="need-tag urgent">Urgent</span>' : '');
 
   document.getElementById('needArea').textContent = '📍 ' + (data.area || 'Not specified');

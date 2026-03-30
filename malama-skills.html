@@ -118,11 +118,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <div class="filter-bar">
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
-  <button class="chip" id="chipOffering" onclick="setDirFilter('offering',this)">Offering skills</button>
-  <button class="chip" id="chipSeeking" onclick="setDirFilter('seeking',this)">Looking for help</button>
+  <button class="chip" id="chipOffering" onclick="setDirFilter('offering',this)">🙌 Offering skills</button>
+  <button class="chip" id="chipSeeking" onclick="setDirFilter('seeking',this)">🔍 Looking for help</button>
 
-  <button class="chip" data-filter="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">Offering skills</button>
-  <button class="chip" data-filter="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">Looking for help</button>
+  <button class="chip" data-filter="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">🙌 Offering skills</button>
+  <button class="chip" data-filter="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">🔍 Looking for help</button>
   <button class="chip" data-filter="Physical labor" onclick="setFilter('Physical labor',this)">Physical labor</button>
   <button class="chip" data-filter="Truck / hauling" onclick="setFilter('Truck / hauling',this)">Truck & hauling</button>
   <button class="chip" data-filter="Heavy equipment" onclick="setFilter('Heavy equipment',this)">Heavy equipment</button>
@@ -183,7 +183,12 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SURL, SKEY);
-const RESEND_KEY = 're_eLmSU6CM_9us7cagbKgZ13jcYjvJMwDxs';
+// RESEND_KEY removed — email sending moved server-side to /api/send-skill-email
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 let allListings = [], filtered = [], activeFilter = 'all';
 
@@ -254,14 +259,14 @@ function renderList() {
       <div class="rc-stripe"></div>
       <div class="rc-header">
         <div>
-          <p class="rc-name">${l.name}</p>
+          <p class="rc-name">${escapeHtml(l.name)}</p>
           <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:100px;display:inline-block;margin-bottom:3px;${l.skills_direction==='seeking'?'background:#f5f0ff;color:#4a2d7a;':'background:var(--sage-pale);color:var(--sage-deep);'}">
             ${l.skills_direction==='seeking'?'🔍 Looking for skilled help':'🙌 Offering skills'}
           </span>
       <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:100px;margin-bottom:4px;display:inline-block;${l.skills_direction==='seeking'?'background:#f5f0ff;color:#4a2d7a;':'background:var(--sage-pale);color:var(--sage-deep);'}">
         ${l.skills_direction==='seeking'?'🔍 Looking for help':'🙌 Offering skills'}
       </span>
-          <p class="rc-area">📍 ${l.address}</p>
+          <p class="rc-area">📍 ${escapeHtml(l.address)}</p>
         </div>
         <div class="rc-badges">
           <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Available' : 'Unavailable'}</span>
@@ -269,12 +274,12 @@ function renderList() {
         </div>
       </div>
       <div class="rc-body">
-        ${skills.length ? `<div class="rc-skills">${skills.map(s => `<span class="rc-skill">${s}</span>`).join('')}</div>` : ''}
+        ${skills.length ? `<div class="rc-skills">${skills.map(s => `<span class="rc-skill">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
         <div class="rc-meta">
-          ${l.hours ? `<span class="rc-meta-item">🕐 ${l.hours}</span>` : ''}
+          ${l.hours ? `<span class="rc-meta-item">🕐 ${escapeHtml(l.hours)}</span>` : ''}
         </div>
-        ${l.notes ? `<p class="rc-notes">${l.notes}</p>` : ''}
-        <button class="request-btn" onclick="openRequest('${l.id}', '${(l.name || '').replace(/'/g,"\\'")}', '${(l.contact_email || '').replace(/'/g,"\\'")}')">Send a request →</button>
+        ${l.notes ? `<p class="rc-notes">${escapeHtml(l.notes)}</p>` : ''}
+        <button class="request-btn" onclick="openRequest('${l.id}', '${escapeHtml((l.name || '').replace(/'/g,"&#39;"))}', '${escapeHtml((l.contact_email || '').replace(/'/g,"&#39;"))}')">Send a request →</button>
       </div>
     </div>`;
   }).join('');
@@ -317,32 +322,33 @@ async function sendRequest() {
         <h1 style="color:white;font-size:18px;margin:0;">Mālama Map — Help Request</h1>
       </div>
       <div style="background:white;border:1px solid #eee;border-top:none;padding:24px;border-radius:0 0 12px 12px;">
-        <p style="font-size:15px;font-weight:600;">Aloha ${resourceName},</p>
+        <p style="font-size:15px;font-weight:600;">Aloha ${escapeHtml(resourceName)},</p>
         <p style="font-size:14px;color:#4a453f;line-height:1.6;margin-top:8px;">Someone needs your help through Mālama Map.</p>
         <div style="background:#fff3ee;border-radius:10px;padding:16px;margin:16px 0;">
           <p style="font-size:13px;color:#8a3010;font-weight:700;margin-bottom:8px;">FROM</p>
-          <p style="font-size:14px;font-weight:600;">${name}</p>
-          <p style="font-size:14px;color:#4a453f;">${email}</p>
-          ${document.getElementById('reqPhone').value ? `<p style="font-size:14px;color:#4a453f;">${document.getElementById('reqPhone').value}</p>` : ''}
+          <p style="font-size:14px;font-weight:600;">${escapeHtml(name)}</p>
+          <p style="font-size:14px;color:#4a453f;">${escapeHtml(email)}</p>
+          ${document.getElementById('reqPhone').value ? `<p style="font-size:14px;color:#4a453f;">${escapeHtml(document.getElementById('reqPhone').value)}</p>` : ''}
         </div>
         <div style="background:#f9f9f7;border-radius:10px;padding:16px;margin:16px 0;">
           <p style="font-size:13px;color:#8a827a;font-weight:700;margin-bottom:8px;">THEIR REQUEST</p>
-          <p style="font-size:14px;color:#1c1a18;line-height:1.6;">${message}</p>
+          <p style="font-size:14px;color:#1c1a18;line-height:1.6;">${escapeHtml(message)}</p>
         </div>
         <p style="font-size:12px;color:#8a827a;margin-top:16px;">Reply directly to their email to connect. Mahalo for being a resource for Hawaiʻi. 🌺</p>
       </div>
     </div>`;
 
   try {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetch('/api/send-skill-email', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'noreply@malamamap.org',
         to: toEmail,
         reply_to: email,
-        subject: `Mālama Map — Help request from ${name}`,
-        html
+        requester_name: name,
+        requester_phone: document.getElementById('reqPhone').value || '',
+        resource_name: resourceName,
+        message: message
       })
     });
 

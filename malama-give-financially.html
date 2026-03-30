@@ -124,6 +124,11 @@ const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 let allListings = [];
 let activeFilter = 'all';
 
@@ -136,7 +141,7 @@ async function loadListings() {
     .order('name', { ascending: true });
 
   const grid = document.getElementById('cardGrid');
-  if (error) { grid.innerHTML = `<div class="empty-state"><p style="color:var(--red);">${error.message}</p></div>`; return; }
+  if (error) { grid.innerHTML = `<div class="empty-state"><p style="color:var(--red);">${escapeHtml(error.message)}</p></div>`; return; }
 
   // Exclude donation drop-off listings that only have a giving_url but aren't explicitly financial_giving
   allListings = (data || []).filter(l => {
@@ -171,13 +176,13 @@ function render() {
       <div class="card-inner">
         <div class="card-body">
           <div class="card-top">
-            <span class="card-name">${l.name || 'Unnamed'}</span>
-            ${l.location ? `<span class="badge-cat">${l.location}</span>` : ''}
+            <span class="card-name">${escapeHtml(l.name) || 'Unnamed'}</span>
+            ${l.location ? `<span class="badge-cat">${escapeHtml(l.location)}</span>` : ''}
             ${l.verified ? `<span class="badge-verified">✓ Verified</span>` : ''}
           </div>
-          ${l.notes ? `<p class="card-summary">${l.notes}</p>` : ''}
+          ${l.notes ? `<p class="card-summary">${escapeHtml(l.notes)}</p>` : ''}
           <div class="card-actions">
-            ${donateUrl ? `<a href="${donateUrl}" target="_blank" rel="noopener" class="btn-donate" onclick="event.stopPropagation()">Donate →</a>` : ''}
+            ${donateUrl ? `<a href="${escapeHtml(donateUrl)}" target="_blank" rel="noopener" class="btn-donate" onclick="event.stopPropagation()">Donate →</a>` : ''}
             <a href="malama-listing.html?id=${l.id}" class="card-details-link">View listing →</a>
           </div>
         </div>
