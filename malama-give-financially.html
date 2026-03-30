@@ -31,12 +31,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 .hero-eyebrow{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:0.4rem;}
 .hero-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:800;color:white;margin-bottom:0.5rem;}
 .hero-sub{font-size:0.88rem;font-weight:500;color:rgba(255,255,255,0.82);max-width:480px;margin:0 auto;line-height:1.6;}
-.kokua-callout{background:rgba(255,255,255,0.13);border:1.5px solid rgba(255,255,255,0.25);border-radius:16px;padding:1.25rem 1.5rem 1.4rem;margin:1.4rem auto 0;max-width:520px;text-align:center;backdrop-filter:blur(6px);}
-.kokua-callout-icon{font-size:1.6rem;margin-bottom:0.4rem;}
-.kokua-callout-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:white;margin-bottom:0.45rem;}
-.kokua-callout-body{font-size:0.8rem;font-weight:500;color:rgba(255,255,255,0.88);line-height:1.6;margin-bottom:1rem;}
-.kokua-callout-link{display:inline-block;padding:0.55rem 1.4rem;background:white;color:var(--gold-deep);border-radius:100px;font-size:0.82rem;font-weight:800;text-decoration:none;transition:background 0.2s;}
-.kokua-callout-link:hover{background:rgba(255,255,255,0.9);}
+.kokua-pill{display:inline-flex;align-items:center;gap:0.75rem;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:100px;padding:0.55rem 0.65rem 0.55rem 1rem;margin-top:1.25rem;max-width:560px;flex-wrap:wrap;justify-content:center;}
+.kokua-pill-text{font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.95);line-height:1.4;text-align:left;}
+.kokua-pill-text strong{color:white;font-weight:800;}
+.kokua-pill-btn{padding:0.38rem 1rem;background:white;color:var(--gold-deep);border-radius:100px;font-size:0.78rem;font-weight:800;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:background 0.2s;}
+.kokua-pill-btn:hover{background:rgba(255,255,255,0.88);}
 
 .filter-bar{background:white;border-bottom:2px solid var(--border);padding:0.7rem 1.25rem;display:flex;align-items:center;gap:0.5rem;overflow-x:auto;scrollbar-width:none;position:sticky;top:48px;z-index:90;}
 .filter-bar::-webkit-scrollbar{display:none;}
@@ -74,7 +73,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 @media(max-width:600px){
   .hero-title{font-size:1.5rem;}
   .card{flex-direction:column;gap:0.75rem;}
-  .kokua-callout{margin:1rem 1rem 0;}
+  .kokua-pill{padding:0.5rem 0.75rem;}
 }
 </style>
 </head>
@@ -92,11 +91,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <p class="hero-eyebrow">Financial giving</p>
   <h1 class="hero-title">Give Financially</h1>
   <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery efforts.</p>
-  <div class="kokua-callout">
-    <div class="kokua-callout-icon">🌺</div>
-    <p class="kokua-callout-title">Are you a family in need of financial support?</p>
-    <p class="kokua-callout-body">Storm Kōkua is a grassroots effort by the <strong style="color:white;">Help Maui Rise</strong> initiative, created to connect displaced ʻohana with donors. Submit your story to be added to their verified Financial Support List — they review every request and help amplify it to those who can give.</p>
-    <a href="https://www.stormkokua.com" target="_blank" rel="noopener" class="kokua-callout-link">Visit stormkokua.com →</a>
+  <div style="text-align:center;">
+    <div class="kokua-pill">
+      <span class="kokua-pill-text">🌺 <strong>Family in need of support?</strong> Storm Kōkua — a grassroots effort by Help Maui Rise — connects displaced ʻohana directly with donors.</span>
+      <a href="https://www.stormkokua.com" target="_blank" rel="noopener" class="kokua-pill-btn">Storm Kōkua →</a>
+    </div>
   </div>
 </div>
 
