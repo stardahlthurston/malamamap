@@ -175,6 +175,7 @@ function initAddressAutocomplete() {
   .type-chip.selected.shelter { background: #eef4ff; border-color: #4a7abf; color: #1a3a6b; }
   .type-chip.selected.skills    { background: #f5f0ff; border-color: #7b5ea7; color: #4a2d7a; }
   .type-chip.selected.financial { background: #fff8e7; border-color: #c9983a; color: #7a4f00; }
+  .type-chip.selected.food { background: #fdf0e8; border-color: #c05621; color: #7a3210; }
 
   /* ── TOGGLES ROW ── */
   .toggles-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
@@ -405,6 +406,7 @@ function initAddressAutocomplete() {
           <label>Listing Type</label>
           <div class="type-chips" id="typeChipsContainer">
             <button type="button" class="type-chip supply"   data-type="supply_station"    onclick="toggleTypeChip(this)">🛖 Supply Station</button>
+            <button type="button" class="type-chip food"     data-type="food_distribution" onclick="toggleTypeChip(this)">🍱 Food Distribution</button>
             <button type="button" class="type-chip dropoff"  data-type="donation_dropoff"  onclick="toggleTypeChip(this)">📦 Donation Drop-off</button>
             <button type="button" class="type-chip shelter"  data-type="shelter"           onclick="toggleTypeChip(this)">🏠 Shelter</button>
             <button type="button" class="type-chip"          data-type="volunteer_event"   onclick="toggleTypeChip(this)">🙋 Volunteers</button>
@@ -520,9 +522,11 @@ function initAddressAutocomplete() {
         <div id="extVolExtras" style="display:none;">
           <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7b5ea7;margin:0.75rem 0 0.4rem;">🙋 Volunteers Needed</div>
           <div class="review-field">
-            <label>Event date</label>
+            <label>Event dates <span style="font-weight:400;text-transform:none;letter-spacing:0;">— add one or more</span></label>
+            <div id="extEventDatePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;min-height:24px;"></div>
             <div style="display:flex;gap:8px;align-items:center;">
               <input type="date" id="extEventDate" style="flex:1;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;color:var(--text);">
+              <button type="button" onclick="addExtEventDate()" style="padding:0.48rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid var(--sage);background:white;color:var(--sage);white-space:nowrap;transition:all 0.15s;">+ Add</button>
               <button type="button" id="extOngoingBtn" onclick="toggleExtOngoing()" style="padding:0.48rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid #ddd;background:white;color:var(--muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
             </div>
           </div>
@@ -811,7 +815,7 @@ function initTypeChips(typeStr) {
 }
 
 function updateItemSections() {
-  const hasSupply   = selectedTypesEdit.has('supply_station');
+  const hasSupply   = selectedTypesEdit.has('supply_station') || selectedTypesEdit.has('food_distribution');
   const hasDropoff  = selectedTypesEdit.has('donation_dropoff');
   const hasVol      = selectedTypesEdit.has('volunteer_event');
   const hasShelter  = selectedTypesEdit.has('shelter');
@@ -904,15 +908,49 @@ function resetExtHours() {
 // ══════════════════════════════════════
 // TYPE-SPECIFIC EXTRA HELPERS
 // ══════════════════════════════════════
+let _extEventDates = [];
+
+function addExtEventDate(dateVal) {
+  const input = document.getElementById('extEventDate');
+  const val = dateVal || input?.value;
+  if (!val) return;
+  if (_extEventDates.includes(val)) { if (input) input.value = ''; return; }
+  _extEventDates.push(val);
+  renderExtEventDatePills();
+  if (input) input.value = '';
+}
+
+function removeExtEventDate(val) {
+  _extEventDates = _extEventDates.filter(d => d !== val);
+  if (val === 'ongoing') {
+    const btn = document.getElementById('extOngoingBtn');
+    if (btn) { btn.dataset.active = ''; btn.style.background = 'white'; btn.style.color = 'var(--muted)'; btn.style.borderColor = '#ddd'; }
+  }
+  renderExtEventDatePills();
+}
+
+function renderExtEventDatePills() {
+  const container = document.getElementById('extEventDatePills');
+  if (!container) return;
+  container.innerHTML = _extEventDates.map(d => {
+    const label = d === 'ongoing' ? 'Ongoing' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--sage-pale,#edf7f1);border:1.5px solid var(--sage,#3a7d5c);border-radius:100px;padding:4px 10px;font-size:0.78rem;font-weight:700;color:var(--sage-deep,#2d5c3f);">${label}<button type="button" onclick="removeExtEventDate('${d}')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:0.9rem;font-weight:700;padding:0 0 0 2px;line-height:1;">×</button></span>`;
+  }).join('');
+}
+
 function toggleExtOngoing() {
   const btn = document.getElementById('extOngoingBtn');
-  const dateInput = document.getElementById('extEventDate');
   const on = btn.dataset.active !== 'true';
   btn.dataset.active = on ? 'true' : '';
   btn.style.background = on ? 'var(--sage)' : 'white';
   btn.style.color = on ? 'white' : 'var(--muted)';
   btn.style.borderColor = on ? 'var(--sage)' : '#ddd';
-  dateInput.disabled = on; dateInput.style.opacity = on ? '0.4' : '1';
+  if (on) {
+    _extEventDates = ['ongoing'];
+  } else {
+    _extEventDates = _extEventDates.filter(d => d !== 'ongoing');
+  }
+  renderExtEventDatePills();
 }
 
 function selectExtSkillsDir(dir) {
@@ -929,6 +967,8 @@ function selectExtSkillsDir(dir) {
 
 function resetTypeExtras() {
   // volunteer
+  _extEventDates = [];
+  renderExtEventDatePills();
   const eb = document.getElementById('extOngoingBtn');
   if (eb) { eb.dataset.active = ''; eb.style.background = 'white'; eb.style.color = 'var(--muted)'; eb.style.borderColor = '#ddd'; }
   const ed = document.getElementById('extEventDate'); if (ed) { ed.value = ''; ed.disabled = false; ed.style.opacity = '1'; }
@@ -944,8 +984,8 @@ function resetTypeExtras() {
 function getTypeExtrasPayload() {
   const payload = {};
   if (selectedTypesEdit.has('volunteer_event')) {
-    const ongoing = document.getElementById('extOngoingBtn')?.dataset.active === 'true';
-    payload.event_date = ongoing ? 'ongoing' : (document.getElementById('extEventDate')?.value || null);
+    payload.event_dates = _extEventDates.length > 0 ? _extEventDates : null;
+    payload.event_date = _extEventDates.includes('ongoing') ? 'ongoing' : (_extEventDates.length > 0 ? [..._extEventDates].filter(d=>d!=='ongoing').sort()[0] : null);
     payload.volunteer_signup_url = document.getElementById('extVolSignupUrl')?.value.trim() || null;
   }
   if (selectedTypesEdit.has('shelter')) {
@@ -1052,6 +1092,28 @@ function onListingSelect() {
 
   // ── Init type chips & extracted item sections ──
   initTypeChips(selectedListing.type);
+
+  // ── Populate event_dates if volunteer_event ──
+  _extEventDates = [];
+  if ((selectedListing.type||'').includes('volunteer_event')) {
+    if (selectedListing.event_dates && selectedListing.event_dates.length > 0) {
+      _extEventDates = selectedListing.event_dates;
+      if (_extEventDates.includes('ongoing')) {
+        const btn = document.getElementById('extOngoingBtn');
+        if (btn) { btn.dataset.active = 'true'; btn.style.background = 'var(--sage)'; btn.style.color = 'white'; btn.style.borderColor = 'var(--sage)'; }
+      }
+    } else if (selectedListing.event_date === 'ongoing') {
+      _extEventDates = ['ongoing'];
+      const btn = document.getElementById('extOngoingBtn');
+      if (btn) { btn.dataset.active = 'true'; btn.style.background = 'var(--sage)'; btn.style.color = 'white'; btn.style.borderColor = 'var(--sage)'; }
+    } else if (selectedListing.event_date) {
+      _extEventDates = [selectedListing.event_date];
+    }
+    renderExtEventDatePills();
+    if (selectedListing.volunteer_signup_url) {
+      const sv = document.getElementById('extVolSignupUrl'); if (sv) sv.value = selectedListing.volunteer_signup_url;
+    }
+  }
 
   // ── Set status & hub toggles ──
   document.getElementById('toggleStatus').checked = selectedListing.status !== false;

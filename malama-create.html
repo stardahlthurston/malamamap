@@ -132,6 +132,9 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       <div class="type-card" data-type="supply_station" onclick="toggleType('supply_station',this)" ontouchstart="">
         <span class="emoji">🛖</span><span class="type-name">Supply Station</span><span class="type-desc">Distributing food, water & supplies</span>
       </div>
+      <div class="type-card" data-type="food_distribution" onclick="toggleType('food_distribution',this)" ontouchstart="">
+        <span class="emoji">🍱</span><span class="type-name">Food Distribution</span><span class="type-desc">Free food giveaway or pantry</span>
+      </div>
       <div class="type-card" data-type="donation_dropoff" onclick="toggleType('donation_dropoff',this)" ontouchstart="">
         <span class="emoji">📦</span><span class="type-name">Donation Drop-off</span><span class="type-desc">Collecting community donations</span>
       </div>
@@ -182,11 +185,14 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       <div class="field"><label>Describe your event</label><input type="text" id="otherEventText" placeholder="e.g. Community garden restoration"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Event date</label>
+      <div class="field"><label>Event dates <span style="font-weight:400;font-size:0.78rem;text-transform:none;letter-spacing:0;">— add one or more</span></label>
+        <div id="eventDatePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;min-height:24px;"></div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="date" id="editEventDate" style="flex:1;">
+          <input type="date" id="editEventDateAdd" style="flex:1;">
+          <button type="button" onclick="addEventDatePill()" style="padding:0.5rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid var(--sage,#3a7d5c);background:white;color:var(--sage,#3a7d5c);white-space:nowrap;transition:all 0.15s;">+ Add</button>
           <button type="button" id="ongoingToggle" onclick="toggleOngoing()" style="padding:0.5rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid #ddd;background:white;color:var(--text-muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
         </div>
+        <input type="hidden" id="editEventDate">
       </div>
       <div class="field"><label>Start time</label>
         <select id="editEventTime"><option value="">Select time</option><option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option></select>
@@ -487,37 +493,59 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 
 <div class="toast" id="toast"></div>
 <script>
-const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
-const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4',medical_assistance:'#fdf0ee'};
+const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b',food_distribution:'#c05621'};
+const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4',medical_assistance:'#fdf0ee',food_distribution:'#fdf0e8'};
 
 const TYPE_LABELS_CREATE = {
   shelter:'Shelter', supply_station:'Supply Station', donation_dropoff:'Donation Drop-off',
   volunteer_event:'Volunteers Needed', skills_labor:'Skills & Labor', medical_assistance:'Medical Aid Station',
-  financial_giving:'Give Financially'
+  financial_giving:'Give Financially', food_distribution:'Food Distribution'
 };
 
 const selectedTypes = new Set();
-function toggleOngoing() {
-  const dateInput = document.getElementById('editEventDate');
-  const btn = document.getElementById('ongoingToggle');
-  const isActive = btn.dataset.active === 'true';
-  if (isActive) {
-    btn.dataset.active = 'false';
-    btn.style.borderColor = '#ddd';
-    btn.style.background = 'white';
-    btn.style.color = 'var(--text-muted)';
-    dateInput.disabled = false;
-    dateInput.style.opacity = '';
-    dateInput.value = '';
-  } else {
-    btn.dataset.active = 'true';
-    btn.style.borderColor = '#3a7d5c';
-    btn.style.background = '#edf7f1';
-    btn.style.color = '#3a7d5c';
-    dateInput.disabled = true;
-    dateInput.style.opacity = '0.4';
-    dateInput.value = 'ongoing';
+let _eventDates = [];
+
+function addEventDatePill(dateVal) {
+  const input = document.getElementById('editEventDateAdd');
+  const val = dateVal || input?.value;
+  if (!val) return;
+  if (_eventDates.includes(val)) { if (input) input.value = ''; return; }
+  _eventDates.push(val);
+  renderEventDatePills();
+  if (input) input.value = '';
+}
+
+function removeEventDate(val) {
+  _eventDates = _eventDates.filter(d => d !== val);
+  if (val === 'ongoing') {
+    const btn = document.getElementById('ongoingToggle');
+    if (btn) { btn.dataset.active = 'false'; btn.style.background = 'white'; btn.style.color = 'var(--text-muted)'; btn.style.borderColor = '#ddd'; }
   }
+  renderEventDatePills();
+}
+
+function renderEventDatePills() {
+  const container = document.getElementById('eventDatePills');
+  if (!container) return;
+  container.innerHTML = _eventDates.map(d => {
+    const label = d === 'ongoing' ? 'Ongoing' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:#edf7f1;border:1.5px solid #3a7d5c;border-radius:100px;padding:4px 10px;font-size:0.78rem;font-weight:700;color:#2d5c3f;">${label}<button type="button" onclick="removeEventDate('${d}')" style="background:none;border:none;cursor:pointer;color:#3a7d5c;font-size:0.9rem;font-weight:700;padding:0 0 0 2px;line-height:1;">×</button></span>`;
+  }).join('');
+}
+
+function toggleOngoing() {
+  const btn = document.getElementById('ongoingToggle');
+  const isNow = btn.dataset.active !== 'true';
+  btn.dataset.active = isNow ? 'true' : 'false';
+  btn.style.background = isNow ? '#edf7f1' : 'white';
+  btn.style.color = isNow ? '#3a7d5c' : 'var(--text-muted)';
+  btn.style.borderColor = isNow ? '#3a7d5c' : '#ddd';
+  if (isNow) {
+    _eventDates = ['ongoing'];
+  } else {
+    _eventDates = _eventDates.filter(d => d !== 'ongoing');
+  }
+  renderEventDatePills();
 }
 
 function toggleType(type, el) {
@@ -540,7 +568,7 @@ function autoSelectType(type) {
 }
 
 function updateSections() {
-  const hasSupply = selectedTypes.has('supply_station');
+  const hasSupply = selectedTypes.has('supply_station') || selectedTypes.has('food_distribution');
   const hasDonation = selectedTypes.has('donation_dropoff');
   const hasShelter = selectedTypes.has('shelter');
   const hasSkills = selectedTypes.has('skills_labor');
@@ -1129,7 +1157,12 @@ async function loadEditListing(id) {
   // Load other fields
   if (data.capacity) { const el = document.getElementById('editCapacity'); if (el) el.value = data.capacity; }
   if (data.pet_friendly) { const el = document.getElementById('editPetFriendly'); if (el) el.value = 'true'; }
-  if (data.event_date === 'ongoing') { toggleOngoing(); } else if (data.event_date) { const el = document.getElementById('editEventDate'); if (el) el.value = data.event_date; }
+  _eventDates = [];
+  if (data.event_dates && data.event_dates.length > 0) {
+    _eventDates = data.event_dates;
+    if (_eventDates.includes('ongoing')) toggleOngoing();
+  } else if (data.event_date === 'ongoing') { toggleOngoing(); } else if (data.event_date) { _eventDates = [data.event_date]; }
+  renderEventDatePills();
   if (data.volunteer_needs) { const el = document.getElementById('editVolunteerNeeds'); if (el) el.value = data.volunteer_needs; }
   if (data.volunteer_signup_url) { const el = document.getElementById('editVolunteerSignupUrl'); if (el) el.value = data.volunteer_signup_url; }
   if (data.skills_direction) setSkillsDir(data.skills_direction);
@@ -1236,7 +1269,7 @@ async function saveListing() {
   if (hasError) return;
 
   // Date validation — start date required unless ongoing; end date required unless ongoing or "until further notice"
-  const _isOngoing = document.getElementById('ongoingToggle')?.dataset.active === 'true';
+  const _isOngoing = _eventDates.includes('ongoing');
   if (!_isOngoing) {
     const _dateFrom = document.getElementById('editDateFrom')?.value || '';
     const _dateUntil = document.getElementById('editDateUntil')?.value || '';
@@ -1288,7 +1321,7 @@ async function saveListing() {
     const medItems = [...document.querySelectorAll('.medical-check:checked')].map(c => c.value);
     const medCustom = (document.getElementById('medicalCustom')?.value||'').split(',').map(i=>i.trim()).filter(Boolean);
     items = [...medItems,...medCustom];
-  } else if (hasType('supply_station') || hasType('donation_dropoff') || hasType('shelter')) {
+  } else if (hasType('supply_station') || hasType('food_distribution') || hasType('donation_dropoff') || hasType('shelter')) {
     const gi = [...document.querySelectorAll('.giving-item:checked')].map(c=>'GIVING:'+c.value);
     const gc = smartSplit(document.getElementById('givingCustomItems')?.value||'').map(i=>'GIVING:'+i);
     const ai = [...document.querySelectorAll('.accepting-item:checked')].map(c => c.value.startsWith('ACCEPTING:') ? c.value : 'ACCEPTING:'+c.value);
@@ -1324,7 +1357,8 @@ async function saveListing() {
     accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked||false,
     capacity: document.getElementById('editCapacity')?.value||null,
     pet_friendly: document.getElementById('editPetFriendly')?.value==='true',
-    event_date: document.getElementById('ongoingToggle')?.dataset.active === 'true' ? 'ongoing' : (document.getElementById('editEventDate')?.value||null),
+    event_dates: _eventDates.length > 0 ? _eventDates : null,
+    event_date: _eventDates.includes('ongoing') ? 'ongoing' : (_eventDates.length > 0 ? [..._eventDates].filter(d=>d!=='ongoing').sort()[0] : null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
     volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim()||null,
     skills_direction: window._skillsDir || 'offering',

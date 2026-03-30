@@ -144,6 +144,7 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <button class="chip" data-filter="donation_dropoff" onclick="setFilter('donation_dropoff',this)">📦 Donation Drop-offs</button>
   <button class="chip" data-filter="volunteer_event" onclick="setFilter('volunteer_event',this)">🙋 Volunteers Needed</button>
   <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔍 Needs Skills</button>
+  <button class="chip" data-filter="food_distribution" onclick="setFilter('food_distribution',this)">Food Distribution</button>
   <div class="chip-divider"></div>
   <label class="open-only"><input type="checkbox" id="openOnly" onchange="applyFilters()"> Show open listings</label>
   <div class="chip-divider"></div>
@@ -186,8 +187,8 @@ function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#d4580a'};
-const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteers Needed',skills_labor:'🔍 Needs Skills & Labor',supply_station:'🛖 Supply Station',shelter:'🏠 Shelter',medical_assistance:'🏥 Medical Aid'};
+const TYPE_COLORS = {donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#d4580a',food_distribution:'#c05621'};
+const TYPE_LABELS = {donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteers Needed',skills_labor:'🔍 Needs Skills & Labor',supply_station:'🛖 Supply Station',shelter:'🏠 Shelter',medical_assistance:'🏥 Medical Aid',food_distribution:'🍱 Food Distribution'};
 
 let allListings = [], filtered = [], activeFilter = 'all';
 let searchQuery = '';
@@ -232,14 +233,20 @@ function setFilter(f, el) {
 
 function isCurrentlyOpen(l) {
   if (!l.status) return false;
-
-  // Check event date for one-time events
-  if (l.event_date && l.event_date !== 'ongoing') {
-    const eventDate = new Date(l.event_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (eventDate < today) return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Check event_dates array first (recurring events)
+  if (l.event_dates && l.event_dates.length > 0) {
+    return l.event_dates.some(d => {
+      if (d === 'ongoing') return true;
+      return new Date(d + 'T00:00:00') >= today;
+    });
   }
+  // Fall back to single event_date
+  if (l.event_date) {
+    if (l.event_date === 'ongoing') return true;
+    return new Date(l.event_date + 'T00:00:00') >= today;
+  }
+  if (l.expires_at) return new Date(l.expires_at) >= today;
 
   // No hours listed — can't determine, assume open
   if (!l.hours) return true;
@@ -335,13 +342,9 @@ function isCurrentlyOpen(l) {
 function applyFilters() {
   const openOnly = document.getElementById('openOnly').checked;
   filtered = allListings.filter(l => {
-    if (activeFilter !== 'all' && l.type !== activeFilter) return false;
-    // Always hide past-dated events
-    if (l.event_date && l.event_date !== 'ongoing') {
-      const eventDate = new Date(l.event_date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (eventDate < today) return false;
+    if (activeFilter !== 'all') {
+      const types = (l.type||'').split(',').map(s=>s.trim());
+      if (!types.includes(activeFilter)) return false;
     }
     if (openOnly && !isCurrentlyOpen(l)) return false;
     return true;

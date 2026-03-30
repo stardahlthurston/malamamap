@@ -169,6 +169,7 @@ const TYPE_LABELS = {
   shelter:'🏠 Shelter', supply_station:'🛖 Supply Station',
   donation_dropoff:'📦 Donation Drop-off', volunteer_event:'🙋 Volunteers Needed',
   skills_labor:'🔧 Skills & Labor', medical_assistance:'🏥 Medical Aid Station',
+  food_distribution:'🍱 Food Distribution',
 };
 
 const NEEDS_TYPES = ['donation_dropoff','accepting'];
@@ -268,6 +269,22 @@ function renderListing(l) {
     return parts.length ? parts.join(' · ') : 'Hours not specified';
   }
   const hoursDisplay = formatListingHours(l);
+
+  // Event dates display for volunteer_event listings
+  function formatEventDates(l) {
+    if (!types.includes('volunteer_event')) return '';
+    let dates = [];
+    if (l.event_dates && l.event_dates.length > 0) {
+      dates = l.event_dates;
+    } else if (l.event_date) {
+      dates = [l.event_date];
+    }
+    if (!dates.length) return '';
+    if (dates.includes('ongoing')) return 'Ongoing';
+    const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    return dates.filter(d => d !== 'ongoing').sort().map(fmt).join(' · ');
+  }
+  const eventDatesDisplay = formatEventDates(l);
 
   // Admin claim banner
   const claimHtml = isAdmin && !isOwner ? `
@@ -406,6 +423,11 @@ function renderListing(l) {
         <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z" stroke="#3a7d5c" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="#3a7d5c" stroke-width="1.5"/></svg></div>
         <div><p class="info-label">Address</p><p class="info-value">${l.address}</p></div>
       </div>
+      ${eventDatesDisplay ? `
+      <div class="info-row">
+        <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><rect x="3" y="4" width="14" height="13" rx="2" stroke="#3a7d5c" stroke-width="1.5"/><path d="M3 8h14M7 2v4M13 2v4" stroke="#3a7d5c" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <div><p class="info-label">Event date${(l.event_dates && l.event_dates.filter(d=>d!=='ongoing').length > 1) ? 's' : ''}</p><p class="info-value">${eventDatesDisplay}</p></div>
+      </div>` : ''}
       <div class="info-row">
         <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><circle cx="10" cy="10" r="7.5" stroke="#3a7d5c" stroke-width="1.5"/><path d="M10 6v4l2.5 2.5" stroke="#3a7d5c" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <div><p class="info-label">Hours</p><p class="info-value">${hoursDisplay}</p></div>

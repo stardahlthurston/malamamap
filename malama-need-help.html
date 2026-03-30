@@ -175,7 +175,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
   <div class="chip-divider"></div>
   <button class="chip" data-filter="shelter" onclick="setFilter('shelter',this)">🏠 Shelters</button>
-  <button class="chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">🛖 Supply Stations</button>
+  <button class="chip" data-filter="supply_station" onclick="setFilter('supply_station',this)">Supply Stations</button>
+  <button class="chip" data-filter="food_distribution" onclick="setFilter('food_distribution',this)">Food Distribution</button>
   <button class="chip" data-filter="medical_assistance" onclick="setFilter('medical_assistance',this)">🏥 Medical</button>
   <button class="chip" data-filter="skills_labor" onclick="setFilter('skills_labor',this)">🔧 Skills & Labor</button>
   <div class="chip-divider"></div>
@@ -220,8 +221,8 @@ function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',medical_assistance:'#c0392b'};
-const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',medical_assistance:'🏥 Medical Aid Station',skills_labor:'🔧 Skills & Labor',donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteers Needed'};
+const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',medical_assistance:'#c0392b',food_distribution:'#c05621'};
+const TYPE_LABELS = {shelter:'🏠 Shelter',supply_station:'🛖 Supply Station',medical_assistance:'🏥 Medical Aid Station',skills_labor:'🔧 Skills & Labor',donation_dropoff:'📦 Donation Drop-off',volunteer_event:'🙋 Volunteers Needed',food_distribution:'🍱 Food Distribution'};
 
 let allListings = [];
 let filtered = [];
@@ -238,7 +239,7 @@ async function init() {
   // Show: shelters, supply stations, medical, skills offering help,
   // AND any listing that gives out items (has GIVING: items)
   const filteredByDir = (data || []).filter(l => {
-    if (['shelter','supply_station','medical_assistance'].some(t=>(l.type||'').split(',').map(s=>s.trim()).includes(t))) return true;
+    if (['shelter','supply_station','medical_assistance','food_distribution'].some(t=>(l.type||'').split(',').map(s=>s.trim()).includes(t))) return true;
     if ((l.type||'').split(',').map(s=>s.trim()).includes('skills_labor') && (l.skills_direction === 'offering' || !l.skills_direction)) return true;
     if (Array.isArray(l.items) && l.items.some(i => i.startsWith('GIVING:'))) return true;
     return false;
@@ -260,14 +261,20 @@ function setFilter(f, el) {
 
 function isCurrentlyOpen(l) {
   if (!l.status) return false;
-
-  // Check event date for one-time events
-  if (l.event_date && l.event_date !== 'ongoing') {
-    const eventDate = new Date(l.event_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (eventDate < today) return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Check event_dates array first (recurring events)
+  if (l.event_dates && l.event_dates.length > 0) {
+    return l.event_dates.some(d => {
+      if (d === 'ongoing') return true;
+      return new Date(d + 'T00:00:00') >= today;
+    });
   }
+  // Fall back to single event_date
+  if (l.event_date) {
+    if (l.event_date === 'ongoing') return true;
+    return new Date(l.event_date + 'T00:00:00') >= today;
+  }
+  if (l.expires_at) return new Date(l.expires_at) >= today;
 
   // No hours listed — can't determine, assume open
   if (!l.hours) return true;
@@ -363,13 +370,9 @@ function isCurrentlyOpen(l) {
 function applyFilters() {
   const openOnly = document.getElementById('openOnly').checked;
   filtered = allListings.filter(l => {
-    if (activeFilter !== 'all' && l.type !== activeFilter) return false;
-    // Always hide past-dated events
-    if (l.event_date && l.event_date !== 'ongoing') {
-      const eventDate = new Date(l.event_date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (eventDate < today) return false;
+    if (activeFilter !== 'all') {
+      const types = (l.type||'').split(',').map(s=>s.trim());
+      if (!types.includes(activeFilter)) return false;
     }
     if (openOnly && !isCurrentlyOpen(l)) return false;
     return true;
