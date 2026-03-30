@@ -11,21 +11,21 @@
 :root{
   --sage:#3a7d5c;--sage-deep:#275c42;--sage-pale:#edf7f1;
   --teal:#2e6b6b;--teal-pale:#e8f4f4;--teal-deep:#1a4040;
-  --purple:#7b5ea7;--purple-pale:#f5f0ff;--purple-deep:#4a2d7a;
   --blue:#2a6496;--blue-pale:#eaf3fb;
   --gold:#c9983a;--gold-pale:#fdf4e3;
   --cream:#fdf8f2;--text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
   --border:rgba(0,0,0,0.08);--red:#c0392b;
+  --accent:var(--teal);--accent-pale:var(--teal-pale);--accent-deep:var(--teal-deep);
 }
 body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
-.topbar{background:var(--sage-deep);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar{background:var(--teal-deep);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;display:flex;align-items:center;gap:8px;}
-.topbar-back{font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.8);text-decoration:none;display:flex;align-items:center;gap:4px;}
+.topbar-back{font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.75);text-decoration:none;display:flex;align-items:center;gap:4px;}
 .topbar-back:hover{color:white;}
 
-.hero-bar{background:linear-gradient(135deg,#5a3d8a,#7b5ea7);padding:1.5rem;color:white;text-align:center;}
-.hero-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;margin-bottom:0.35rem;}
-.hero-sub{font-size:0.85rem;font-weight:600;color:rgba(255,255,255,0.9);line-height:1.55;}
+.hero-bar{background:linear-gradient(135deg,var(--teal-deep) 0%,var(--teal) 100%);padding:2rem 1.5rem;color:white;text-align:center;}
+.hero-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;margin-bottom:0.35rem;letter-spacing:-0.01em;}
+.hero-sub{font-size:0.85rem;font-weight:600;color:rgba(255,255,255,0.85);line-height:1.55;}
 
 .page-wrap{max-width:600px;margin:0 auto;padding:1.5rem;}
 
@@ -36,25 +36,35 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 label{display:block;font-size:0.67rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;margin-top:0.9rem;}
 label:first-of-type{margin-top:0;}
 input[type=text],input[type=email],input[type=tel],textarea,select{width:100%;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;color:var(--text-dark);background:white;outline:none;transition:border-color 0.15s;}
-input:focus,textarea:focus,select:focus{border-color:var(--purple);}
+input:focus,textarea:focus,select:focus{border-color:var(--teal);}
 textarea{resize:vertical;min-height:80px;}
 .req{color:var(--red);}
 .hint{font-size:0.72rem;color:var(--text-muted);margin-top:4px;line-height:1.5;}
 .hint a{color:var(--blue);}
 
-/* Skills chips */
-.skills-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:0.5rem;}
-.skill-chip{font-size:0.78rem;font-weight:700;padding:5px 13px;border-radius:100px;border:1.5px solid #ddd;background:white;color:var(--text-mid);cursor:pointer;transition:all 0.15s;font-family:'Nunito',sans-serif;}
-.skill-chip:hover{border-color:var(--purple);color:var(--purple);}
-.skill-chip.selected{border-color:var(--purple);background:var(--purple-pale);color:var(--purple-deep);}
+/* Chips (skills + availability) */
+.chip-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:0.5rem;}
+.chip{font-size:0.78rem;font-weight:700;padding:5px 13px;border-radius:100px;border:1.5px solid #ddd;background:white;color:var(--text-mid);cursor:pointer;transition:all 0.15s;font-family:'Nunito',sans-serif;}
+.chip:hover{border-color:var(--teal);color:var(--teal);}
+.chip.selected{border-color:var(--teal);background:var(--teal-pale);color:var(--teal-deep);}
 .custom-skill-row{display:flex;gap:8px;margin-top:8px;}
 .custom-skill-row input{flex:1;margin:0;}
-.btn-add-skill{padding:0.5rem 1rem;background:var(--purple);color:white;border:none;border-radius:100px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;}
+.btn-add-skill{padding:0.5rem 1rem;background:var(--teal);color:white;border:none;border-radius:100px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;}
+
+/* Availability hours */
+.avail-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.75rem;align-items:center;}
+.avail-time-pair{display:flex;align-items:center;gap:6px;}
+.avail-time-pair span{font-size:0.72rem;color:var(--text-muted);white-space:nowrap;}
+.avail-time-pair select{flex:1;padding:0.45rem 0.6rem;font-size:0.8rem;}
+.day-row{display:flex;align-items:center;gap:10px;padding:0.5rem 0;border-bottom:1px solid #f0f0f0;}
+.day-row:last-child{border-bottom:none;}
+.day-label{font-size:0.82rem;font-weight:700;color:var(--text-dark);width:110px;flex-shrink:0;}
+.day-check{width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0;}
 
 /* Contact toggle */
 .contact-toggle-wrap{display:flex;gap:8px;margin-top:0.5rem;}
 .contact-opt{flex:1;border:2px solid #ddd;border-radius:12px;padding:0.85rem;cursor:pointer;transition:all 0.18s;text-align:center;}
-.contact-opt.selected{border-color:var(--purple);background:var(--purple-pale);}
+.contact-opt.selected{border-color:var(--teal);background:var(--teal-pale);}
 .contact-opt-icon{font-size:1.4rem;margin-bottom:4px;}
 .contact-opt-title{font-size:0.82rem;font-weight:800;color:var(--text-dark);}
 .contact-opt-desc{font-size:0.7rem;color:var(--text-muted);line-height:1.4;margin-top:3px;}
@@ -66,19 +76,19 @@ textarea{resize:vertical;min-height:80px;}
 
 /* Two-col grid */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
-@media(max-width:480px){.two-col{grid-template-columns:1fr;}}
+@media(max-width:480px){.two-col{grid-template-columns:1fr;}.avail-row{grid-template-columns:1fr;}}
 
 /* Submit */
-.submit-btn{width:100%;padding:0.9rem;background:var(--purple);color:white;border:none;border-radius:100px;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:1.25rem;transition:background 0.2s;}
-.submit-btn:hover{background:var(--purple-deep);}
+.submit-btn{width:100%;padding:0.9rem;background:var(--teal);color:white;border:none;border-radius:100px;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:1.25rem;transition:background 0.2s;}
+.submit-btn:hover{background:var(--teal-deep);}
 .submit-btn:disabled{background:#ccc;cursor:not-allowed;}
 
 .error-msg{background:#fdf0ee;border:1.5px solid rgba(192,57,43,0.25);border-radius:10px;padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:var(--red);margin-top:0.75rem;display:none;}
 .success-card{background:white;border-radius:16px;border:1.5px solid var(--border);padding:2.5rem 1.5rem;text-align:center;display:none;}
 .success-icon{font-size:2.5rem;margin-bottom:0.75rem;}
-.success-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.success-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--teal-deep);margin-bottom:0.5rem;}
 .success-sub{font-size:0.85rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;}
-.btn-back{display:inline-block;padding:0.65rem 1.5rem;background:var(--purple);color:white;border-radius:100px;font-size:0.85rem;font-weight:800;text-decoration:none;}
+.btn-back{display:inline-block;padding:0.65rem 1.5rem;background:var(--teal);color:white;border-radius:100px;font-size:0.85rem;font-weight:800;text-decoration:none;}
 
 .login-prompt{background:white;border-radius:16px;border:1.5px solid var(--border);padding:2rem 1.5rem;text-align:center;display:none;}
 </style>
@@ -98,7 +108,7 @@ textarea{resize:vertical;min-height:80px;}
 </div>
 
 <div class="hero-bar">
-  <h1 class="hero-title">🙌 Offer My Skills</h1>
+  <h1 class="hero-title">Offer My Skills</h1>
   <p class="hero-sub">Share what you can do. People who need your help will reach out — you stay in control.</p>
 </div>
 
@@ -109,7 +119,7 @@ textarea{resize:vertical;min-height:80px;}
     <div style="font-size:2rem;margin-bottom:0.75rem;">👤</div>
     <p style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--text-dark);margin-bottom:0.5rem;">Sign in to post your skills</p>
     <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6;">You'll need a free Mālama Map account to add yourself to the skills directory.</p>
-    <a href="malama-auth.html?return=malama-skills-offer.html" style="display:inline-block;padding:0.65rem 1.5rem;background:var(--purple);color:white;border-radius:100px;font-size:0.85rem;font-weight:800;text-decoration:none;">Sign in / Create account →</a>
+    <a href="malama-auth.html?return=malama-skills-offer.html" style="display:inline-block;padding:0.65rem 1.5rem;background:var(--teal);color:white;border-radius:100px;font-size:0.85rem;font-weight:800;text-decoration:none;">Sign in / Create account →</a>
   </div>
 
   <!-- Main form -->
@@ -120,23 +130,23 @@ textarea{resize:vertical;min-height:80px;}
       <p class="section-title">Your skills</p>
       <p class="section-sub">What can you offer to the community? Select all that apply or add your own.</p>
 
-      <div class="skills-grid" id="skillChips">
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Physical labor')">Physical labor</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Truck / hauling')">Truck / hauling</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Heavy equipment')">Heavy equipment</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Chainsaw work')">Chainsaw work</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Electrician')">Electrician</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Plumber')">Plumber</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Carpenter')">Carpenter</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Roofing')">Roofing</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Medical / nursing')">Medical / nursing</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Mental health support')">Mental health support</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Childcare')">Childcare</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Elder care')">Elder care</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Cooking / food prep')">Cooking / food prep</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Translation')">Translation</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Photography / media')">Photography / media</button>
-        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Administrative / office')">Administrative / office</button>
+      <div class="chip-grid" id="skillChips">
+        <button type="button" class="chip" onclick="toggleSkill(this,'Physical labor')">Physical labor</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Truck / hauling')">Truck / hauling</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Heavy equipment')">Heavy equipment</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Chainsaw work')">Chainsaw work</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Electrician')">Electrician</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Plumber')">Plumber</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Carpenter')">Carpenter</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Roofing')">Roofing</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Medical / nursing')">Medical / nursing</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Mental health support')">Mental health support</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Childcare')">Childcare</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Elder care')">Elder care</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Cooking / food prep')">Cooking / food prep</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Translation')">Translation</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Photography / media')">Photography / media</button>
+        <button type="button" class="chip" onclick="toggleSkill(this,'Administrative / office')">Administrative / office</button>
       </div>
 
       <div class="custom-skill-row" style="margin-top:0.75rem;">
@@ -150,6 +160,16 @@ textarea{resize:vertical;min-height:80px;}
 
       <label>Your neighborhood / area <span class="req">*</span></label>
       <input type="text" id="offerLocation" placeholder="e.g. Kaimukī, North Shore, Mililani">
+    </div>
+
+    <!-- Availability -->
+    <div class="form-card">
+      <p class="section-title">When are you available?</p>
+      <p class="section-sub">Check the days you can help and set your hours. Leave unchecked if that day doesn't apply.</p>
+
+      <div id="availDays">
+        <!-- rows injected by JS -->
+      </div>
     </div>
 
     <!-- Contact preference -->
@@ -201,13 +221,13 @@ textarea{resize:vertical;min-height:80px;}
     <!-- Business verification (optional) -->
     <div class="form-card">
       <div class="verify-card">
-        <p class="verify-title">🏅 Optional: Request a verified badge</p>
+        <p class="verify-title">Optional: Request a verified badge</p>
         <p class="verify-desc">If you represent a licensed business or registered organization, you can request a verified badge. We'll confirm your registration through the Hawaii Business Registry. Leave blank to skip.</p>
         <label>Business / organization name</label>
         <input type="text" id="dccaOrgName" placeholder="e.g. Akana Construction LLC">
         <label style="margin-top:0.75rem;">Hawaii Business Registry # (DCCA)</label>
         <input type="text" id="dccaNumber" placeholder="e.g. 123456 C">
-        <p class="hint"><a href="https://hbe.ehawaii.gov/documents/search.html" target="_blank" rel="noopener">🔍 Look up your DCCA registration number →</a></p>
+        <p class="hint"><a href="https://hbe.ehawaii.gov/documents/search.html" target="_blank" rel="noopener">Look up your DCCA registration number →</a></p>
       </div>
     </div>
 
@@ -234,7 +254,40 @@ let currentUser = null;
 let selectedSkills = new Set();
 let contactPref = 'private';
 
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const TIME_OPTS = [
+  '6:00 AM','7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM',
+  '12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM',
+  '6:00 PM','7:00 PM','8:00 PM','9:00 PM'
+];
+
+function buildAvailUI() {
+  const wrap = document.getElementById('availDays');
+  DAYS.forEach(day => {
+    const id = day.toLowerCase();
+    const row = document.createElement('div');
+    row.className = 'day-row';
+    row.innerHTML = `
+      <input type="checkbox" class="day-check" id="chk_${id}" onchange="toggleDayRow('${id}')">
+      <label for="chk_${id}" style="margin:0;text-transform:none;letter-spacing:0;font-size:0.82rem;font-weight:700;color:var(--text-dark);cursor:pointer;width:100px;flex-shrink:0;">${day}</label>
+      <div class="avail-time-pair" id="times_${id}" style="display:none;flex:1;">
+        <select id="open_${id}" style="flex:1;">${TIME_OPTS.map((t,i)=>`<option${i===2?' selected':''}>${t}</option>`).join('')}</select>
+        <span>–</span>
+        <select id="close_${id}" style="flex:1;">${TIME_OPTS.map((t,i)=>`<option${i===10?' selected':''}>${t}</option>`).join('')}</select>
+      </div>
+      <span id="anytime_${id}" style="font-size:0.75rem;color:var(--text-muted);flex:1;display:none;">Any time</span>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+function toggleDayRow(id) {
+  const checked = document.getElementById('chk_' + id).checked;
+  document.getElementById('times_' + id).style.display = checked ? 'flex' : 'none';
+}
+
 async function init() {
+  buildAvailUI();
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
     document.getElementById('loginPrompt').style.display = 'block';
@@ -242,7 +295,6 @@ async function init() {
   }
   currentUser = session.user;
   document.getElementById('offerForm').style.display = 'block';
-  // Pre-fill email for private contact
   if (currentUser.email) document.getElementById('privateEmail').value = currentUser.email;
 }
 
@@ -264,7 +316,7 @@ function addCustomSkill() {
   selectedSkills.add(val);
   const chip = document.createElement('button');
   chip.type = 'button';
-  chip.className = 'skill-chip selected';
+  chip.className = 'chip selected';
   chip.textContent = val;
   chip.onclick = () => toggleSkill(chip, val);
   document.getElementById('skillChips').appendChild(chip);
@@ -279,12 +331,24 @@ function selectContactPref(pref) {
   document.getElementById('publicFields').style.display = pref === 'public' ? 'block' : 'none';
 }
 
+function getAvailabilityNotes() {
+  const lines = [];
+  DAYS.forEach(day => {
+    const id = day.toLowerCase();
+    if (document.getElementById('chk_' + id).checked) {
+      const open = document.getElementById('open_' + id).value;
+      const close = document.getElementById('close_' + id).value;
+      lines.push(`${day}: ${open} – ${close}`);
+    }
+  });
+  return lines.length ? lines.join('\n') : null;
+}
+
 async function submitOffer() {
   const btn = document.getElementById('submitBtn');
   const errEl = document.getElementById('errorMsg');
   errEl.style.display = 'none';
 
-  // Validate
   if (selectedSkills.size === 0) {
     document.getElementById('skillsError').style.display = 'block';
     return;
@@ -313,13 +377,17 @@ async function submitOffer() {
   btn.disabled = true;
   btn.textContent = 'Posting…';
 
+  const userNotes = document.getElementById('offerNotes').value.trim();
+  const availNotes = getAvailabilityNotes();
+  const combinedNotes = [userNotes, availNotes ? 'Availability:\n' + availNotes : null].filter(Boolean).join('\n\n') || null;
+
   const payload = {
     user_id: currentUser.id,
     type: 'skills_labor',
     skills_direction: 'offering',
     name: contactFirstName ? `${contactFirstName}${contactLastName ? ' ' + contactLastName : ''}` : (currentUser.email?.split('@')[0] || 'Community Member'),
     items: [...selectedSkills].map(s => `GIVING:${s}`),
-    notes: document.getElementById('offerNotes').value.trim() || null,
+    notes: combinedNotes,
     address: location,
     location: location,
     lat: 21.3069,
@@ -334,7 +402,6 @@ async function submitOffer() {
     dcca_number: document.getElementById('dccaNumber').value.trim() || null,
   };
 
-  // Add org name to notes if provided
   const dccaOrg = document.getElementById('dccaOrgName').value.trim();
   if (dccaOrg) payload.notes = (payload.notes ? payload.notes + '\n\n' : '') + `Business: ${dccaOrg}`;
 
