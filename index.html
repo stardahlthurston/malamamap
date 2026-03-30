@@ -236,7 +236,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 3.5rem 3.5rem;
+    padding: 1.75rem 3.5rem;
     text-align: center;
     cursor: pointer;
     overflow: hidden;
@@ -247,12 +247,16 @@
   .panel-skills:hover { background: #d8ecec; }
   .panel-skills .panel-stripe { background: var(--teal); }
   .panel-skills .panel-icon-wrap {
+    width: 56px; height: 56px;
     background: rgba(46,107,107,0.1);
     border: 2px solid rgba(46,107,107,0.22);
   }
+  .panel-skills .panel-icon-wrap span { font-size: 1.5rem !important; }
   .panel-skills:hover .panel-icon-wrap { transform: scale(1.07) translateY(-4px); }
-  .panel-skills .panel-eyebrow { color: var(--teal); }
-  .panel-skills .panel-title { color: var(--teal-deep); }
+  .panel-skills .panel-eyebrow { color: var(--teal); margin-bottom: 0.25rem; }
+  .panel-skills .panel-title { color: var(--teal-deep); font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 0.5rem; }
+  .panel-skills .panel-desc { font-size: 0.88rem; margin-bottom: 0.75rem; }
+  .panel-skills .panel-tags { margin-bottom: 0.85rem; }
   .panel-skills .tag { background: rgba(46,107,107,0.1); color: var(--teal-deep); }
   .panel-skills:hover .panel-cta-skills { background: var(--teal); color: white; border-color: var(--teal); }
   .panel-cta-skills {
