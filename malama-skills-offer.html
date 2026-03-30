@@ -51,15 +51,21 @@ textarea{resize:vertical;min-height:80px;}
 .custom-skill-row input{flex:1;margin:0;}
 .btn-add-skill{padding:0.5rem 1rem;background:var(--teal);color:white;border:none;border-radius:100px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;}
 
-/* Availability hours */
-.avail-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.75rem;align-items:center;}
-.avail-time-pair{display:flex;align-items:center;gap:6px;}
-.avail-time-pair span{font-size:0.72rem;color:var(--text-muted);white-space:nowrap;}
-.avail-time-pair select{flex:1;padding:0.45rem 0.6rem;font-size:0.8rem;}
-.day-row{display:flex;align-items:center;gap:10px;padding:0.5rem 0;border-bottom:1px solid #f0f0f0;}
-.day-row:last-child{border-bottom:none;}
-.day-label{font-size:0.82rem;font-weight:700;color:var(--text-dark);width:110px;flex-shrink:0;}
-.day-check{width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0;}
+/* Availability dates */
+.avail-add-row{display:flex;gap:8px;align-items:center;margin-top:0.25rem;}
+.avail-add-row input[type=date]{flex:1;padding:0.55rem 0.75rem;font-size:0.85rem;}
+.btn-add-date{padding:0.5rem 1rem;background:var(--teal);color:white;border:none;border-radius:100px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;}
+.avail-list{margin-top:0.75rem;display:flex;flex-direction:column;gap:6px;}
+.avail-entry{border:1.5px solid #e8e8e8;border-radius:12px;padding:0.6rem 0.85rem;}
+.avail-entry-top{display:flex;align-items:center;justify-content:space-between;}
+.avail-date-label{font-size:0.88rem;font-weight:700;color:var(--text-dark);}
+.avail-entry-actions{display:flex;align-items:center;gap:10px;}
+.avail-toggle-hours{font-size:0.72rem;font-weight:700;color:var(--teal);cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.avail-remove{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;padding:0;}
+.avail-remove:hover{color:var(--red);}
+.avail-hours-row{display:flex;align-items:center;gap:8px;margin-top:0.5rem;}
+.avail-hours-row select{flex:1;padding:0.4rem 0.5rem;font-size:0.78rem;}
+.avail-hours-row span{font-size:0.72rem;color:var(--text-muted);white-space:nowrap;}
 
 /* Contact toggle */
 .contact-toggle-wrap{display:flex;gap:8px;margin-top:0.5rem;}
@@ -165,11 +171,13 @@ textarea{resize:vertical;min-height:80px;}
     <!-- Availability -->
     <div class="form-card">
       <p class="section-title">When are you available?</p>
-      <p class="section-sub">Check the days you can help and set your hours. Leave unchecked if that day doesn't apply.</p>
+      <p class="section-sub">Add specific dates you're available to help. Hours are optional — skip them if your schedule is flexible.</p>
 
-      <div id="availDays">
-        <!-- rows injected by JS -->
+      <div class="avail-add-row">
+        <input type="date" id="availDateInput">
+        <button type="button" class="btn-add-date" onclick="addAvailDate()">+ Add date</button>
       </div>
+      <div class="avail-list" id="availList"></div>
     </div>
 
     <!-- Contact preference -->
@@ -254,40 +262,63 @@ let currentUser = null;
 let selectedSkills = new Set();
 let contactPref = 'private';
 
-const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const TIME_OPTS = [
   '6:00 AM','7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM',
   '12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM',
   '6:00 PM','7:00 PM','8:00 PM','9:00 PM'
 ];
 
-function buildAvailUI() {
-  const wrap = document.getElementById('availDays');
-  DAYS.forEach(day => {
-    const id = day.toLowerCase();
-    const row = document.createElement('div');
-    row.className = 'day-row';
-    row.innerHTML = `
-      <input type="checkbox" class="day-check" id="chk_${id}" onchange="toggleDayRow('${id}')">
-      <label for="chk_${id}" style="margin:0;text-transform:none;letter-spacing:0;font-size:0.82rem;font-weight:700;color:var(--text-dark);cursor:pointer;width:100px;flex-shrink:0;">${day}</label>
-      <div class="avail-time-pair" id="times_${id}" style="display:none;flex:1;">
-        <select id="open_${id}" style="flex:1;">${TIME_OPTS.map((t,i)=>`<option${i===2?' selected':''}>${t}</option>`).join('')}</select>
-        <span>–</span>
-        <select id="close_${id}" style="flex:1;">${TIME_OPTS.map((t,i)=>`<option${i===10?' selected':''}>${t}</option>`).join('')}</select>
+let availDates = []; // [{date, open, close, showHours}]
+
+function addAvailDate() {
+  const input = document.getElementById('availDateInput');
+  const val = input.value;
+  if (!val) return;
+  if (availDates.find(d => d.date === val)) { input.value = ''; return; }
+  availDates.push({ date: val, open: '8:00 AM', close: '5:00 PM', showHours: false });
+  input.value = '';
+  renderAvailList();
+}
+
+function removeAvailDate(date) {
+  availDates = availDates.filter(d => d.date !== date);
+  renderAvailList();
+}
+
+function toggleAvailHours(date) {
+  const entry = availDates.find(d => d.date === date);
+  if (entry) { entry.showHours = !entry.showHours; renderAvailList(); }
+}
+
+function renderAvailList() {
+  const list = document.getElementById('availList');
+  list.innerHTML = '';
+  const sorted = [...availDates].sort((a,b) => a.date.localeCompare(b.date));
+  sorted.forEach(entry => {
+    const label = new Date(entry.date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric' });
+    const timeOpts = TIME_OPTS.map(t => `<option${t===entry.open?' selected':''}>${t}</option>`).join('');
+    const timeOpts2 = TIME_OPTS.map(t => `<option${t===entry.close?' selected':''}>${t}</option>`).join('');
+    const el = document.createElement('div');
+    el.className = 'avail-entry';
+    el.innerHTML = `
+      <div class="avail-entry-top">
+        <span class="avail-date-label">${label}</span>
+        <div class="avail-entry-actions">
+          <span class="avail-toggle-hours" onclick="toggleAvailHours('${entry.date}')">${entry.showHours ? 'Remove hours' : '+ Add hours'}</span>
+          <button type="button" class="avail-remove" onclick="removeAvailDate('${entry.date}')" title="Remove">✕</button>
+        </div>
       </div>
-      <span id="anytime_${id}" style="font-size:0.75rem;color:var(--text-muted);flex:1;display:none;">Any time</span>
+      ${entry.showHours ? `<div class="avail-hours-row">
+        <select onchange="availDates.find(d=>d.date==='${entry.date}').open=this.value">${timeOpts}</select>
+        <span>to</span>
+        <select onchange="availDates.find(d=>d.date==='${entry.date}').close=this.value">${timeOpts2}</select>
+      </div>` : ''}
     `;
-    wrap.appendChild(row);
+    list.appendChild(el);
   });
 }
 
-function toggleDayRow(id) {
-  const checked = document.getElementById('chk_' + id).checked;
-  document.getElementById('times_' + id).style.display = checked ? 'flex' : 'none';
-}
-
 async function init() {
-  buildAvailUI();
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
     document.getElementById('loginPrompt').style.display = 'block';
@@ -332,16 +363,13 @@ function selectContactPref(pref) {
 }
 
 function getAvailabilityNotes() {
-  const lines = [];
-  DAYS.forEach(day => {
-    const id = day.toLowerCase();
-    if (document.getElementById('chk_' + id).checked) {
-      const open = document.getElementById('open_' + id).value;
-      const close = document.getElementById('close_' + id).value;
-      lines.push(`${day}: ${open} – ${close}`);
-    }
+  if (!availDates.length) return null;
+  const sorted = [...availDates].sort((a,b) => a.date.localeCompare(b.date));
+  const lines = sorted.map(entry => {
+    const label = new Date(entry.date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric' });
+    return entry.showHours ? `${label}: ${entry.open} – ${entry.close}` : label;
   });
-  return lines.length ? lines.join('\n') : null;
+  return lines.join('\n');
 }
 
 async function submitOffer() {
