@@ -603,7 +603,7 @@ function updateSections() {
   const hasShelter = selectedTypes.has('shelter');
   const hasSkills = selectedTypes.has('skills_labor');
   const hasMedical = selectedTypes.has('medical_assistance');
-  const hasEvent = selectedTypes.has('volunteer_event');
+  const hasEvent = selectedTypes.has('volunteer_event') || selectedTypes.has('food_distribution');
   document.getElementById('shelterExtras').style.display = hasShelter ? 'block' : 'none';
   document.getElementById('eventExtras').style.display = hasEvent ? 'block' : 'none';
   document.getElementById('skillsExtras').style.display = hasSkills ? 'block' : 'none';
@@ -1018,7 +1018,7 @@ async function init() {
   const editId = params.get('edit');
   const forceNew = params.get('new');
   if (editId) {
-    loadEditListing(editId);
+    await loadEditListing(editId);
     // Clear any saved draft so "Add new listing" starts fresh next time
     try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
   } else {
@@ -1071,7 +1071,10 @@ async function init() {
 
 async function loadEditListing(id) {
   const { data, error } = await sb.from('listings').select('*').eq('id', id).single();
-  if (error || !data) return;
+  if (error || !data) {
+    showToast('Could not load listing — ' + (error?.message || 'not found'));
+    return;
+  }
   document.querySelector('h1.page-title').textContent = 'Edit listing';
   document.getElementById('submitBtn').textContent = 'Save changes →';
   const nameField = document.getElementById('editName');
@@ -1137,11 +1140,16 @@ async function loadEditListing(id) {
     }
   }
 
-  // Load date fields
+  // Restore day checkboxes from hours string (e.g. "Mon, Tue, Wed · 9:00 AM – 5:00 PM")
   if (data.hours) {
-    // Try to extract dates from hours string
-    const dateFromMatch = data.hours.match(/From\s+(\w+\s+\d+)/);
-    // Dates are hard to parse back — leave for user to re-enter if needed
+    const dayNames = ['Every day','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const found = dayNames.filter(d => data.hours.includes(d));
+    document.querySelectorAll('.day-check').forEach(cb => {
+      if (found.includes(cb.value)) {
+        cb.checked = true;
+        const lbl = cb.closest('label'); if (lbl) lbl.classList.add('checked');
+      }
+    });
   }
 
   // Show area suggestion if location is set
@@ -1193,6 +1201,11 @@ async function loadEditListing(id) {
     if (_eventDates.includes('ongoing')) toggleOngoing();
   } else if (data.event_date === 'ongoing') { toggleOngoing(); } else if (data.event_date) { _eventDates = [data.event_date]; }
   renderEventDatePills();
+  // Populate event time selects (lazy init)
+  const eo = document.getElementById('editEventOpen');
+  const ec = document.getElementById('editEventClose');
+  if (eo && !eo.innerHTML) { eo.innerHTML = EVENT_TIME_OPTS; eo.value = '9:00 AM'; }
+  if (ec && !ec.innerHTML) { ec.innerHTML = EVENT_TIME_OPTS; ec.value = '5:00 PM'; }
   if (data.volunteer_needs) { const el = document.getElementById('editVolunteerNeeds'); if (el) el.value = data.volunteer_needs; }
   if (data.volunteer_signup_url) { const el = document.getElementById('editVolunteerSignupUrl'); if (el) el.value = data.volunteer_signup_url; }
   if (data.skills_direction) setSkillsDir(data.skills_direction);
