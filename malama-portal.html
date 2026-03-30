@@ -3584,7 +3584,10 @@ async function renderAdminPage() {
 
   main.innerHTML = `
     <div class="page-header">
-      <h1 class="page-title">⭐ Admin Dashboard</h1>
+      <div>
+        <h1 class="page-title">⭐ Admin Dashboard</h1>
+      </div>
+      <button class="btn btn-primary" onclick="openEditModal(null)">+ New listing</button>
     </div>
 
     <!-- STATS ROW -->
