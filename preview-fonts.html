@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Preview — Mālama Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,800;1,9..144,400&family=Inter:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1a1a1a;padding:2rem;display:flex;flex-direction:column;gap:3rem;}
+
+.option-label{
+  font-family:monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:#666;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid #333;
+}
+.option-label strong{color:#aaa;}
+
+/* ── Shared layout pieces ── */
+.hero{padding:2.5rem 2rem 2.2rem;text-align:center;border-radius:16px 16px 0 0;}
+.hero-eyebrow{font-size:0.62rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:0.5rem;}
+.hero-title{font-size:2.4rem;font-weight:800;color:white;margin-bottom:0.6rem;line-height:1.15;}
+.hero-sub{font-size:0.9rem;font-weight:500;color:rgba(255,255,255,0.78);max-width:440px;margin:0 auto;line-height:1.65;}
+.body-area{background:#f4f6f4;border-radius:0 0 16px 16px;padding:1.5rem 2rem;display:flex;flex-direction:column;gap:1rem;}
+.card{background:white;border-radius:12px;border:1.5px solid rgba(0,0,0,0.08);padding:1.1rem 1.25rem;}
+.card-name{font-size:1.05rem;font-weight:700;color:#1c1a18;margin-bottom:4px;}
+.card-body{font-size:0.85rem;color:#4a453f;line-height:1.55;}
+.card-link{display:inline-block;margin-top:0.6rem;padding:0.4rem 1rem;background:#c9983a;color:white;border-radius:100px;font-size:0.78rem;font-weight:700;text-decoration:none;}
+.nav-row{background:#1c4a3a;border-radius:8px;padding:0.6rem 1.25rem;display:flex;align-items:center;gap:1.5rem;margin-bottom:0;border-radius:8px 8px 0 0;}
+.nav-logo{font-size:1rem;font-weight:800;color:white;}
+.nav-link{font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.75);}
+.hero-bg{background:linear-gradient(135deg,#7a4f00 0%,#b07a00 60%,#c9983a 100%);}
+.filter-row{background:white;border-bottom:2px solid rgba(0,0,0,0.06);padding:0.6rem 1.25rem;display:flex;gap:0.5rem;}
+.chip{padding:0.35rem 0.9rem;border-radius:100px;border:1.5px solid #ddd;background:white;font-size:0.78rem;font-weight:700;color:#4a453f;}
+.chip.active{background:#c9983a;border-color:#c9983a;color:white;}
+.wrapper{border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.3);max-width:680px;margin:0 auto;}
+.rec{display:inline-block;background:#c9983a;color:white;font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 8px;border-radius:100px;margin-left:6px;vertical-align:middle;}
+
+/* ────────────────────────────────────
+   A — CURRENT: Playfair Display + Nunito
+──────────────────────────────────── */
+.a .nav-logo,.a .hero-title,.a .card-name{font-family:'Playfair Display',serif;}
+.a .nav-link,.a .hero-eyebrow,.a .hero-sub,.a .card-body,.a .card-link,.a .chip{font-family:'Nunito',sans-serif;}
+
+/* ────────────────────────────────────
+   B — Fraunces + Inter  ★ MY PICK
+──────────────────────────────────── */
+.b .nav-logo,.b .hero-title,.b .card-name{font-family:'Fraunces',serif;font-optical-sizing:auto;}
+.b .nav-link,.b .hero-eyebrow,.b .hero-sub,.b .card-body,.b .card-link,.b .chip{font-family:'Inter',sans-serif;}
+.b .hero-title{font-weight:700;letter-spacing:-0.02em;}
+.b .card-name{font-weight:700;}
+
+/* ────────────────────────────────────
+   C — DM Serif Display + DM Sans
+──────────────────────────────────── */
+.c .nav-logo,.c .hero-title,.c .card-name{font-family:'DM Serif Display',serif;}
+.c .nav-link,.c .hero-eyebrow,.c .hero-sub,.c .card-body,.c .card-link,.c .chip{font-family:'DM Sans',sans-serif;}
+.c .hero-title{font-weight:400;letter-spacing:-0.01em;}
+.c .card-name{font-weight:400;}
+
+/* ────────────────────────────────────
+   D — Cormorant Garamond + Jost
+──────────────────────────────────── */
+.d .nav-logo,.d .hero-title,.d .card-name{font-family:'Cormorant Garamond',serif;}
+.d .nav-link,.d .hero-eyebrow,.d .hero-sub,.d .card-body,.d .card-link,.d .chip{font-family:'Jost',sans-serif;}
+.d .hero-title{font-weight:700;font-size:2.9rem;letter-spacing:0.01em;}
+.d .hero-sub{font-family:'Jost',sans-serif;font-weight:400;letter-spacing:0.02em;}
+.d .card-name{font-weight:600;font-size:1.15rem;}
+
+/* ────────────────────────────────────
+   E — EB Garamond + Source Sans 3
+──────────────────────────────────── */
+.e .nav-logo,.e .hero-title,.e .card-name{font-family:'EB Garamond',serif;}
+.e .nav-link,.e .hero-eyebrow,.e .hero-sub,.e .card-body,.e .card-link,.e .chip{font-family:'Source Sans 3',sans-serif;}
+.e .hero-title{font-weight:700;font-size:2.6rem;letter-spacing:0.005em;}
+.e .card-name{font-weight:600;font-size:1.1rem;}
+
+/* ────────────────────────────────────
+   F — Spectral + Inter
+──────────────────────────────────── */
+.f .nav-logo,.f .hero-title,.f .card-name{font-family:'Spectral',serif;}
+.f .nav-link,.f .hero-eyebrow,.f .hero-sub,.f .card-body,.f .card-link,.f .chip{font-family:'Inter',sans-serif;}
+.f .hero-title{font-weight:700;letter-spacing:-0.01em;}
+.f .card-name{font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- ── A: CURRENT ── -->
+<div>
+<p class="option-label">Option A — <strong>Playfair Display + Nunito</strong> &nbsp;(current)</p>
+<div class="wrapper a">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero hero-bg">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Org</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- ── B: Fraunces + Inter ── -->
+<div>
+<p class="option-label">Option B — <strong>Fraunces + Inter</strong> &nbsp;<span class="rec">my pick</span></p>
+<div class="wrapper b">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero hero-bg">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Org</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- ── C: DM Serif Display + DM Sans ── -->
+<div>
+<p class="option-label">Option C — <strong>DM Serif Display + DM Sans</strong> &nbsp;(clean, editorial)</p>
+<div class="wrapper c">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero hero-bg">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Org</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- ── D: Cormorant Garamond + Jost ── -->
+<div>
+<p class="option-label">Option D — <strong>Cormorant Garamond + Jost</strong> &nbsp;(high fashion, luxury feel)</p>
+<div class="wrapper d">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero hero-bg">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Org</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- ── E: EB Garamond + Source Sans 3 ── -->
+<div>
+<p class="option-label">Option E — <strong>EB Garamond + Source Sans 3</strong> &nbsp;(classic, trustworthy, NYT-ish)</p>
+<div class="wrapper e">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero hero-bg">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Org</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- ── F: Spectral + Inter ── -->
+<div>
+<p class="option-label">Option F — <strong>Spectral + Inter</strong> &nbsp;(sharp, modern, editorial)</p>
+<div class="wrapper f">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero hero-bg">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Org</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

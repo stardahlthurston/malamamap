@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Give Financially — Mālama Map</title>
+<link rel="icon" href="/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#1c4a3a;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --gold:#c9983a;--gold-pale:#fdf4e3;--gold-deep:#7a4f00;
+  --cream:#fdf8f2;--text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.08);--red:#c0392b;
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+
+.topbar{background:var(--sage-deep);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.75);text-decoration:none;display:flex;align-items:center;gap:4px;}
+.topbar-back:hover{color:white;}
+.topbar-right{display:flex;align-items:center;gap:0.5rem;}
+.topbar-btn{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.35rem 0.75rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.9);text-decoration:none;transition:all 0.2s;white-space:nowrap;}
+.topbar-btn:hover{background:rgba(255,255,255,0.1);}
+.topbar-btn.gold{background:var(--gold);border-color:var(--gold);color:white;}
+.topbar-btn.gold:hover{background:#b07a00;}
+
+.hero-bar{background:linear-gradient(135deg,var(--gold-deep) 0%,#b07a00 60%,var(--gold) 100%);padding:2rem 1.5rem 1.75rem;text-align:center;position:relative;}
+.hero-eyebrow{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:0.4rem;}
+.hero-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:800;color:white;margin-bottom:0.5rem;}
+.hero-sub{font-size:0.88rem;font-weight:500;color:rgba(255,255,255,0.82);max-width:480px;margin:0 auto;line-height:1.6;}
+.kokua-pill{display:inline-flex;align-items:center;gap:0.75rem;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:100px;padding:0.55rem 0.65rem 0.55rem 1rem;margin-top:1.25rem;max-width:560px;flex-wrap:wrap;justify-content:center;}
+.kokua-pill-text{font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.95);line-height:1.4;text-align:left;}
+.kokua-pill-text strong{color:white;font-weight:800;}
+.kokua-pill-btn{padding:0.38rem 1rem;background:white;color:var(--gold-deep);border-radius:100px;font-size:0.78rem;font-weight:800;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:background 0.2s;}
+.kokua-pill-btn:hover{background:rgba(255,255,255,0.88);}
+
+.filter-bar{background:white;border-bottom:2px solid var(--border);padding:0.7rem 1.25rem;display:flex;align-items:center;gap:0.5rem;overflow-x:auto;scrollbar-width:none;position:sticky;top:48px;z-index:90;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.chip{padding:0.4rem 1rem;border-radius:100px;border:1.5px solid #ddd;background:white;font-size:0.8rem;font-weight:700;color:var(--text-mid);cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:'Nunito',sans-serif;}
+.chip:hover{border-color:var(--gold);color:var(--gold-deep);}
+.chip.active{background:var(--gold);border-color:var(--gold);color:white;}
+.chip-divider{width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 0.2rem;}
+
+.content{padding:1.1rem 1.25rem 3rem;max-width:760px;margin:0 auto;}
+.cards{display:flex;flex-direction:column;gap:0.85rem;}
+
+.card{background:white;border:1.5px solid rgba(201,152,58,0.3);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:box-shadow 0.2s,border-color 0.2s;text-decoration:none;color:inherit;display:block;}
+.card:hover{box-shadow:0 3px 14px rgba(0,0,0,0.08);border-color:rgba(201,152,58,0.6);}
+.card-inner{display:flex;align-items:flex-start;gap:1rem;}
+.card-body{flex:1;min-width:0;}
+.card-top{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:5px;}
+.card-name{font-size:1rem;font-weight:800;color:var(--text-dark);}
+.badge-verified{font-size:0.62rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;background:#edf7f1;color:var(--sage-deep);padding:2px 8px;border-radius:100px;white-space:nowrap;}
+.badge-cat{font-size:0.62rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;background:var(--gold-pale);color:var(--gold-deep);padding:2px 8px;border-radius:100px;white-space:nowrap;}
+.card-summary{font-size:0.84rem;font-weight:500;color:var(--text-mid);line-height:1.55;}
+.card-actions{display:flex;align-items:center;gap:0.5rem;margin-top:0.65rem;}
+.btn-donate{padding:0.45rem 1.1rem;background:var(--gold);color:white;border-radius:100px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:background 0.2s;white-space:nowrap;}
+.btn-donate:hover{background:#b07a00;}
+.card-details-link{font-size:0.78rem;font-weight:700;color:var(--text-muted);text-decoration:none;padding:0.45rem 0.5rem;}
+.card-details-link:hover{color:var(--gold-deep);}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted);}
+.empty-state p{font-size:0.9rem;font-weight:600;}
+
+.list-cta{background:var(--gold-pale);border:1.5px solid rgba(201,152,58,0.2);border-radius:14px;padding:1.4rem;text-align:center;margin-top:1.5rem;}
+.list-cta p{font-size:0.85rem;font-weight:600;color:var(--text-mid);margin-bottom:0.75rem;line-height:1.5;}
+.list-cta a{display:inline-block;padding:0.55rem 1.4rem;background:var(--gold);color:white;border-radius:100px;font-size:0.85rem;font-weight:700;text-decoration:none;transition:background 0.2s;}
+.list-cta a:hover{background:#b07a00;}
+
+@media(max-width:600px){
+  .hero-title{font-size:1.5rem;}
+  .card{flex-direction:column;gap:0.75rem;}
+  .kokua-pill{padding:0.5rem 0.75rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Mālama Map</a>
+  <div class="topbar-right">
+    <a href="malama-give-apply.html" class="topbar-btn gold">+ List your org</a>
+    <a href="malama-auth.html" class="topbar-btn">Log in</a>
+  </div>
+</div>
+
+<div class="hero-bar">
+  <p class="hero-eyebrow">Financial giving</p>
+  <h1 class="hero-title">Give Financially</h1>
+  <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery efforts.</p>
+  <div style="text-align:center;">
+    <div class="kokua-pill">
+      <span class="kokua-pill-text">🌺 <strong>Family in need of support?</strong> Storm Kōkua — a grassroots effort by Help Maui Rise — connects displaced ʻohana directly with donors.</span>
+      <a href="https://www.stormkokua.com" target="_blank" rel="noopener" class="kokua-pill-btn">Storm Kōkua →</a>
+    </div>
+  </div>
+</div>
+
+
+<div class="filter-bar">
+  <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
+  <div class="chip-divider"></div>
+  <button class="chip" data-filter="Org" onclick="setFilter('Org',this)">Organization</button>
+  <button class="chip" data-filter="Church" onclick="setFilter('Church',this)">Church</button>
+  <button class="chip" data-filter="Resource" onclick="setFilter('Resource',this)">Resource</button>
+</div>
+
+<div class="content">
+  <div class="cards" id="cardGrid">
+    <div class="empty-state"><p>Loading…</p></div>
+  </div>
+
+  <div class="list-cta">
+    <p>Is your organization offering financial support to Hawaiʻi families?<br>Verified orgs, nonprofits, and churches are welcome to list here.</p>
+    <a href="malama-give-apply.html">List your organization →</a>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let allListings = [];
+let activeFilter = 'all';
+
+async function loadListings() {
+  const { data, error } = await sb
+    .from('listings')
+    .select('id,name,type,website,giving_url,notes,location,verified,status')
+    .eq('status', true)
+    .or('type.ilike.%financial_giving%,giving_url.not.is.null')
+    .order('name', { ascending: true });
+
+  const grid = document.getElementById('cardGrid');
+  if (error) { grid.innerHTML = `<div class="empty-state"><p style="color:var(--red);">${escapeHtml(error.message)}</p></div>`; return; }
+
+  // Exclude donation drop-off listings that only have a giving_url but aren't explicitly financial_giving
+  allListings = (data || []).filter(l => {
+    const t = (l.type || '').toLowerCase();
+    if (t.includes('financial_giving')) return true;
+    if (l.giving_url && !t.includes('donation_dropoff') && !t.includes('supply_station')) return true;
+    return false;
+  });
+  render();
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function render() {
+  const grid = document.getElementById('cardGrid');
+  const list = activeFilter === 'all' ? allListings : allListings.filter(l => l.location === activeFilter);
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><p>No listings in this category yet — check back soon.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(l => {
+    const donateUrl = l.giving_url || l.website || '';
+    return `
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-body">
+          <div class="card-top">
+            <span class="card-name">${escapeHtml(l.name) || 'Unnamed'}</span>
+            ${l.location ? `<span class="badge-cat">${escapeHtml(l.location)}</span>` : ''}
+            ${l.verified ? `<span class="badge-verified">✓ Verified</span>` : ''}
+          </div>
+          ${l.notes ? `<p class="card-summary">${escapeHtml(l.notes)}</p>` : ''}
+          <div class="card-actions">
+            ${donateUrl ? `<a href="${escapeHtml(donateUrl)}" target="_blank" rel="noopener" class="btn-donate" onclick="event.stopPropagation()">Donate →</a>` : ''}
+            <a href="malama-listing.html?id=${l.id}" class="card-details-link">View listing →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `}).join('');
+}
+
+loadListings();
+</script>
+</body>
+</html>

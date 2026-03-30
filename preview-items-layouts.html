@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Needs & Offerings — Layout Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#1a3d2b;--sage-pale:#edf7f1;
+  --gold:#c9983a;--gold-pale:#fdf4e3;
+  --blue:#3a6b9e;--blue-pale:#eaf1fb;
+  --red:#c0392b;--red-pale:#fdf0ee;
+  --bg:#f4f6f4;--card:#ffffff;--border:#e0e4e0;
+  --text:#1a1a1a;--muted:#6b7a6b;
+}
+body{font-family:'Nunito',sans-serif;background:#e8eae8;color:var(--text);min-height:100vh;}
+
+/* ── CHOOSER TOOLBAR ── */
+.toolbar{
+  background:var(--sage-deep);color:white;
+  padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;
+}
+.toolbar strong{font-size:15px;}
+.tab-row{display:flex;gap:6px;flex-wrap:wrap;}
+.tab-btn{
+  padding:7px 18px;border-radius:100px;border:2px solid rgba(255,255,255,0.3);
+  background:transparent;color:white;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.15s;
+}
+.tab-btn:hover{border-color:white;}
+.tab-btn.active{background:white;color:var(--sage-deep);border-color:white;}
+.pick-btn{
+  padding:8px 20px;background:#c9983a;color:white;border:none;border-radius:100px;
+  font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;
+  transition:background 0.15s;
+}
+.pick-btn:hover{background:#b8872d;}
+
+/* ── WRAPPER ── */
+.preview-wrap{max-width:1000px;margin:32px auto;padding:0 20px 80px;}
+.section-label{
+  font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
+  color:rgba(255,255,255,0.5);margin-bottom:4px;
+}
+.layout{display:none;}
+.layout.active{display:block;}
+
+/* ── SHARED CARD SHELL ── */
+.page-shell{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;}
+.page-header{padding:24px 24px 0;}
+.page-header h2{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;color:var(--sage-deep);margin-bottom:4px;}
+.page-header p{font-size:0.82rem;color:var(--muted);margin-bottom:20px;}
+
+/* ────────────────────────────
+   OPTION A — TOGGLE TABLE
+──────────────────────────── */
+.toolbar-row{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  padding:16px 24px;border-bottom:1px solid var(--border);
+}
+.search-input{
+  flex:1;min-width:180px;padding:8px 14px;
+  border:1.5px solid var(--border);border-radius:100px;
+  font-size:13px;font-family:'Nunito',sans-serif;outline:none;
+  background:var(--bg);color:var(--text);
+}
+.btn-add{padding:8px 16px;background:var(--sage);color:white;border:none;border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+.btn-merge{padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+
+/* Table */
+.items-table{width:100%;border-collapse:collapse;}
+.items-table thead th{
+  text-align:left;font-size:11px;font-weight:800;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--muted);padding:10px 16px;
+  border-bottom:1.5px solid var(--border);background:#fafbfa;
+}
+.items-table thead th:last-child{text-align:center;}
+.items-table tbody tr{border-bottom:1px solid #f0f2f0;transition:background 0.1s;}
+.items-table tbody tr:hover{background:#fafbfa;}
+.items-table tbody td{padding:10px 16px;font-size:14px;vertical-align:middle;}
+.item-name{font-weight:700;color:var(--text);}
+.listing-count{
+  display:inline-flex;align-items:center;gap:4px;font-size:12px;
+  color:var(--muted);font-weight:600;
+}
+.count-dot{
+  width:18px;height:18px;background:var(--sage-pale);border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;color:var(--sage-deep);
+}
+
+/* Toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:6px;justify-content:center;}
+.toggle-pill{
+  position:relative;width:42px;height:22px;border-radius:100px;
+  cursor:pointer;transition:background 0.2s;flex-shrink:0;
+}
+.toggle-pill.on{background:var(--sage);}
+.toggle-pill.off{background:#d0d4d0;}
+.toggle-knob{
+  position:absolute;top:2px;width:18px;height:18px;background:white;
+  border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.15);
+}
+.toggle-pill.on .toggle-knob{left:22px;}
+.toggle-pill.off .toggle-knob{left:2px;}
+.toggle-label{font-size:11px;font-weight:700;color:var(--muted);}
+.toggle-pill.on + .toggle-label{color:var(--sage);}
+
+.action-cell{display:flex;align-items:center;gap:6px;justify-content:flex-end;}
+.action-btn{padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;border:1.5px solid;}
+.action-btn.edit{border-color:var(--border);background:white;color:var(--muted);}
+.action-btn.del{border-color:rgba(192,57,43,0.25);background:var(--red-pale);color:var(--red);}
+.cb{width:16px;height:16px;border:2px solid #ccc;border-radius:4px;cursor:pointer;flex-shrink:0;}
+
+/* ────────────────────────────
+   OPTION B — TWO SHELF
+──────────────────────────── */
+.shelf-section{padding:20px 24px;}
+.shelf-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.shelf-title{font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;}
+.shelf-title.shown{color:var(--sage);}
+.shelf-title.hidden-items{color:var(--muted);}
+.shelf-count{
+  background:var(--sage-pale);color:var(--sage-deep);
+  font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;
+}
+.shelf-count.grey{background:#eee;color:var(--muted);}
+.shelf-divider{height:1px;background:var(--border);margin:4px 0 20px;}
+.pill-grid{display:flex;flex-wrap:wrap;gap:8px;min-height:52px;border-radius:12px;padding:12px;transition:background 0.2s;}
+.pill-grid.shown-zone{background:var(--sage-pale);border:2px dashed rgba(58,125,92,0.25);}
+.pill-grid.hidden-zone{background:#f5f6f4;border:2px dashed transparent;}
+
+.item-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:100px;cursor:pointer;
+  font-size:13px;font-weight:700;transition:all 0.15s;
+  user-select:none;
+}
+.item-pill.shown{
+  background:white;border:2px solid var(--sage);color:var(--sage-deep);
+  box-shadow:0 1px 4px rgba(58,125,92,0.15);
+}
+.item-pill.shown:hover{background:var(--sage);color:white;}
+.item-pill.hidden-pill{
+  background:white;border:2px solid var(--border);color:var(--muted);
+}
+.item-pill.hidden-pill:hover{border-color:var(--sage);color:var(--sage-deep);}
+
+.pill-count{font-size:10px;font-weight:600;opacity:0.6;}
+.pill-toggle{font-size:11px;}
+.pill-x{font-size:10px;opacity:0.5;font-weight:800;}
+
+/* ────────────────────────────
+   OPTION C — SIDEBAR
+──────────────────────────── */
+.sidebar-layout{display:flex;min-height:440px;}
+.sidebar{
+  width:180px;flex-shrink:0;background:#fafbfa;border-right:1px solid var(--border);
+  padding:20px 16px;
+}
+.sidebar-group-label{
+  font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;margin-top:16px;
+}
+.sidebar-group-label:first-child{margin-top:0;}
+.sidebar-filter{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 10px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;
+  transition:background 0.1s;
+}
+.sidebar-filter:hover{background:#edf0ed;}
+.sidebar-filter.active{background:var(--sage-pale);color:var(--sage-deep);}
+.filter-badge{
+  font-size:10px;font-weight:800;padding:1px 7px;border-radius:100px;
+  background:#e0e4e0;color:var(--muted);
+}
+.filter-badge.sage{background:var(--sage-pale);color:var(--sage);}
+.sidebar-stat{font-size:11px;color:var(--muted);padding:4px 10px;}
+
+.sidebar-main{flex:1;display:flex;flex-direction:column;}
+.sidebar-toolbar{
+  display:flex;align-items:center;gap:8px;padding:16px 20px;
+  border-bottom:1px solid var(--border);
+}
+.list-header{
+  display:grid;grid-template-columns:1fr 80px 80px 60px;
+  padding:8px 20px;border-bottom:1px solid var(--border);background:#fafbfa;
+}
+.list-header span{font-size:10px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);}
+.list-header span:nth-child(2){text-align:center;}
+.list-header span:nth-child(3){text-align:center;}
+
+.list-item{
+  display:grid;grid-template-columns:1fr 80px 80px 60px;
+  align-items:center;padding:10px 20px;border-bottom:1px solid #f0f2f0;
+  transition:background 0.1s;
+}
+.list-item:hover{background:#fafbfa;}
+.list-item-name{font-size:14px;font-weight:700;color:var(--text);}
+.list-item-count{text-align:center;font-size:12px;color:var(--muted);font-weight:600;}
+.list-item-toggle{display:flex;justify-content:center;}
+.list-item-actions{display:flex;gap:4px;justify-content:flex-end;}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:0.5;padding:2px;}
+.icon-btn:hover{opacity:1;}
+
+/* Chosen banner */
+.chosen-banner{
+  background:linear-gradient(135deg,var(--sage-deep),var(--sage));
+  border-radius:12px;padding:14px 20px;margin:0 0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  color:white;display:none;
+}
+.chosen-banner.show{display:flex;}
+.chosen-banner strong{font-size:14px;}
+.chosen-banner span{font-size:12px;opacity:0.8;}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div>
+    <div class="section-label">Needs & Offerings — Layout Preview</div>
+    <strong>Pick your favorite format</strong>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showLayout('a',this)">A — Table</button>
+      <button class="tab-btn" onclick="showLayout('b',this)">B — Shelves</button>
+      <button class="tab-btn" onclick="showLayout('c',this)">C — Sidebar</button>
+    </div>
+    <button class="pick-btn" onclick="pickThis()">✓ I want this one →</button>
+  </div>
+</div>
+
+<div class="preview-wrap">
+
+  <div id="chosen-banner" class="chosen-banner">
+    <strong id="chosen-text">You picked Option A!</strong>
+    <span>Tell me and I'll build it 🌿</span>
+  </div>
+
+  <!-- ═══════════ OPTION A ═══════════ -->
+  <div class="layout active" id="layout-a">
+    <div class="page-shell">
+      <div class="page-header">
+        <h2>Needs &amp; Offerings</h2>
+        <p>All unique items across your listings. Toggle "In Form" to control what appears in the new listing dropdown.</p>
+      </div>
+      <div class="toolbar-row">
+        <input class="search-input" placeholder="Search items…" type="text">
+        <button class="btn-add">+ Add item</button>
+        <button class="btn-merge">🔀 Merge selected</button>
+      </div>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width:32px;"></th>
+            <th>Item Name</th>
+            <th>Listings</th>
+            <th style="text-align:center;">Show in Form</th>
+            <th style="text-align:right;padding-right:20px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${[
+            ['Water Bottles',12,true],
+            ['Tarps',8,true],
+            ['Ice',7,true],
+            ['Work Gloves',6,true],
+            ['Flashlights',5,true],
+            ['Diapers',4,false],
+            ['Baby Formula',3,false],
+            ['Power Banks',3,false],
+            ['Sleeping Bags',2,false],
+            ['First Aid Kits',2,false],
+          ].map(([name,count,on])=>`
+            <tr>
+              <td><div class="cb"></div></td>
+              <td><span class="item-name">${name}</span></td>
+              <td><span class="listing-count"><span class="count-dot">${count}</span> listing${count!==1?'s':''}</span></td>
+              <td>
+                <div class="toggle-wrap">
+                  <div class="toggle-pill ${on?'on':'off'}"><div class="toggle-knob"></div></div>
+                  <span class="toggle-label">${on?'Shown':'Hidden'}</span>
+                </div>
+              </td>
+              <td>
+                <div class="action-cell">
+                  <button class="action-btn edit">✎ Edit</button>
+                  <button class="action-btn del">✕</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════ OPTION B ═══════════ -->
+  <div class="layout" id="layout-b">
+    <div class="page-shell">
+      <div class="page-header">
+        <h2>Needs &amp; Offerings</h2>
+        <p>Items in the <strong style="color:var(--sage);">green shelf</strong> appear in new listing forms. Click any item to move it between shelves.</p>
+      </div>
+      <div class="toolbar-row">
+        <input class="search-input" placeholder="Search items…" type="text">
+        <button class="btn-add">+ Add item</button>
+        <button class="btn-merge">🔀 Merge selected</button>
+      </div>
+      <div class="shelf-section">
+        <div class="shelf-header">
+          <span class="shelf-title shown">✓ Shown in new listing forms</span>
+          <span class="shelf-count">6 items</span>
+        </div>
+        <div class="pill-grid shown-zone">
+          ${[['Water Bottles',12],['Tarps',8],['Ice',7],['Work Gloves',6],['Flashlights',5],['First Aid Kits',2]].map(([n,c])=>`
+            <div class="item-pill shown">
+              <span>${n}</span>
+              <span class="pill-count">${c}</span>
+              <span class="pill-toggle">●</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="shelf-divider" style="margin-top:20px;"></div>
+
+        <div class="shelf-header">
+          <span class="shelf-title hidden-items">Hidden from forms</span>
+          <span class="shelf-count grey">4 items</span>
+        </div>
+        <div class="pill-grid hidden-zone">
+          ${[['Diapers',4],['Baby Formula',3],['Power Banks',3],['Sleeping Bags',2]].map(([n,c])=>`
+            <div class="item-pill hidden-pill">
+              <span>${n}</span>
+              <span class="pill-count">${c}</span>
+              <span class="pill-toggle">○</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OPTION C ═══════════ -->
+  <div class="layout" id="layout-c">
+    <div class="page-shell">
+      <div class="page-header">
+        <h2>Needs &amp; Offerings</h2>
+        <p>Filter by category or form visibility. Toggle "In Form" to control the listing form dropdown.</p>
+      </div>
+      <div class="sidebar-layout">
+        <div class="sidebar">
+          <div class="sidebar-group-label">View</div>
+          <div class="sidebar-filter active">All items <span class="filter-badge sage">10</span></div>
+          <div class="sidebar-filter">In Form <span class="filter-badge sage">6</span></div>
+          <div class="sidebar-filter">Hidden <span class="filter-badge">4</span></div>
+
+          <div class="sidebar-group-label">Type</div>
+          <div class="sidebar-filter">All types</div>
+          <div class="sidebar-filter">🛖 Giving</div>
+          <div class="sidebar-filter">📬 Accepting</div>
+          <div class="sidebar-filter">General</div>
+
+          <div class="sidebar-group-label">Stats</div>
+          <div class="sidebar-stat">10 unique items</div>
+          <div class="sidebar-stat">28 total uses</div>
+        </div>
+
+        <div class="sidebar-main">
+          <div class="sidebar-toolbar">
+            <input class="search-input" placeholder="Search items…" type="text" style="max-width:260px;">
+            <button class="btn-add" style="font-size:12px;padding:6px 14px;">+ Add</button>
+            <button class="btn-merge" style="font-size:12px;padding:6px 14px;">🔀 Merge</button>
+          </div>
+          <div class="list-header">
+            <span>Item name</span>
+            <span>Listings</span>
+            <span>In Form</span>
+            <span></span>
+          </div>
+          ${[
+            ['Water Bottles',12,true],
+            ['Tarps',8,true],
+            ['Ice',7,true],
+            ['Work Gloves',6,true],
+            ['Flashlights',5,true],
+            ['Diapers',4,false],
+            ['Baby Formula',3,false],
+            ['Power Banks',3,false],
+            ['Sleeping Bags',2,false],
+            ['First Aid Kits',2,true],
+          ].map(([name,count,on])=>`
+            <div class="list-item">
+              <span class="list-item-name">${name}</span>
+              <span class="list-item-count">${count}</span>
+              <div class="list-item-toggle">
+                <div class="toggle-pill ${on?'on':'off'}" style="width:36px;height:20px;">
+                  <div class="toggle-knob" style="width:16px;height:16px;${on?'left:18px;':'left:2px;'}"></div>
+                </div>
+              </div>
+              <div class="list-item-actions">
+                <button class="icon-btn">✎</button>
+                <button class="icon-btn" style="color:var(--red);">✕</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentLayout = 'a';
+
+function showLayout(id, btn) {
+  document.querySelectorAll('.layout').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('layout-' + id).classList.add('active');
+  btn.classList.add('active');
+  currentLayout = id;
+  document.getElementById('chosen-banner').classList.remove('show');
+}
+
+function pickThis() {
+  const names = { a: 'Option A — Toggle Table', b: 'Option B — Two Shelves', c: 'Option C — Sidebar' };
+  const banner = document.getElementById('chosen-banner');
+  document.getElementById('chosen-text').textContent = '✓ You picked ' + names[currentLayout] + '!';
+  banner.classList.add('show');
+  banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>

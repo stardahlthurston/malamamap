@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Skilled Trades & Labor</title>
+<link rel="icon" href="/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#1c4a3a;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --teal:#2e6b6b;--teal-pale:#e8f4f4;--teal-deep:#1a4040;
+  --blue:#2a6496;--blue-pale:#eaf3fb;
+  --cream:#fdf8f2;--text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.08);--red:#c0392b;--red-pale:#fdf0ee;
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--sage-deep);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.75rem;font-weight:700;color:white;text-decoration:none;display:flex;align-items:center;gap:4px;}
+.topbar-back:hover{color:rgba(255,255,255,0.8);}
+.topbar-right{display:flex;align-items:center;gap:0.5rem;}
+.topbar-btn{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.35rem 0.75rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.9);text-decoration:none;transition:all 0.2s;white-space:nowrap;}
+.topbar-btn:hover{background:rgba(255,255,255,0.1);}
+.topbar-btn.btn-add{background:rgba(255,255,255,0.12);}
+@media(max-width:600px){.topbar-btn{font-size:0.6rem;padding:0.3rem 0.6rem;}}
+
+.hero-bar{background:#faf4fc;border-bottom:1px solid rgba(33,2,31,0.08);padding:1.5rem 1.5rem 1.25rem;}
+.hero-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;margin-bottom:0.35rem;color:#21021f;}
+.hero-sub{font-size:0.85rem;font-weight:500;color:rgba(33,2,31,0.72);line-height:1.6;margin-bottom:1rem;max-width:560px;}
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;}
+.hero-cta{display:inline-flex;align-items:center;gap:6px;padding:0.6rem 1.4rem;background:#21021f;color:white;border-radius:100px;font-size:0.88rem;font-weight:800;text-decoration:none;transition:background 0.18s,transform 0.15s;}
+.hero-cta:hover{background:#3d0a3a;transform:translateY(-1px);}
+.privacy-note{font-size:0.74rem;font-weight:500;color:rgba(33,2,31,0.55);line-height:1.6;border-top:1px solid rgba(33,2,31,0.1);padding-top:0.75rem;}
+
+.filter-bar{background:white;border-bottom:2px solid var(--border);padding:0.7rem 1.5rem;display:flex;align-items:center;gap:0.5rem;overflow-x:auto;scrollbar-width:none;position:sticky;top:48px;z-index:90;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.chip{font-size:0.72rem;font-weight:700;white-space:nowrap;padding:0.38rem 0.9rem;border-radius:100px;border:1.5px solid #ddd;background:white;color:var(--text-mid);cursor:pointer;transition:all 0.18s;font-family:'Nunito',sans-serif;}
+.chip:hover{border-color:#21021f;color:#21021f;}
+.chip.active{border-color:#21021f;background:#21021f;color:white;}
+
+.content{padding:1.25rem 1.5rem;max-width:900px;margin:0 auto;}
+.result-count{font-size:0.82rem;font-weight:700;color:var(--text-muted);margin-bottom:1rem;}
+.result-count span{color:#21021f;}
+
+.resource-card{background:white;border-radius:14px;border:1.5px solid var(--border);margin-bottom:0.85rem;overflow:hidden;transition:box-shadow 0.2s;}
+.resource-card:hover{box-shadow:0 3px 14px rgba(33,2,31,0.1);}
+.rc-stripe{height:5px;background:linear-gradient(90deg,#21021f,#5a1a58);}
+.rc-header{padding:0.9rem 1rem 0.65rem;display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;}
+.rc-name{font-size:0.95rem;font-weight:700;color:var(--text-dark);margin-bottom:3px;}
+.rc-area{font-size:0.74rem;font-weight:500;color:var(--text-muted);}
+.rc-badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.pill{font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:100px;white-space:nowrap;}
+.pill-open{background:#faf4fc;color:#21021f;}
+.pill-closed{background:#f0f0f0;color:#888;}
+.pill-verified{background:var(--blue-pale);color:var(--blue);}
+.rc-body{padding:0 1rem 0.9rem;}
+.rc-skills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.65rem;}
+.rc-skill{font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(33,2,31,0.07);color:#21021f;}
+.rc-meta{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.55rem;}
+.rc-meta-item{font-size:0.74rem;font-weight:600;color:var(--text-mid);}
+.rc-notes{font-size:0.77rem;font-weight:500;color:var(--text-muted);line-height:1.55;margin-bottom:0.7rem;}
+.request-btn{font-size:0.72rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.5rem 1.1rem;border-radius:100px;border:2px solid #21021f;color:#21021f;background:white;cursor:pointer;transition:all 0.18s;font-family:'Nunito',sans-serif;}
+.request-btn:hover{background:#21021f;color:white;}
+
+.empty{text-align:center;padding:4rem 1.5rem;color:var(--text-muted);}
+.empty h3{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:#21021f;margin-bottom:0.5rem;}
+.empty p{font-size:0.88rem;font-weight:500;margin-bottom:1.5rem;line-height:1.6;}
+.empty-btn{display:inline-block;padding:0.65rem 1.5rem;background:#21021f;color:white;border-radius:100px;font-size:0.82rem;font-weight:700;text-decoration:none;}
+
+.loading{text-align:center;padding:3rem;color:var(--text-muted);font-size:0.9rem;font-weight:600;}
+.spinner{width:36px;height:36px;border:3px solid rgba(33,2,31,0.1);border-top-color:#21021f;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 0.75rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* REQUEST MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;align-items:center;justify-content:center;padding:1.5rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:18px;padding:2rem;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:var(--text-dark);margin-bottom:0.3rem;}
+.modal-sub{font-size:0.82rem;font-weight:500;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.5;}
+.modal-label{font-size:0.67rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;margin-top:0.75rem;display:block;}
+.modal-input{width:100%;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:8px;font-size:0.88rem;font-family:'Nunito',sans-serif;font-weight:500;color:var(--text-dark);background:white;margin-bottom:0.5rem;}
+.modal-input:focus{outline:none;border-color:#21021f;}
+.modal-actions{display:flex;gap:0.65rem;justify-content:flex-end;margin-top:1rem;}
+.btn-cancel{font-size:0.78rem;font-weight:700;padding:0.52rem 1rem;border-radius:100px;border:1.5px solid #ddd;background:white;color:var(--text-mid);cursor:pointer;font-family:'Nunito',sans-serif;}
+.btn-send{font-size:0.78rem;font-weight:700;padding:0.55rem 1.2rem;border-radius:100px;border:none;background:#21021f;color:white;cursor:pointer;font-family:'Nunito',sans-serif;}
+.btn-send:hover{background:#3d0a3a;}
+.privacy-note-modal{font-size:0.72rem;font-weight:500;color:var(--text-muted);line-height:1.5;margin-top:0.5rem;}
+.modal-success{text-align:center;padding:1rem 0;}
+.modal-success h3{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:#21021f;margin-bottom:0.35rem;}
+.modal-success p{font-size:0.84rem;font-weight:500;color:var(--text-muted);}
+
+.toast{display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#21021f;color:white;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.85rem;font-weight:700;z-index:900;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back
+  </a>
+  <a href="index.html" class="topbar-logo"><img src="logo.png" alt="" style="height:28px;width:auto;margin-right:6px;vertical-align:middle;">Mālama Map</a>
+  <div class="topbar-right">
+    <a href="malama-create.html?type=skills_labor&direction=offering" class="topbar-btn btn-add">Add My Skills →</a>
+    <a href="malama-auth.html" class="topbar-btn">Log in</a>
+  </div>
+</div>
+
+<div class="hero-bar">
+  <h1 class="hero-title">Skilled Trades & Labor</h1>
+  <p class="hero-sub">Local tradespeople and skilled volunteers offering their time during the Kona Low relief effort. Contact them directly — no middleman.</p>
+  <div class="hero-actions">
+    <a href="malama-create.html?type=skills_labor&direction=offering" class="hero-cta">
+      Add My Skills
+      <svg viewBox="0 0 15 15" fill="none" style="width:13px;height:13px;"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+  <p class="privacy-note">🔒 Your personal contact info is never shown publicly. When someone needs your help, they fill out a request and it goes directly to your private email.</p>
+</div>
+
+<div class="filter-bar">
+  <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All Trades</button>
+  <button class="chip" data-filter="Physical labor" onclick="setFilter('Physical labor',this)">Physical labor</button>
+  <button class="chip" data-filter="Truck / hauling" onclick="setFilter('Truck / hauling',this)">Truck & hauling</button>
+  <button class="chip" data-filter="Heavy equipment" onclick="setFilter('Heavy equipment',this)">Heavy equipment</button>
+  <button class="chip" data-filter="Electrician" onclick="setFilter('Electrician',this)">Electrician</button>
+  <button class="chip" data-filter="Plumber" onclick="setFilter('Plumber',this)">Plumber</button>
+  <button class="chip" data-filter="Roofer" onclick="setFilter('Roofer',this)">Roofer</button>
+  <button class="chip" data-filter="Carpenter" onclick="setFilter('Carpenter',this)">Carpenter</button>
+  <button class="chip" data-filter="Medical / nursing" onclick="setFilter('Medical / nursing',this)">Medical</button>
+  <button class="chip" data-filter="Childcare" onclick="setFilter('Childcare',this)">Childcare</button>
+</div>
+
+<div class="content">
+  <div class="loading" id="loading"><div class="spinner"></div>Finding community resources…</div>
+  <div id="resultCount" class="result-count" style="display:none;"></div>
+  <div id="resourcesContainer"></div>
+</div>
+
+<!-- Request Modal -->
+<div class="modal-overlay" id="requestModal">
+  <div class="modal">
+    <div id="requestForm">
+      <h2 class="modal-title" id="modalResourceName">Send a request</h2>
+      <p class="modal-sub">Your message will be emailed directly to this person. Their contact info stays private.</p>
+      <input type="hidden" id="requestListingId">
+      <input type="hidden" id="requestToEmail">
+      <label class="modal-label">Your name</label>
+      <input type="text" class="modal-input" id="reqName" placeholder="Kai Akana">
+      <label class="modal-label">Your email</label>
+      <input type="email" class="modal-input" id="reqEmail" placeholder="you@email.com">
+      <label class="modal-label">Your phone (optional)</label>
+      <input type="tel" class="modal-input" id="reqPhone" placeholder="(808) 555-0000">
+      <label class="modal-label">What do you need help with?</label>
+      <textarea class="modal-input" id="reqMessage" rows="3" placeholder="Describe what you need — location, scope, timeline…"></textarea>
+      <p class="privacy-note-modal">🔒 Your contact info is only shared with the person you're requesting. It won't appear publicly.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-send" onclick="sendRequest()">Send request →</button>
+      </div>
+    </div>
+    <div id="requestSuccess" style="display:none;">
+      <div class="modal-success">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">🌺</div>
+        <h3>Request sent!</h3>
+        <p>Your message has been sent. They'll reach out to you directly by email or phone.</p>
+        <button class="btn-cancel" style="margin-top:1rem;" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Footer -->
+<footer style="background:var(--sage-deep);padding:1.25rem 1.5rem;text-align:center;margin-top:2rem;">
+  <p style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);">Mālama Map · Founded by Star Dahl-Thurston · Honolulu, Hawaiʻi</p>
+  <p style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.5);margin-top:4px;">Questions? <a href="/cdn-cgi/l/email-protection#0f6c60617b6e6c7b4f626e636e626e626e7f21607d68" style="color:rgba(255,255,255,0.8);text-decoration:none;font-weight:700;"><span class="__cf_email__" data-cfemail="b5d6dadbc1d4d6c1f5d8d4d9d4d8d4d8d4c59bdac7d2">[email&#160;protected]</span></a></p>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SURL, SKEY);
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let allListings = [], filtered = [], activeFilter = 'all';
+
+async function init() {
+  const { data } = await sb.from('listings')
+    .select('*')
+    .order('created_at', { ascending: false });
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('resultCount').style.display = 'block';
+  allListings = (data || []).filter(l =>
+    l.status !== false &&
+    (l.type === 'skills_labor' || (l.type||'').includes('skills_labor') || (Array.isArray(l.types) && l.types.includes('skills_labor'))) &&
+    (l.skills_direction || 'offering') === 'offering'
+  );
+  applyFilters();
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('[data-filter]').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  filtered = activeFilter === 'all'
+    ? allListings.slice()
+    : allListings.filter(l => (l.items || []).includes(activeFilter));
+  renderList();
+}
+
+function renderList() {
+  const count = document.getElementById('resultCount');
+  const container = document.getElementById('resourcesContainer');
+  count.innerHTML = `<span>${filtered.length}</span> tradesperson${filtered.length !== 1 ? 's' : ''} available`;
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="empty">
+        <h3>No listings yet</h3>
+        <p>Be the first to post your skills, labor, or equipment. If you have something to offer your community right now — add yourself.</p>
+        <a href="malama-create.html?type=skills_labor&direction=offering" class="empty-btn">+ Add myself as a resource</a>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(l => {
+    const skills = (l.items || []).slice(0, 6);
+    return `
+    <div class="resource-card">
+      <div class="rc-stripe"></div>
+      <div class="rc-header">
+        <div>
+          <p class="rc-name">${escapeHtml(l.name)}</p>
+          <p class="rc-area">📍 ${escapeHtml(l.address)}</p>
+        </div>
+        <div class="rc-badges">
+          <span class="pill ${l.status ? 'pill-open' : 'pill-closed'}">${l.status ? 'Available' : 'Unavailable'}</span>
+          ${l.verified ? `<span class="pill pill-verified">✓ Verified</span>` : ''}
+        </div>
+      </div>
+      <div class="rc-body">
+        ${skills.length ? `<div class="rc-skills">${skills.map(s => `<span class="rc-skill">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
+        <div class="rc-meta">
+          ${l.hours ? `<span class="rc-meta-item">🕐 ${escapeHtml(l.hours)}</span>` : ''}
+        </div>
+        ${l.notes ? `<p class="rc-notes">${escapeHtml(l.notes)}</p>` : ''}
+        <button class="request-btn" onclick="openRequest('${l.id}', '${escapeHtml((l.name || '').replace(/'/g,"&#39;"))}', '${escapeHtml((l.contact_email || '').replace(/'/g,"&#39;"))}')">Contact this tradesperson →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openRequest(id, name, email) {
+  document.getElementById('requestListingId').value = id;
+  document.getElementById('requestToEmail').value = email;
+  document.getElementById('modalResourceName').textContent = `Request help from ${name}`;
+  document.getElementById('requestForm').style.display = 'block';
+  document.getElementById('requestSuccess').style.display = 'none';
+  document.getElementById('reqName').value = '';
+  document.getElementById('reqEmail').value = '';
+  document.getElementById('reqPhone').value = '';
+  document.getElementById('reqMessage').value = '';
+  document.getElementById('requestModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('requestModal').classList.remove('open');
+}
+
+async function sendRequest() {
+  const name = document.getElementById('reqName').value.trim();
+  const email = document.getElementById('reqEmail').value.trim();
+  const message = document.getElementById('reqMessage').value.trim();
+  const toEmail = document.getElementById('requestToEmail').value;
+  const resourceName = document.getElementById('modalResourceName').textContent.replace('Request help from ', '');
+
+  if (!name || !email || !message) { alert('Please fill in your name, email, and message.'); return; }
+  if (!toEmail) { alert('This resource hasn\'t provided a contact email yet.'); return; }
+
+  const btn = document.querySelector('.btn-send');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/send-skill-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: toEmail,
+        reply_to: email,
+        requester_name: name,
+        requester_phone: document.getElementById('reqPhone').value || '',
+        resource_name: resourceName,
+        message: message
+      })
+    });
+
+    if (res.ok) {
+      document.getElementById('requestForm').style.display = 'none';
+      document.getElementById('requestSuccess').style.display = 'block';
+    } else {
+      alert('Error sending request. Please try again.');
+      btn.textContent = 'Send request →';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    alert('Error sending request. Please try again.');
+    btn.textContent = 'Send request →';
+    btn.disabled = false;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

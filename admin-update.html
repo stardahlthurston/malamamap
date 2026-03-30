@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Admin Update Tool</title>
+<link rel="icon" href="logo.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+function loadGooglePlaces() {
+  if (window._placesLoading || window.google?.maps?.places) { if (window.google?.maps?.places) initAddressAutocomplete(); return; }
+  window._placesLoading = true;
+  const s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU&libraries=places&callback=initAddressAutocomplete';
+  s.async = true; s.defer = true;
+  document.head.appendChild(s);
+}
+function initAddressAutocomplete() {
+  window._placesLoading = false;
+  const input = document.getElementById('extractedAddress');
+  if (!input || !window.google?.maps?.places) return;
+  const ac = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'us' },
+    fields: ['formatted_address', 'geometry']
+  });
+  ac.addListener('place_changed', () => {
+    const place = ac.getPlace();
+    if (place.geometry) {
+      document.getElementById('extractedLat').value = place.geometry.location.lat();
+      document.getElementById('extractedLng').value = place.geometry.location.lng();
+      input.value = place.formatted_address || input.value;
+    }
+  });
+}
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sage: #3a7d5c;
+    --sage-pale: #edf7f1;
+    --sage-deep: #1a3d2b;
+    --gold: #c9983a;
+    --gold-pale: #fdf4e3;
+    --red: #c0392b;
+    --bg: #f5f6f4;
+    --card: #ffffff;
+    --border: #e0e4e0;
+    --text: #1a1a1a;
+    --muted: #6b7a6b;
+    --radius: 12px;
+  }
+
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── PASSWORD GATE ── */
+  #gate { position: fixed; inset: 0; background: var(--sage-deep); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  #gate.hidden { display: none; }
+  .gate-box { background: #1f4d35; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2.5rem 2rem; width: 100%; max-width: 360px; text-align: center; }
+  .gate-box h1 { color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .gate-box p { color: rgba(255,255,255,0.5); font-size: 0.78rem; margin-bottom: 1.5rem; }
+  .gate-box input { width: 100%; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.08); color: white; font-size: 1rem; text-align: center; letter-spacing: 0.08em; margin-bottom: 0.75rem; outline: none; }
+  .gate-box input::placeholder { color: rgba(255,255,255,0.3); }
+  .gate-box input:focus { border-color: rgba(255,255,255,0.5); }
+  .gate-btn { width: 100%; padding: 0.75rem; background: #3a7d5c; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .gate-btn:hover { background: #4a9d72; }
+  .gate-error { color: #ff8080; font-size: 0.8rem; margin-top: 0.75rem; display: none; }
+  .gate-error.show { display: block; }
+
+  /* ── MAIN APP ── */
+  #app { display: none; max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  #app.visible { display: block; }
+  .app-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+  .app-header .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--sage); flex-shrink: 0; }
+  .app-header h1 { font-size: 1rem; font-weight: 600; color: var(--sage-deep); }
+  .app-header span { color: var(--muted); font-size: 0.8rem; }
+
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+  .section-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+
+  /* ── LISTING SELECTOR ── */
+  select.listing-select { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.88rem; color: var(--text); cursor: pointer; margin-bottom: 0.75rem; outline: none; }
+  select.listing-select:focus { border-color: var(--sage); }
+
+  .type-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-right: 5px; margin-bottom: 6px; }
+  .type-badge.dropoff { background: var(--gold-pale); color: #7a5c1a; }
+  .type-badge.supply  { background: var(--sage-pale); color: var(--sage-deep); }
+  .type-badge.other   { background: #f0f0ec; color: var(--muted); }
+  #listingTypeBadges { margin-bottom: 0.75rem; display: none; }
+
+  .current-data { background: var(--sage-pale); border: 1px solid rgba(58,125,92,0.2); border-radius: 8px; padding: 1rem 1.1rem; display: none; }
+  .current-data.show { display: block; }
+  .current-row { margin-bottom: 0.85rem; }
+  .current-row:last-child { margin-bottom: 0; }
+  .current-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sage-deep); margin-bottom: 0.3rem; }
+  .current-value { font-size: 0.85rem; color: var(--text); white-space: pre-wrap; line-height: 1.5; }
+  .current-value.empty { color: var(--muted); font-style: italic; }
+
+  /* ── UPLOAD AREA ── */
+  .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 2.5rem 1rem; text-align: center; cursor: pointer; transition: all 0.15s; position: relative; }
+  .upload-area:hover, .upload-area.drag-over { border-color: var(--sage); background: var(--sage-pale); }
+  .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+  .upload-text { font-size: 0.85rem; color: var(--muted); }
+  .upload-text strong { color: var(--text); }
+
+  .manual-edit-link { display: block; text-align: center; margin-top: 1rem; font-size: 0.82rem; font-weight: 600; color: var(--sage); cursor: pointer; text-decoration: underline; }
+  .manual-edit-link:hover { color: var(--sage-deep); }
+
+  /* ── PROCESSING LOG ── */
+  #processingLog { display: none; margin-top: 1rem; }
+  #processingLog.show { display: block; }
+  .log-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .log-item:last-child { border-bottom: none; }
+  .log-item.done { color: var(--sage-deep); }
+  .log-item.error { color: var(--red); }
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--sage); border-radius: 50%; flex-shrink: 0; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── CLARIFICATION PROMPT ── */
+  #clarificationSection { display: none; }
+  #clarificationSection.show { display: block; }
+  .clarify-card { background: var(--gold-pale); border: 1.5px solid rgba(201,152,58,0.3); border-radius: 12px; padding: 1.25rem 1.5rem; }
+  .clarify-title { font-size: 0.85rem; font-weight: 700; color: #7a5c1a; margin-bottom: 0.35rem; }
+  .clarify-sub { font-size: 0.78rem; color: #8a6a2a; margin-bottom: 1rem; line-height: 1.5; }
+  .clarify-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .clarify-btn { padding: 0.6rem 1.1rem; border-radius: 100px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; border: 1.5px solid; transition: all 0.15s; }
+  .clarify-btn.accepting { background: white; color: #7a5c1a; border-color: var(--gold); }
+  .clarify-btn.accepting:hover { background: var(--gold-pale); }
+  .clarify-btn.giving { background: white; color: var(--sage-deep); border-color: var(--sage); }
+  .clarify-btn.giving:hover { background: var(--sage-pale); }
+  .clarify-btn.both { background: white; color: var(--muted); border-color: #ccc; }
+  .clarify-btn.both:hover { background: #f5f5f5; }
+
+  /* ── REVIEW STEP ── */
+  #reviewSection { display: none; }
+  #reviewSection.show { display: block; }
+
+  .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 620px) { .review-grid { grid-template-columns: 1fr; } }
+
+  .review-col-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+  .review-col-label.extracted { color: var(--sage-deep); }
+
+  .review-field { margin-bottom: 1rem; }
+  .review-field label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .review-field textarea, .review-field input[type="text"], .review-field .static-value {
+    width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.85rem; font-family: inherit; line-height: 1.5; color: var(--text); background: white; outline: none;
+  }
+  .review-field textarea { resize: vertical; min-height: 70px; }
+  .review-field textarea:focus, .review-field input[type="text"]:focus { border-color: var(--sage); }
+  .review-field .static-value { background: #fafafa; color: var(--muted); cursor: default; white-space: pre-wrap; min-height: 40px; }
+  .review-field .static-value.empty { font-style: italic; }
+
+  /* item section labels inside review */
+  .items-section-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; display: inline-block; margin-bottom: 0.3rem; }
+  .items-section-label.accepting { background: var(--gold-pale); color: #7a5c1a; }
+  .items-section-label.giving    { background: var(--sage-pale); color: var(--sage-deep); }
+  .items-section-label.plain     { background: #f0f0ec; color: var(--muted); }
+
+  /* ── TYPE CHIPS ── */
+  .type-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 0.25rem; }
+  .type-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 100px; cursor: pointer;
+    font-size: 0.78rem; font-weight: 700; font-family: inherit;
+    border: 1.5px solid #ddd; background: white; color: var(--muted);
+    transition: all 0.15s; user-select: none;
+  }
+  .type-chip:hover { border-color: var(--sage); color: var(--sage-deep); }
+  .type-chip.selected { background: var(--sage-pale); border-color: var(--sage); color: var(--sage-deep); }
+  .type-chip.selected.dropoff { background: var(--gold-pale); border-color: var(--gold); color: #7a5c1a; }
+  .type-chip.selected.medical { background: #fdf0ef; border-color: #c0392b; color: #8b1a1a; }
+  .type-chip.selected.shelter { background: #eef4ff; border-color: #4a7abf; color: #1a3a6b; }
+  .type-chip.selected.skills    { background: #f5f0ff; border-color: #7b5ea7; color: #4a2d7a; }
+  .type-chip.selected.financial { background: #fff8e7; border-color: #c9983a; color: #7a4f00; }
+  .type-chip.selected.food { background: #fdf0e8; border-color: #c05621; color: #7a3210; }
+
+  /* ── TOGGLES ROW ── */
+  .toggles-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .toggle-card { flex: 1; min-width: 160px; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 1rem; background: #fafafa; border: 1px solid var(--border); border-radius: 8px; }
+  .toggle-card-label strong { display: block; font-size: 0.82rem; font-weight: 700; color: var(--text); }
+  .toggle-card-label span { font-size: 0.71rem; color: var(--muted); }
+  .toggle-switch { position: relative; width: 40px; height: 22px; display: inline-block; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 22px; cursor: pointer; transition: background 0.2s; }
+  .toggle-slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle-switch input:checked + .toggle-slider { background: var(--sage); }
+  .toggle-switch.hub input:checked + .toggle-slider { background: #0a6644; }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+  .review-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0 1rem; }
+
+  /* ── ITEM PILLS ── */
+  .items-pill-box { display:flex; flex-wrap:wrap; gap:6px; min-height:46px; padding:8px 10px; background:#fafbfa; border:1.5px solid var(--border); border-radius:10px; margin-bottom:6px; align-content:flex-start; }
+  .item-pill-edit { display:inline-flex; align-items:center; gap:5px; padding:5px 8px 5px 11px; border-radius:100px; font-size:0.78rem; font-weight:700; transition:all 0.12s; }
+  .item-pill-edit[data-status="existing"] { background:white; border:1.5px solid var(--border); color:var(--text); }
+  .item-pill-edit[data-status="new"] { background:var(--sage-pale); border:1.5px solid var(--sage); color:var(--sage-deep); }
+  .pill-badge { font-size:0.56rem; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; padding:1px 5px; border-radius:100px; flex-shrink:0; }
+  .pill-badge.existing { background:#e8eae8; color:var(--muted); }
+  .pill-badge.new { background:var(--sage); color:white; }
+  .pill-remove { background:none; border:none; cursor:pointer; font-size:0.82rem; font-weight:700; color:var(--muted); padding:0 0 0 2px; line-height:1; opacity:0.5; }
+  .pill-remove:hover { opacity:1; color:var(--red); }
+  .pill-add-row { display:flex; gap:5px; }
+  .pill-add-input { flex:1; padding:5px 12px; border:1.5px solid var(--border); border-radius:100px; font-size:0.78rem; font-family:inherit; outline:none; }
+  .pill-add-input:focus { border-color:var(--sage); }
+  .pill-add-btn { padding:5px 13px; background:var(--sage); color:white; border:none; border-radius:100px; font-size:0.82rem; font-weight:700; cursor:pointer; }
+
+  /* ── POST-SAVE ACTIONS ── */
+  .post-save-actions { display: none; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+  .post-save-actions.show { display: flex; }
+  .btn-view { padding: 0.55rem 1.1rem; background: var(--sage-deep); color: white; border: none; border-radius: 100px; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-family: inherit; }
+  .btn-view:hover { opacity: 0.85; }
+  .btn-another { padding: 0.55rem 1.1rem; background: white; color: var(--sage); border: 1.5px solid var(--sage); border-radius: 100px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-another:hover { background: var(--sage-pale); }
+
+  /* ── NOTIFY PANEL ── */
+  .notify-panel { display: none; margin-top: 1.25rem; background: #f0f7f3; border: 1.5px solid rgba(58,125,92,0.25); border-radius: 12px; padding: 1.25rem 1.5rem; }
+  .notify-panel.show { display: block; }
+  .notify-panel-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--sage-deep); margin-bottom: 0.9rem; }
+  .notify-row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: flex-end; margin-bottom: 0.75rem; }
+  .notify-field { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 160px; }
+  .notify-field label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+  .notify-field select, .notify-field input[type="text"] { padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.84rem; font-family: inherit; color: var(--text); background: white; outline: none; }
+  .notify-field select:focus, .notify-field input[type="text"]:focus { border-color: var(--sage); }
+  .notify-btns { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+  .btn-notify { padding: 0.6rem 1.25rem; background: var(--sage); color: white; border: none; border-radius: 100px; font-size: 0.83rem; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 7px; transition: background 0.15s; }
+  .btn-notify:hover { background: #2f6a4c; }
+  .btn-notify:disabled { background: #aaa; cursor: default; }
+  .btn-skip { padding: 0.6rem 1rem; background: white; color: var(--muted); border: 1.5px solid #ddd; border-radius: 100px; font-size: 0.83rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-skip:hover { color: var(--text); border-color: #bbb; }
+  .notify-result { font-size: 0.8rem; font-weight: 600; padding: 0.45rem 0.85rem; border-radius: 8px; display: none; }
+  .notify-result.ok  { display: inline-block; background: var(--sage-pale); color: var(--sage-deep); }
+  .notify-result.err { display: inline-block; background: #fdf0ef; color: var(--red); }
+  @keyframes notifySpin { to { transform: rotate(360deg); } }
+  .notify-spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: notifySpin 0.7s linear infinite; flex-shrink: 0; }
+
+  /* ── HOURS DAY PILLS ── */
+  .ext-day-pill { padding: 5px 13px; border-radius: 100px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; border: 1.5px solid #ddd; background: white; color: var(--muted); transition: all 0.15s; user-select: none; }
+  .ext-day-pill.selected { background: var(--sage); border-color: var(--sage); color: white; }
+
+  /* ── MODE TOGGLE ── */
+  .mode-btn { padding: 0.52rem 1.2rem; border-radius: 100px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; border: 1.5px solid #ddd; background: white; color: var(--muted); transition: all 0.15s; }
+  .mode-btn.active { background: var(--sage); color: white; border-color: var(--sage); }
+  .review-grid.single-col { grid-template-columns: 1fr !important; }
+
+  /* ── NO-EDIT WARNING ── */
+  .no-edit-warning { background: #fff8e6; border: 1.5px solid #e6a817; border-radius: 10px; padding: 10px 14px; margin-bottom: 0.75rem; font-size: 0.8rem; font-weight: 700; color: #7a5c1a; display: none; }
+  .no-edit-warning.show { display: block; }
+
+  /* ── PUSH / ACTIONS ── */
+  .push-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .btn-push { padding: 0.75rem 2rem; background: var(--sage); color: white; border: none; border-radius: 100px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+  .btn-push:hover { background: #2f6a4c; }
+  .btn-push:disabled { background: #aaa; cursor: default; }
+  .btn-clear { padding: 0.75rem 1.25rem; background: white; color: var(--muted); border: 1.5px solid #ddd; border-radius: 100px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .btn-clear:hover { border-color: var(--red); color: var(--red); }
+  .result-msg { font-size: 0.85rem; font-weight: 600; padding: 0.5rem 0.9rem; border-radius: 8px; display: none; }
+  .result-msg.success { display: inline-block; background: var(--sage-pale); color: var(--sage-deep); }
+  .result-msg.error   { display: inline-block; background: #fdf0ef; color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <h1>Mālama Map</h1>
+    <p>Admin update tool — enter password to continue</p>
+    <input type="password" id="passwordInput" placeholder="Password" autocomplete="off"
+      onkeydown="if(event.key==='Enter') checkPassword()">
+    <button class="gate-btn" onclick="checkPassword()">Enter</button>
+    <p class="gate-error" id="gateError">Incorrect password. Try again.</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="app-header">
+    <div class="dot"></div>
+    <h1>Mālama Map — Admin Update Tool</h1>
+    <span>Internal use only</span>
+  </div>
+
+  <!-- MODE TOGGLE -->
+  <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+    <button id="modeUpdateBtn" class="mode-btn active" onclick="setMode('update')">Update listing</button>
+    <button id="modeCreateBtn" class="mode-btn" onclick="setMode('create')">+ New listing</button>
+  </div>
+
+  <!-- 1. LISTING SELECTOR -->
+  <div class="section">
+    <p class="section-title" id="sectionOneTitle">1 — Select a listing</p>
+
+    <!-- Create mode note (shown instead of selector) -->
+    <div id="createModeNote" style="display:none;background:var(--sage-pale);border:1px solid rgba(58,125,92,0.2);border-radius:8px;padding:0.75rem 1rem;font-size:0.83rem;font-weight:600;color:var(--sage-deep);">✨ Creating a new listing — upload a photo below or fill in manually. Name and address are required.</div>
+
+    <!-- Update-only: listing selector + current data -->
+    <div id="updateOnlySection">
+    <select class="listing-select" id="listingSelect" onchange="onListingSelect()">
+      <option value="">Loading listings…</option>
+    </select>
+    <div class="no-edit-warning" id="noEditWarning">⚠️ This listing owner has requested no further admin edits. Proceed with care.</div>
+    <div id="listingTypeBadges"></div>
+
+    <div class="current-data" id="currentData">
+      <div class="current-row">
+        <div class="current-label">Hours</div>
+        <div class="current-value" id="currentHours"></div>
+      </div>
+      <div class="current-row" id="currentGivingRow" style="display:none;">
+        <div class="current-label">🟢 Giving out</div>
+        <div class="current-value" id="currentGiving"></div>
+      </div>
+      <div class="current-row" id="currentAcceptingRow" style="display:none;">
+        <div class="current-label">🟡 Accepting</div>
+        <div class="current-value" id="currentAccepting"></div>
+      </div>
+      <div class="current-row" id="currentItemsRow" style="display:none;">
+        <div class="current-label">Items</div>
+        <div class="current-value" id="currentItems"></div>
+      </div>
+      <div class="current-row">
+        <div class="current-label">Address</div>
+        <div class="current-value" id="currentAddress"></div>
+      </div>
+      <div class="current-row">
+        <div class="current-label">Phone</div>
+        <div class="current-value" id="currentPhone"></div>
+      </div>
+      <div class="current-row" id="currentWebsiteRow">
+        <div class="current-label">Website</div>
+        <div class="current-value" id="currentWebsite"></div>
+      </div>
+      <div class="current-row">
+        <div class="current-label">Notes</div>
+        <div class="current-value" id="currentNotes"></div>
+      </div>
+    </div>
+    </div><!-- end updateOnlySection -->
+  </div>
+
+  <!-- 2. UPLOAD SCREENSHOTS -->
+  <div class="section">
+    <p class="section-title">2 — Upload screenshots</p>
+    <div class="upload-area" id="uploadArea"
+      ondragover="event.preventDefault(); this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="onDrop(event)">
+      <input type="file" id="fileInput" accept="image/*" multiple onchange="onFilePick(event)">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text"><strong>Click to upload</strong> or drag and drop<br>JPG, PNG, HEIC — multiple allowed</div>
+    </div>
+    <div id="processingLog"></div>
+    <span class="manual-edit-link" onclick="openManualEdit()">Or edit this listing manually without a photo →</span>
+  </div>
+
+  <!-- 3. CLARIFICATION (mixed-type listings only) -->
+  <div class="section" id="clarificationSection">
+    <p class="section-title">3 — Clarify items</p>
+    <div class="clarify-card">
+      <p class="clarify-title">This listing is both a Supply Station and a Donation Drop-off</p>
+      <p class="clarify-sub">Are the items extracted from these screenshots for accepting donations, giving out supplies, or both? You can adjust individual items in the next step.</p>
+      <div class="clarify-btns">
+        <button class="clarify-btn accepting" onclick="applyClarification('accepting')">📦 All Accepting donations</button>
+        <button class="clarify-btn giving"    onclick="applyClarification('giving')">🛖 All Giving out supplies</button>
+        <button class="clarify-btn both"      onclick="applyClarification('both')">Both — I'll split them below</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. REVIEW & EDIT -->
+  <div class="section" id="reviewSection">
+    <p class="section-title" id="reviewSectionTitle">3 — Review & edit before pushing</p>
+
+    <div class="review-grid" id="reviewGrid">
+      <!-- LEFT: current -->
+      <div id="reviewCurrentCol">
+        <p class="review-col-label">Current</p>
+        <div class="review-field"><label>Hours</label><div class="static-value" id="reviewCurrentHours"></div></div>
+        <div class="review-field" id="reviewCurrentGivingWrap" style="display:none;">
+          <span class="items-section-label giving">🟢 Giving out</span>
+          <div class="static-value" id="reviewCurrentGiving"></div>
+        </div>
+        <div class="review-field" id="reviewCurrentAcceptingWrap" style="display:none;">
+          <span class="items-section-label accepting">🟡 Accepting</span>
+          <div class="static-value" id="reviewCurrentAccepting"></div>
+        </div>
+        <div class="review-field" id="reviewCurrentItemsWrap" style="display:none;">
+          <label>Items</label>
+          <div class="static-value" id="reviewCurrentItems"></div>
+        </div>
+        <div class="review-field"><label>Address</label><div class="static-value" id="reviewCurrentAddress"></div></div>
+        <div class="review-field"><label>Phone</label><div class="static-value" id="reviewCurrentPhone"></div></div>
+        <div class="review-field"><label>Name</label><div class="static-value" id="reviewCurrentName"></div></div>
+        <div class="review-field"><label>Website</label><div class="static-value" id="reviewCurrentWebsite"></div></div>
+        <div class="review-field"><label>Notes</label><div class="static-value" id="reviewCurrentNotes"></div></div>
+      </div>
+
+      <!-- RIGHT: extracted (editable) -->
+      <div>
+        <p class="review-col-label extracted">Extracted / edit</p>
+
+        <!-- Listing Type chips -->
+        <div class="review-field">
+          <label>Listing Type</label>
+          <div class="type-chips" id="typeChipsContainer">
+            <button type="button" class="type-chip supply"   data-type="supply_station"    onclick="toggleTypeChip(this)">🛖 Supply Station</button>
+            <button type="button" class="type-chip food"     data-type="food_distribution" onclick="toggleTypeChip(this)">🍱 Food Distribution</button>
+            <button type="button" class="type-chip dropoff"  data-type="donation_dropoff"  onclick="toggleTypeChip(this)">📦 Donation Drop-off</button>
+            <button type="button" class="type-chip shelter"  data-type="shelter"           onclick="toggleTypeChip(this)">🏠 Shelter</button>
+            <button type="button" class="type-chip"          data-type="volunteer_event"   onclick="toggleTypeChip(this)">🙋 Volunteers</button>
+            <button type="button" class="type-chip medical"  data-type="medical_assistance" onclick="toggleTypeChip(this)">🏥 Medical</button>
+            <button type="button" class="type-chip skills"   data-type="skills_labor"      onclick="toggleTypeChip(this)">🔧 Skills & Labor</button>
+            <button type="button" class="type-chip financial" data-type="financial_giving"  onclick="toggleTypeChip(this)">Give Financially</button>
+          </div>
+        </div>
+
+        <div class="review-field">
+          <label>Hours</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.6rem;" id="extDayPills">
+            <button type="button" class="ext-day-pill" data-day="Every day" onclick="toggleExtDay(this)">Every day</button>
+            <button type="button" class="ext-day-pill" data-day="Mon" onclick="toggleExtDay(this)">Mon</button>
+            <button type="button" class="ext-day-pill" data-day="Tue" onclick="toggleExtDay(this)">Tue</button>
+            <button type="button" class="ext-day-pill" data-day="Wed" onclick="toggleExtDay(this)">Wed</button>
+            <button type="button" class="ext-day-pill" data-day="Thu" onclick="toggleExtDay(this)">Thu</button>
+            <button type="button" class="ext-day-pill" data-day="Fri" onclick="toggleExtDay(this)">Fri</button>
+            <button type="button" class="ext-day-pill" data-day="Sat" onclick="toggleExtDay(this)">Sat</button>
+            <button type="button" class="ext-day-pill" data-day="Sun" onclick="toggleExtDay(this)">Sun</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.6rem;">
+            <div>
+              <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Opens at</p>
+              <select id="extHoursOpen" onchange="buildExtHours()" style="width:100%;padding:0.55rem 0.7rem;border:1px solid var(--border);border-radius:8px;font-size:0.82rem;font-family:inherit;background:white;color:var(--text);outline:none;">
+                <option value="">—</option>
+                <option>5:00 AM</option><option>6:00 AM</option><option>7:00 AM</option><option>7:30 AM</option>
+                <option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option>
+                <option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option>
+                <option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option>
+                <option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option>
+                <option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option>
+                <option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>8:00 PM</option>
+                <option>Open 24 hours</option><option>Sunrise – Sunset</option>
+              </select>
+            </div>
+            <div>
+              <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Closes at</p>
+              <select id="extHoursClose" onchange="buildExtHours()" style="width:100%;padding:0.55rem 0.7rem;border:1px solid var(--border);border-radius:8px;font-size:0.82rem;font-family:inherit;background:white;color:var(--text);outline:none;">
+                <option value="">—</option>
+                <option>8:00 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option>
+                <option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option>
+                <option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option>
+                <option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option>
+                <option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option><option>6:00 PM</option>
+                <option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option><option>8:00 PM</option>
+                <option>8:30 PM</option><option>9:00 PM</option><option>10:00 PM</option><option>Midnight</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.5rem;">
+            <div>
+              <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Available from</p>
+              <input type="date" id="extDateFrom" onchange="buildExtHours()" style="width:100%;padding:0.55rem 0.7rem;border:1px solid var(--border);border-radius:8px;font-size:0.82rem;font-family:inherit;outline:none;color:var(--text);">
+            </div>
+            <div>
+              <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Until</p>
+              <input type="date" id="extDateUntil" onchange="buildExtHours()" style="width:100%;padding:0.55rem 0.7rem;border:1px solid var(--border);border-radius:8px;font-size:0.82rem;font-family:inherit;outline:none;color:var(--text);">
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:7px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-bottom:0.5rem;">
+            <input type="checkbox" id="extUntilFurther" onchange="buildExtHours()" style="accent-color:var(--sage);width:14px;height:14px;"> Until further notice
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-bottom:0.6rem;">
+            <input type="checkbox" id="ext247" onchange="toggle247Ext(this.checked)" style="accent-color:var(--sage);width:14px;height:14px;"> Open 24 hours / 24/7
+          </label>
+          <p style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;font-weight:600;">Result — edit directly if needed</p>
+          <input type="text" id="extractedHours" placeholder="Auto-fills from selections above, or type custom…" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;color:var(--text);">
+        </div>
+
+        <!-- Giving out (supply station) -->
+        <div class="review-field" id="extractedGivingWrap" style="display:none;">
+          <span class="items-section-label giving">🟢 Giving out</span>
+          <div class="items-pill-box" id="extractedGivingPills"></div>
+          <div class="pill-add-row">
+            <input class="pill-add-input" id="extractedGivingInput" placeholder="Add item…" onkeydown="pillAddKey(event,'extractedGivingPills','extractedGivingInput')">
+            <button class="pill-add-btn" onclick="pillAddBtn('extractedGivingPills','extractedGivingInput')">+</button>
+          </div>
+        </div>
+
+        <!-- Accepting (donation drop-off) -->
+        <div class="review-field" id="extractedAcceptingWrap" style="display:none;">
+          <span class="items-section-label accepting">🟡 Accepting</span>
+          <div class="items-pill-box" id="extractedAcceptingPills"></div>
+          <div class="pill-add-row">
+            <input class="pill-add-input" id="extractedAcceptingInput" placeholder="Add item…" onkeydown="pillAddKey(event,'extractedAcceptingPills','extractedAcceptingInput')">
+            <button class="pill-add-btn" onclick="pillAddBtn('extractedAcceptingPills','extractedAcceptingInput')">+</button>
+          </div>
+        </div>
+
+        <!-- Plain items (neither) -->
+        <div class="review-field" id="extractedItemsWrap" style="display:none;">
+          <label>Items</label>
+          <div class="items-pill-box" id="extractedItemsPills"></div>
+          <div class="pill-add-row">
+            <input class="pill-add-input" id="extractedItemsInput" placeholder="Add item…" onkeydown="pillAddKey(event,'extractedItemsPills','extractedItemsInput')">
+            <button class="pill-add-btn" onclick="pillAddBtn('extractedItemsPills','extractedItemsInput')">+</button>
+          </div>
+        </div>
+
+        <div class="review-field">
+          <label>Address</label>
+          <input type="text" id="extractedAddress" placeholder="Leave blank to keep current" autocomplete="off">
+          <input type="hidden" id="extractedLat">
+          <input type="hidden" id="extractedLng">
+        </div>
+        <div class="review-field"><label>Phone</label><input type="text" id="extractedPhone" placeholder="Leave blank to keep current"></div>
+        <div class="review-field"><label>Name</label><input type="text" id="extractedName" placeholder="Leave blank to keep current"></div>
+        <div class="review-field"><label>Website</label><input type="text" id="extractedWebsite" placeholder="https://... (leave blank to keep current)"></div>
+        <div class="review-field"><label>Notes</label><textarea id="extractedNotes" rows="3" placeholder="Important notes…"></textarea></div>
+
+        <!-- ── VOLUNTEER EVENT extras ── -->
+        <div id="extVolExtras" style="display:none;">
+          <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7b5ea7;margin:0.75rem 0 0.4rem;">🙋 Volunteers Needed</div>
+          <div class="review-field">
+            <label>Event dates <span style="font-weight:400;text-transform:none;letter-spacing:0;">— add one or more</span></label>
+            <div id="extEventDatePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;min-height:24px;"></div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <input type="date" id="extEventDate" style="flex:1;min-width:100px;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;color:var(--text);">
+              <select id="extEventOpen" style="padding:0.5rem 0.5rem;border:1px solid var(--border);border-radius:8px;font-size:0.78rem;font-family:inherit;color:var(--text);"></select>
+              <span style="font-size:0.78rem;color:var(--muted);">–</span>
+              <select id="extEventClose" style="padding:0.5rem 0.5rem;border:1px solid var(--border);border-radius:8px;font-size:0.78rem;font-family:inherit;color:var(--text);"></select>
+              <button type="button" onclick="addExtEventDate()" style="padding:0.48rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid var(--sage);background:white;color:var(--sage);white-space:nowrap;transition:all 0.15s;">+ Add</button>
+              <button type="button" id="extOngoingBtn" onclick="toggleExtOngoing()" style="padding:0.48rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid #ddd;background:white;color:var(--muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
+            </div>
+          </div>
+          <div class="review-field">
+            <label>Sign-up link <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+            <input type="text" id="extVolSignupUrl" placeholder="https://signupgenius.com/…" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;">
+          </div>
+        </div>
+
+        <!-- ── SHELTER extras ── -->
+        <div id="extShelterExtras" style="display:none;">
+          <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2a6496;margin:0.75rem 0 0.4rem;">🏠 Shelter Details</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="review-field">
+              <label>Capacity</label>
+              <input type="number" id="extCapacity" placeholder="50" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;">
+            </div>
+            <div class="review-field">
+              <label>Pet friendly?</label>
+              <select id="extPetFriendly" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;background:white;color:var(--text);">
+                <option value="false">No pets</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SKILLS & LABOR extras ── -->
+        <div id="extSkillsExtras" style="display:none;">
+          <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2e6b6b;margin:0.75rem 0 0.4rem;">🔧 Skills &amp; Labor</div>
+          <div class="review-field">
+            <label>Direction</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.5rem;">
+              <div id="extDirOffering" onclick="selectExtSkillsDir('offering')" style="padding:0.75rem;border:2px solid var(--sage);border-radius:10px;cursor:pointer;background:var(--sage-pale);text-align:center;">
+                <div style="font-size:1.1rem;margin-bottom:3px;">🙌</div>
+                <p style="font-size:0.78rem;font-weight:700;color:var(--sage-deep);">I have skills</p>
+              </div>
+              <div id="extDirSeeking" onclick="selectExtSkillsDir('seeking')" style="padding:0.75rem;border:2px solid #ddd;border-radius:10px;cursor:pointer;background:white;text-align:center;">
+                <div style="font-size:1.1rem;margin-bottom:3px;">🔍</div>
+                <p style="font-size:0.78rem;font-weight:700;color:var(--muted);">I need help</p>
+              </div>
+            </div>
+            <input type="hidden" id="extSkillsDirection" value="offering">
+          </div>
+          <div class="review-field">
+            <label>Contact email for requests</label>
+            <input type="text" id="extContactEmail" placeholder="you@email.com" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <hr class="review-divider">
+    <p class="review-col-label" style="margin-bottom:0.75rem;">Status &amp; Badges</p>
+    <div class="toggles-row">
+      <div class="toggle-card">
+        <div class="toggle-card-label">
+          <strong>Active listing</strong>
+          <span>Visible on map &amp; search</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleStatus" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-card">
+        <div class="toggle-card-label">
+          <strong>⭐ Fully Stocked Hub</strong>
+          <span>Main community hub badge</span>
+        </div>
+        <label class="toggle-switch hub">
+          <input type="checkbox" id="toggleHub">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="push-row">
+      <button class="btn-push" id="pushBtn" onclick="pushUpdate()">Update listing →</button>
+      <button class="btn-clear" onclick="resetTool()">✕ Clear &amp; start over</button>
+      <span class="result-msg" id="resultMsg"></span>
+    </div>
+    <div class="post-save-actions" id="postSaveActions">
+      <a href="#" id="viewListingBtn" target="_blank" class="btn-view">View listing →</a>
+      <button class="btn-another" onclick="startAnother()">Update another listing →</button>
+    </div>
+
+    <!-- Notify owner panel -->
+    <div class="notify-panel" id="notifyPanel">
+      <p class="notify-panel-title">📬 Notify listing owner?</p>
+      <div class="notify-row">
+        <div class="notify-field">
+          <label for="notifyCategory">Change category</label>
+          <select id="notifyCategory" onchange="onCategoryChange()">
+            <option value="hours">Hours / Schedule update</option>
+            <option value="items">Items or needs updated</option>
+            <option value="type">Listing type changed</option>
+            <option value="contact">Contact info updated</option>
+            <option value="notes">Notes / description edited</option>
+            <option value="hub_badge">Fully Stocked Hub badge added</option>
+            <option value="custom">✏️ Custom message</option>
+          </select>
+        </div>
+        <div class="notify-field" style="flex:2;min-width:220px;">
+          <label for="notifySummary">Short note to owner <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional, editable)</span></label>
+          <input type="text" id="notifySummary" placeholder="e.g. Updated hours based on your latest post">
+        </div>
+      </div>
+      <div class="notify-btns">
+        <button class="btn-notify" id="notifyBtn" onclick="sendNotification()">Send notification →</button>
+        <button class="btn-skip" onclick="dismissNotify()">Don't notify</button>
+        <span class="notify-result" id="notifyResult"></span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end #app -->
+
+<script>
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const ADMIN_UID = '04e3776b-b75f-4701-888e-511a9cf21382';
+
+let allListings     = [];
+let selectedListing = null;
+let pendingItems    = []; // items waiting for clarification (mixed-type listings)
+let selectedTypesEdit = new Set();
+let _curGiving = [], _curAccepting = [], _curPlain = []; // current listing's items by section
+let createMode = false;
+
+// ══════════════════════════════════════
+// MODE TOGGLE
+// ══════════════════════════════════════
+function setMode(mode) {
+  createMode = (mode === 'create');
+  document.getElementById('modeUpdateBtn').classList.toggle('active', !createMode);
+  document.getElementById('modeCreateBtn').classList.toggle('active', createMode);
+  document.getElementById('updateOnlySection').style.display = createMode ? 'none' : '';
+  document.getElementById('createModeNote').style.display = createMode ? 'block' : 'none';
+  document.getElementById('sectionOneTitle').textContent = createMode ? '1 — New listing' : '1 — Select a listing';
+  document.getElementById('reviewCurrentCol').style.display = createMode ? 'none' : '';
+  document.getElementById('reviewGrid').classList.toggle('single-col', createMode);
+  document.getElementById('pushBtn').textContent = createMode ? 'Create listing →' : 'Update listing →';
+  // Reset any previous work
+  resetTool();
+  selectedTypesEdit = new Set();
+  document.querySelectorAll('#typeChipsContainer .type-chip').forEach(b => b.classList.remove('selected'));
+  updateItemSections();
+}
+
+// ── Title case ──
+function toTitleCase(s) {
+  return (s || '').replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+// ── Pill helpers ──
+function appendPill(container, name, status) {
+  const d = document.createElement('div');
+  d.className = 'item-pill-edit';
+  d.dataset.status = status;
+  d.dataset.name   = name;
+  d.innerHTML = `<span>${escHtml(name)}</span>`
+    + `<span class="pill-badge ${status}">${status}</span>`
+    + `<button class="pill-remove" onclick="this.closest('.item-pill-edit').remove()" title="Remove">×</button>`;
+  container.appendChild(d);
+}
+
+function setExtractedPills(containerId, extractedItems, section) {
+  const box = document.getElementById(containerId);
+  if (!box) return;
+  box.innerHTML = '';
+  const existing = section === 'giving' ? _curGiving : section === 'accepting' ? _curAccepting : _curPlain;
+  const existingSet = new Set(existing.map(i => i.toLowerCase()));
+  const newSet = new Set(extractedItems.map(i => i.toLowerCase()));
+  // Existing items first
+  for (const item of existing) {
+    appendPill(box, toTitleCase(item), newSet.has(item.toLowerCase()) ? 'existing' : 'existing');
+  }
+  // New items not already present
+  for (const item of extractedItems) {
+    if (!existingSet.has(item.toLowerCase())) appendPill(box, toTitleCase(item), 'new');
+  }
+}
+
+function getItemsFromPills(containerId) {
+  const box = document.getElementById(containerId);
+  if (!box) return [];
+  return [...box.querySelectorAll('.item-pill-edit')].map(p => p.dataset.name).filter(Boolean);
+}
+
+function pillAddKey(e, pillsId, inputId) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  pillAddBtn(pillsId, inputId);
+}
+
+function pillAddBtn(pillsId, inputId) {
+  const input = document.getElementById(inputId);
+  const val = toTitleCase((input?.value || '').trim());
+  if (!val) return;
+  const box = document.getElementById(pillsId);
+  // Don't add duplicates
+  const existing = [...(box?.querySelectorAll('.item-pill-edit') || [])].map(p => (p.dataset.name || '').toLowerCase());
+  if (!existing.includes(val.toLowerCase())) appendPill(box, val, 'new');
+  if (input) input.value = '';
+}
+
+// ══════════════════════════════════════
+// PASSWORD GATE
+// ══════════════════════════════════════
+function checkPassword() {
+  const val = document.getElementById('passwordInput').value;
+  if (val === 'malama2026') {
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    loadListings();
+  } else {
+    document.getElementById('gateError').classList.add('show');
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+// ══════════════════════════════════════
+// TYPE CHIPS
+// ══════════════════════════════════════
+function movePills(fromId, toId) {
+  const from = document.getElementById(fromId);
+  const to   = document.getElementById(toId);
+  if (!from || !to) return;
+  [...from.querySelectorAll('.item-pill-edit')].forEach(pill => to.appendChild(pill));
+}
+
+function toggleTypeChip(btn) {
+  const t = btn.dataset.type;
+
+  // Snapshot state BEFORE the change
+  const wasSupply  = selectedTypesEdit.has('supply_station');
+  const wasDropoff = selectedTypesEdit.has('donation_dropoff');
+
+  if (selectedTypesEdit.has(t)) {
+    selectedTypesEdit.delete(t);
+    btn.classList.remove('selected');
+  } else {
+    selectedTypesEdit.add(t);
+    btn.classList.add('selected');
+  }
+
+  const isSupply  = selectedTypesEdit.has('supply_station');
+  const isDropoff = selectedTypesEdit.has('donation_dropoff');
+
+  // Migrate pills so they follow the type change rather than disappearing
+  if (wasSupply && !isSupply && isDropoff && !wasDropoff) {
+    // Supply Station → Donation Drop-off: move giving pills → accepting
+    movePills('extractedGivingPills', 'extractedAcceptingPills');
+  } else if (wasDropoff && !isDropoff && isSupply && !wasSupply) {
+    // Donation Drop-off → Supply Station: move accepting pills → giving
+    movePills('extractedAcceptingPills', 'extractedGivingPills');
+  } else if (wasSupply && !isSupply && !isDropoff) {
+    // Removed supply with no dropoff left: consolidate to plain
+    movePills('extractedGivingPills', 'extractedItemsPills');
+  } else if (wasDropoff && !isDropoff && !isSupply) {
+    // Removed dropoff with no supply left: consolidate to plain
+    movePills('extractedAcceptingPills', 'extractedItemsPills');
+  } else if (!wasSupply && isSupply && !wasDropoff && !isDropoff) {
+    // Added supply station from a plain state: move plain → giving
+    movePills('extractedItemsPills', 'extractedGivingPills');
+  } else if (!wasDropoff && isDropoff && !wasSupply && !isSupply) {
+    // Added dropoff from a plain state: move plain → accepting
+    movePills('extractedItemsPills', 'extractedAcceptingPills');
+  }
+
+  updateItemSections();
+}
+
+function initTypeChips(typeStr) {
+  selectedTypesEdit = new Set(
+    (typeStr || '').split(',').map(t => t.trim()).filter(Boolean)
+  );
+  document.querySelectorAll('#typeChipsContainer .type-chip').forEach(btn => {
+    btn.classList.toggle('selected', selectedTypesEdit.has(btn.dataset.type));
+  });
+  updateItemSections();
+}
+
+function updateItemSections() {
+  const hasSupply   = selectedTypesEdit.has('supply_station') || selectedTypesEdit.has('food_distribution');
+  const hasDropoff  = selectedTypesEdit.has('donation_dropoff');
+  const hasVol      = selectedTypesEdit.has('volunteer_event');
+  const hasShelter  = selectedTypesEdit.has('shelter');
+  const hasSkills   = selectedTypesEdit.has('skills_labor');
+  document.getElementById('extractedGivingWrap').style.display    = hasSupply  ? 'block' : 'none';
+  document.getElementById('extractedAcceptingWrap').style.display = hasDropoff ? 'block' : 'none';
+  document.getElementById('extractedItemsWrap').style.display     = (!hasSupply && !hasDropoff) ? 'block' : 'none';
+  document.getElementById('extVolExtras').style.display     = (hasVol || selectedTypesEdit.has('food_distribution')) ? 'block' : 'none';
+  document.getElementById('extShelterExtras').style.display = hasShelter ? 'block' : 'none';
+  document.getElementById('extSkillsExtras').style.display  = hasSkills  ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════
+// HOURS STRUCTURED INPUTS
+// ══════════════════════════════════════
+function toggleExtDay(btn) {
+  const day = btn.dataset.day;
+  if (day === 'Every day') {
+    const wasSelected = btn.classList.contains('selected');
+    document.querySelectorAll('#extDayPills .ext-day-pill').forEach(b => b.classList.remove('selected'));
+    if (!wasSelected) btn.classList.add('selected');
+  } else {
+    document.querySelector('#extDayPills [data-day="Every day"]')?.classList.remove('selected');
+    btn.classList.toggle('selected');
+  }
+  buildExtHours();
+}
+
+function toggle247Ext(checked) {
+  const open  = document.getElementById('extHoursOpen');
+  const close = document.getElementById('extHoursClose');
+  const from  = document.getElementById('extDateFrom');
+  const until = document.getElementById('extDateUntil');
+  [open, close, from, until].forEach(el => { if (el) { el.disabled = checked; el.style.opacity = checked ? '0.4' : '1'; } });
+  if (checked) document.getElementById('extractedHours').value = '24/7';
+  else buildExtHours();
+}
+
+function collapseDays(days) {
+  if (!days.length) return '';
+  if (days.includes('Every day')) return 'Every day';
+  const order = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const sorted = days.filter(d => order.includes(d)).sort((a,b) => order.indexOf(a) - order.indexOf(b));
+  if (!sorted.length) return days.join(', ');
+  const runs = [];
+  let start = 0;
+  for (let i = 1; i <= sorted.length; i++) {
+    if (i === sorted.length || order.indexOf(sorted[i]) !== order.indexOf(sorted[i-1]) + 1) {
+      const run = sorted.slice(start, i);
+      runs.push(run.length >= 2 ? run[0] + '–' + run[run.length-1] : run[0]);
+      start = i;
+    }
+  }
+  return runs.join(', ');
+}
+
+function buildExtHours() {
+  if (document.getElementById('ext247')?.checked) { document.getElementById('extractedHours').value = '24/7'; return; }
+  const days = [...document.querySelectorAll('#extDayPills .ext-day-pill.selected')].map(b => b.dataset.day);
+  const openTime  = document.getElementById('extHoursOpen')?.value  || '';
+  const closeTime = document.getElementById('extHoursClose')?.value || '';
+  const dateFrom  = document.getElementById('extDateFrom')?.value   || '';
+  const dateUntil = document.getElementById('extDateUntil')?.value  || '';
+  const untilFurther = document.getElementById('extUntilFurther')?.checked;
+  const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  let hoursText = '';
+  if (openTime === 'Open 24 hours' || openTime === 'Sunrise – Sunset') hoursText = openTime;
+  else if (openTime && closeTime) hoursText = openTime + ' – ' + closeTime;
+  else if (openTime) hoursText = 'Opens at ' + openTime;
+  let dateText = '';
+  if (untilFurther) dateText = dateFrom ? 'From ' + fmt(dateFrom) + ' · Until further notice' : 'Until further notice';
+  else if (dateFrom && dateUntil) dateText = fmt(dateFrom) + ' – ' + fmt(dateUntil);
+  else if (dateFrom) dateText = 'From ' + fmt(dateFrom);
+  const parts = [];
+  if (days.length) parts.push(collapseDays(days));
+  if (hoursText) parts.push(hoursText);
+  if (dateText)  parts.push(dateText);
+  document.getElementById('extractedHours').value = parts.join(' · ');
+}
+
+function resetExtHours() {
+  document.querySelectorAll('#extDayPills .ext-day-pill').forEach(b => b.classList.remove('selected'));
+  ['extHoursOpen','extHoursClose','extDateFrom','extDateUntil'].forEach(id => {
+    const el = document.getElementById(id); if (el) { el.value = ''; el.disabled = false; el.style.opacity = '1'; }
+  });
+  const uf = document.getElementById('extUntilFurther'); if (uf) uf.checked = false;
+  const cb = document.getElementById('ext247'); if (cb) cb.checked = false;
+}
+
+// ══════════════════════════════════════
+// TYPE-SPECIFIC EXTRA HELPERS
+// ══════════════════════════════════════
+let _extEventDates = [];
+
+const EVENT_TIME_OPTS = ['12:00 AM','12:30 AM','1:00 AM','1:30 AM','2:00 AM','2:30 AM','3:00 AM','3:30 AM','4:00 AM','4:30 AM','5:00 AM','5:30 AM','6:00 AM','6:30 AM','7:00 AM','7:30 AM','8:00 AM','8:30 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM','9:00 PM','9:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM'].map(t=>`<option>${t}</option>`).join('');
+
+function parseEventEntry(e) {
+  if (e === 'ongoing') return {date:'ongoing', open:'', close:''};
+  const parts = e.split('|');
+  return {date: parts[0], open: parts[1]||'', close: parts[2]||''};
+}
+function entryDateLabel(entry) {
+  const {date, open, close} = parseEventEntry(entry);
+  if (date === 'ongoing') return 'Ongoing';
+  const d = new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  return open ? `${d} · ${open}${close ? ' – '+close : ''}` : d;
+}
+
+function addExtEventDate(dateVal) {
+  const input = document.getElementById('extEventDate');
+  const val = dateVal || input?.value;
+  if (!val || val === 'ongoing') return;
+  if (_extEventDates.some(e => e === val || e.startsWith(val+'|'))) { if (input) input.value = ''; return; }
+  // Lazy init selects
+  const eo = document.getElementById('extEventOpen');
+  const ec = document.getElementById('extEventClose');
+  if (eo && !eo.innerHTML) { eo.innerHTML = EVENT_TIME_OPTS; eo.value = '9:00 AM'; }
+  if (ec && !ec.innerHTML) { ec.innerHTML = EVENT_TIME_OPTS; ec.value = '5:00 PM'; }
+  const open = eo ? eo.value : '';
+  const close = ec ? ec.value : '';
+  const entry = open ? `${val}|${open}|${close}` : val;
+  _extEventDates.push(entry);
+  renderExtEventDatePills();
+  if (input) input.value = '';
+}
+
+function removeExtEventDate(val) {
+  _extEventDates = _extEventDates.filter(d => d !== val);
+  if (val === 'ongoing') {
+    const btn = document.getElementById('extOngoingBtn');
+    if (btn) { btn.dataset.active = ''; btn.style.background = 'white'; btn.style.color = 'var(--muted)'; btn.style.borderColor = '#ddd'; }
+  }
+  renderExtEventDatePills();
+}
+
+function renderExtEventDatePills() {
+  const container = document.getElementById('extEventDatePills');
+  if (!container) return;
+  container.innerHTML = _extEventDates.map(e => {
+    const label = entryDateLabel(e);
+    const safe = e.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--sage-pale,#edf7f1);border:1.5px solid var(--sage,#3a7d5c);border-radius:100px;padding:4px 10px;font-size:0.78rem;font-weight:700;color:var(--sage-deep,#2d5c3f);">${label}<button type="button" onclick="removeExtEventDate('${safe}')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:0.9rem;font-weight:700;padding:0 0 0 2px;line-height:1;">×</button></span>`;
+  }).join('');
+}
+
+function toggleExtOngoing() {
+  const btn = document.getElementById('extOngoingBtn');
+  const on = btn.dataset.active !== 'true';
+  btn.dataset.active = on ? 'true' : '';
+  btn.style.background = on ? 'var(--sage)' : 'white';
+  btn.style.color = on ? 'white' : 'var(--muted)';
+  btn.style.borderColor = on ? 'var(--sage)' : '#ddd';
+  if (on) {
+    _extEventDates = ['ongoing'];
+  } else {
+    _extEventDates = _extEventDates.filter(d => d !== 'ongoing');
+  }
+  renderExtEventDatePills();
+}
+
+function selectExtSkillsDir(dir) {
+  document.getElementById('extSkillsDirection').value = dir;
+  const off = document.getElementById('extDirOffering');
+  const seek = document.getElementById('extDirSeeking');
+  off.style.borderColor  = dir === 'offering' ? 'var(--sage)' : '#ddd';
+  off.style.background   = dir === 'offering' ? 'var(--sage-pale)' : 'white';
+  off.querySelector('p').style.color = dir === 'offering' ? 'var(--sage-deep)' : 'var(--muted)';
+  seek.style.borderColor = dir === 'seeking'  ? 'var(--sage)' : '#ddd';
+  seek.style.background  = dir === 'seeking'  ? 'var(--sage-pale)' : 'white';
+  seek.querySelector('p').style.color = dir === 'seeking' ? 'var(--sage-deep)' : 'var(--muted)';
+}
+
+function resetTypeExtras() {
+  // volunteer
+  _extEventDates = [];
+  renderExtEventDatePills();
+  const eb = document.getElementById('extOngoingBtn');
+  if (eb) { eb.dataset.active = ''; eb.style.background = 'white'; eb.style.color = 'var(--muted)'; eb.style.borderColor = '#ddd'; }
+  const ed = document.getElementById('extEventDate'); if (ed) { ed.value = ''; ed.disabled = false; ed.style.opacity = '1'; }
+  const sv = document.getElementById('extVolSignupUrl'); if (sv) sv.value = '';
+  // shelter
+  const cap = document.getElementById('extCapacity'); if (cap) cap.value = '';
+  const pet = document.getElementById('extPetFriendly'); if (pet) pet.value = 'false';
+  // skills
+  selectExtSkillsDir('offering');
+  const ce = document.getElementById('extContactEmail'); if (ce) ce.value = '';
+}
+
+function getTypeExtrasPayload() {
+  const payload = {};
+  if (selectedTypesEdit.has('volunteer_event') || selectedTypesEdit.has('food_distribution')) {
+    payload.event_dates = _extEventDates.length > 0 ? _extEventDates : null;
+    payload.event_date = _extEventDates.includes('ongoing') ? 'ongoing' : (_extEventDates.length > 0 ? [..._extEventDates].filter(d=>d!=='ongoing').map(e=>e.split('|')[0]).sort()[0] : null);
+    payload.volunteer_signup_url = document.getElementById('extVolSignupUrl')?.value.trim() || null;
+  }
+  if (selectedTypesEdit.has('shelter')) {
+    const cap = document.getElementById('extCapacity')?.value;
+    if (cap) payload.capacity = cap;
+    payload.pet_friendly = document.getElementById('extPetFriendly')?.value === 'true';
+  }
+  if (selectedTypesEdit.has('skills_labor')) {
+    payload.skills_direction = document.getElementById('extSkillsDirection')?.value || 'offering';
+    const ce = document.getElementById('extContactEmail')?.value.trim();
+    if (ce) payload.contact_email = ce;
+  }
+  return payload;
+}
+
+// ══════════════════════════════════════
+// LISTING SELECTOR
+// ══════════════════════════════════════
+async function loadListings() {
+  const sel = document.getElementById('listingSelect');
+  try {
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_all_listings', authUserId: ADMIN_UID })
+    });
+    if (!resp.ok) throw new Error('Server error ' + resp.status);
+    const data = await resp.json();
+    if (!data.listings) throw new Error(data.error || 'No listings returned');
+    allListings = data.listings;
+    sel.innerHTML = '<option value="">— Select a listing —</option>' +
+      allListings.map(l => `<option value="${l.id}">${escHtml(l.name || 'Unnamed')}</option>`).join('');
+  } catch (e) {
+    sel.innerHTML = `<option value="">Error: ${e.message}</option>`;
+  }
+}
+
+function onListingSelect() {
+  const id = document.getElementById('listingSelect').value;
+  selectedListing = allListings.find(l => l.id === id) || null;
+
+  const box = document.getElementById('currentData');
+  const badges = document.getElementById('listingTypeBadges');
+
+  if (!selectedListing) {
+    box.classList.remove('show');
+    badges.style.display = 'none';
+    document.getElementById('noEditWarning').classList.remove('show');
+    return;
+  }
+
+  // ── No-edit warning ──
+  document.getElementById('noEditWarning').classList.toggle('show', !!selectedListing.no_admin_edit);
+
+  // ── Type badges ──
+  const type = selectedListing.type || '';
+  const hasDropoff = type.includes('donation_dropoff');
+  const hasSupply  = type.includes('supply_station');
+  const badgeHTML = [];
+  if (hasSupply)  badgeHTML.push('<span class="type-badge supply">🛖 Supply Station</span>');
+  if (hasDropoff) badgeHTML.push('<span class="type-badge dropoff">📦 Donation Drop-off</span>');
+  type.split(',').forEach(t => {
+    t = t.trim();
+    if (t && t !== 'donation_dropoff' && t !== 'supply_station') {
+      const labels = { shelter:'🏠 Shelter', volunteer_event:'🙋 Volunteers', medical_assistance:'🏥 Medical', skills_labor:'🔧 Skills & Labor', financial_giving:'Give Financially' };
+      badgeHTML.push(`<span class="type-badge other">${labels[t] || t}</span>`);
+    }
+  });
+  badges.innerHTML = badgeHTML.join('');
+  badges.style.display = badgeHTML.length ? 'block' : 'none';
+
+  // ── Split items by prefix ──
+  const rawItems = Array.isArray(selectedListing.items) ? selectedListing.items : [];
+  const givingItems    = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
+  const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
+  const plainItems     = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+  // Store for use in pill rendering
+  _curGiving = givingItems; _curAccepting = acceptingItems; _curPlain = plainItems;
+
+  // ── Populate current data panel ──
+  setEl('currentHours',   selectedListing.hours   || '—', !selectedListing.hours);
+  setEl('currentAddress', selectedListing.address || '—', !selectedListing.address);
+  setEl('currentPhone',   selectedListing.contact_phone || '—', !selectedListing.contact_phone);
+  setEl('currentWebsite', selectedListing.website || '—', !selectedListing.website);
+  setEl('currentNotes',   selectedListing.notes   || '—', !selectedListing.notes);
+
+  showCurrentItemRow('currentGivingRow',    'currentGiving',    givingItems);
+  showCurrentItemRow('currentAcceptingRow', 'currentAccepting', acceptingItems);
+  showCurrentItemRow('currentItemsRow',     'currentItems',     plainItems);
+
+  box.classList.add('show');
+
+  // ── Mirror into review "Current" column ──
+  setStaticReview('reviewCurrentHours',   selectedListing.hours);
+  setStaticReview('reviewCurrentAddress', selectedListing.address);
+  setStaticReview('reviewCurrentPhone',   selectedListing.contact_phone);
+  setStaticReview('reviewCurrentName',    selectedListing.name);
+  setStaticReview('reviewCurrentWebsite', selectedListing.website);
+  setStaticReview('reviewCurrentNotes',   selectedListing.notes);
+
+  showReviewCurrentItems('reviewCurrentGivingWrap',    'reviewCurrentGiving',    givingItems);
+  showReviewCurrentItems('reviewCurrentAcceptingWrap', 'reviewCurrentAccepting', acceptingItems);
+  showReviewCurrentItems('reviewCurrentItemsWrap',     'reviewCurrentItems',     plainItems);
+
+  // ── Init type chips & extracted item sections ──
+  initTypeChips(selectedListing.type);
+
+  // ── Populate event_dates if volunteer_event ──
+  _extEventDates = [];
+  if ((selectedListing.type||'').includes('volunteer_event') || (selectedListing.type||'').includes('food_distribution')) {
+    if (selectedListing.event_dates && selectedListing.event_dates.length > 0) {
+      _extEventDates = selectedListing.event_dates;
+      if (_extEventDates.includes('ongoing')) {
+        const btn = document.getElementById('extOngoingBtn');
+        if (btn) { btn.dataset.active = 'true'; btn.style.background = 'var(--sage)'; btn.style.color = 'white'; btn.style.borderColor = 'var(--sage)'; }
+      }
+    } else if (selectedListing.event_date === 'ongoing') {
+      _extEventDates = ['ongoing'];
+      const btn = document.getElementById('extOngoingBtn');
+      if (btn) { btn.dataset.active = 'true'; btn.style.background = 'var(--sage)'; btn.style.color = 'white'; btn.style.borderColor = 'var(--sage)'; }
+    } else if (selectedListing.event_date) {
+      _extEventDates = [selectedListing.event_date];
+    }
+    renderExtEventDatePills();
+    if (selectedListing.volunteer_signup_url) {
+      const sv = document.getElementById('extVolSignupUrl'); if (sv) sv.value = selectedListing.volunteer_signup_url;
+    }
+  }
+
+  // ── Set status & hub toggles ──
+  document.getElementById('toggleStatus').checked = selectedListing.status !== false;
+  document.getElementById('toggleHub').checked    = !!selectedListing.main_hub;
+}
+
+function showCurrentItemRow(rowId, valueId, items) {
+  const row = document.getElementById(rowId);
+  const el  = document.getElementById(valueId);
+  if (items.length) {
+    el.textContent = items.join('\n');
+    el.classList.remove('empty');
+    row.style.display = 'block';
+  } else {
+    row.style.display = 'none';
+  }
+}
+
+function showReviewCurrentItems(wrapId, valueId, items) {
+  const wrap = document.getElementById(wrapId);
+  const el   = document.getElementById(valueId);
+  if (items.length) {
+    el.textContent = items.join('\n');
+    el.classList.remove('empty');
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════
+// MANUAL EDIT (no photo)
+// ══════════════════════════════════════
+function openManualEdit() {
+  if (createMode) {
+    // Blank form for new listing
+    document.getElementById('extractedHours').value   = '';
+    document.getElementById('extractedAddress').value = '';
+    document.getElementById('extractedPhone').value   = '';
+    document.getElementById('extractedName').value    = '';
+    document.getElementById('extractedWebsite').value = '';
+    document.getElementById('extractedNotes').value   = '';
+    setExtractedPills('extractedGivingPills',    [], 'giving');
+    setExtractedPills('extractedAcceptingPills', [], 'accepting');
+    setExtractedPills('extractedItemsPills',     [], 'plain');
+    document.getElementById('reviewSectionTitle').textContent = '3 — Fill in new listing details';
+    document.getElementById('reviewSection').classList.add('show');
+    document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(loadGooglePlaces, 100);
+    return;
+  }
+
+  if (!selectedListing) { alert('Please select a listing first.'); return; }
+
+  const rawItems = Array.isArray(selectedListing.items) ? selectedListing.items : [];
+  const givingItems    = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
+  const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
+  const plainItems     = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+
+  // Pre-fill with current values so user can edit in place
+  document.getElementById('extractedHours').value   = selectedListing.hours || '';
+  document.getElementById('extractedAddress').value = selectedListing.address || '';
+  document.getElementById('extractedPhone').value   = selectedListing.contact_phone || '';
+  document.getElementById('extractedName').value    = selectedListing.name || '';
+  document.getElementById('extractedWebsite').value = selectedListing.website || '';
+  document.getElementById('extractedNotes').value   = selectedListing.notes || '';
+  // Populate pills with current items (all shown as "existing")
+  setExtractedPills('extractedGivingPills',    [], 'giving');
+  setExtractedPills('extractedAcceptingPills', [], 'accepting');
+  setExtractedPills('extractedItemsPills',     [], 'plain');
+
+  document.getElementById('reviewSectionTitle').textContent = '3 — Edit listing directly';
+  document.getElementById('reviewSection').classList.add('show');
+  document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(loadGooglePlaces, 100);
+}
+
+// ══════════════════════════════════════
+// IMAGE UPLOAD
+// ══════════════════════════════════════
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadArea').classList.remove('drag-over');
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  if (files.length) processFiles(files);
+}
+function onFilePick(e) {
+  const files = [...e.target.files];
+  if (files.length) processFiles(files);
+  e.target.value = '';
+}
+
+async function processFiles(files) {
+  if (!createMode && !selectedListing) { alert('Please select a listing first.'); return; }
+
+  const log = document.getElementById('processingLog');
+  log.innerHTML = '';
+  log.classList.add('show');
+  // Hide previous review/clarification while re-processing
+  document.getElementById('clarificationSection').classList.remove('show');
+  document.getElementById('reviewSection').classList.remove('show');
+
+  let mergedHours = '';
+  let mergedItems = [];
+  let mergedNotes = '';
+  let mergedAddress = '';
+
+  for (const file of files) {
+    const logItem = addLogItem(log, `Reading ${file.name}…`);
+    try {
+      const { base64, mediaType } = await compressImage(file);
+      updateLogItem(logItem, `Sending ${file.name} to Claude…`);
+
+      const resp = await fetch('/api/update-from-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: base64, media_type: mediaType })
+      });
+      const result = await resp.json();
+
+      if (!resp.ok || result.error) {
+        updateLogItem(logItem, `${file.name} — error: ${result.error || 'Unknown'}`, 'error');
+        continue;
+      }
+
+      if (result.parsed) {
+        const p = result.parsed;
+        if (p.hours && !mergedHours) mergedHours = p.hours;
+        if (p.location && !mergedAddress) mergedAddress = p.location;
+
+        // Flatten items (handles flat array, nested object, or string)
+        if (Array.isArray(p.items)) {
+          p.items.forEach(i => {
+            if (typeof i === 'string') mergedItems.push(i);
+            else if (Array.isArray(i)) mergedItems.push(...i.filter(x => typeof x === 'string'));
+          });
+        } else if (p.items && typeof p.items === 'object') {
+          Object.values(p.items).forEach(v => {
+            if (Array.isArray(v)) mergedItems.push(...v.filter(x => typeof x === 'string'));
+            else if (typeof v === 'string') mergedItems.push(v);
+          });
+        } else if (typeof p.items === 'string' && p.items) {
+          mergedItems.push(p.items);
+        }
+
+        if (p.notes) mergedNotes = [mergedNotes, p.notes].filter(Boolean).join('\n');
+        const count = Array.isArray(p.items) ? p.items.length : mergedItems.length;
+        updateLogItem(logItem, `${file.name} — extracted ${count} items`, 'done');
+      } else {
+        mergedNotes = [mergedNotes, result.raw || '(no data)'].filter(Boolean).join('\n---\n');
+        updateLogItem(logItem, `${file.name} — JSON parse failed, raw text shown in Notes`, 'done');
+      }
+    } catch (err) {
+      updateLogItem(logItem, `${file.name} — ${err.message}`, 'error');
+    }
+  }
+
+  // Deduplicate items
+  mergedItems = [...new Set(mergedItems)];
+
+  // Always populate hours, address, notes
+  document.getElementById('extractedHours').value   = mergedHours;
+  document.getElementById('extractedAddress').value = mergedAddress;
+  document.getElementById('extractedNotes').value   = mergedNotes;
+  document.getElementById('reviewSectionTitle').textContent = createMode ? '3 — Fill in new listing details' : '4 — Review & edit before pushing';
+
+  const hasDropoff = selectedTypesEdit.has('donation_dropoff');
+  const hasSupply  = selectedTypesEdit.has('supply_station');
+
+  if (hasDropoff && hasSupply) {
+    // Mixed — ask user to clarify before showing review
+    pendingItems = mergedItems;
+    document.getElementById('clarificationSection').classList.add('show');
+    document.getElementById('clarificationSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    // Auto-route items based on type
+    routeItems(mergedItems, hasDropoff ? 'accepting' : hasSupply ? 'giving' : 'plain');
+    document.getElementById('reviewSection').classList.add('show');
+    document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(loadGooglePlaces, 100);
+  }
+}
+
+// ══════════════════════════════════════
+// CLARIFICATION
+// ══════════════════════════════════════
+function applyClarification(choice) {
+  routeItems(pendingItems, choice);
+  document.getElementById('clarificationSection').classList.remove('show');
+  document.getElementById('reviewSection').classList.add('show');
+  document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(loadGooglePlaces, 100);
+}
+
+function routeItems(items, choice) {
+  const titled = items.map(toTitleCase);
+  if (choice === 'giving'    || choice === 'both') setExtractedPills('extractedGivingPills',    titled, 'giving');
+  if (choice === 'accepting' || choice === 'both') setExtractedPills('extractedAcceptingPills', titled, 'accepting');
+  if (choice === 'plain')                          setExtractedPills('extractedItemsPills',     titled, 'plain');
+}
+
+// ══════════════════════════════════════
+// PUSH UPDATE
+// ══════════════════════════════════════
+async function geocodeAddress(addr) {
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.results && d.results[0]) {
+      const loc = d.results[0].geometry.location;
+      return { lat: loc.lat, lng: loc.lng };
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function createNewListing() {
+  const btn = document.getElementById('pushBtn');
+  const msg = document.getElementById('resultMsg');
+  btn.disabled = true;
+  msg.className = 'result-msg';
+
+  const nameVal    = document.getElementById('extractedName').value.trim();
+  const addressVal = document.getElementById('extractedAddress').value.trim();
+  const hoursVal   = document.getElementById('extractedHours').value.trim();
+  const phoneVal   = document.getElementById('extractedPhone').value.trim();
+  const websiteVal = document.getElementById('extractedWebsite').value.trim();
+  const notesVal   = document.getElementById('extractedNotes').value.trim();
+
+  if (!nameVal)    { alert('Listing name is required.'); btn.disabled = false; btn.textContent = 'Create listing →'; return; }
+  if (!addressVal) { alert('Address is required for a new listing.'); btn.disabled = false; btn.textContent = 'Create listing →'; return; }
+  if (selectedTypesEdit.size === 0) { alert('Please select at least one listing type.'); btn.disabled = false; btn.textContent = 'Create listing →'; return; }
+
+  // Use Places-captured coords first, fall back to geocoding
+  let coords = null;
+  const storedLat = document.getElementById('extractedLat')?.value;
+  const storedLng = document.getElementById('extractedLng')?.value;
+  if (storedLat && storedLng) {
+    coords = { lat: parseFloat(storedLat), lng: parseFloat(storedLng) };
+  } else {
+    btn.textContent = 'Geocoding address…';
+    coords = await geocodeAddress(addressVal);
+  }
+  if (!coords) {
+    alert('Could not find coordinates for that address. Double-check the address and try again.');
+    btn.disabled = false; btn.textContent = 'Create listing →'; return;
+  }
+
+  const itemsArr = [
+    ...getItemsFromPills('extractedGivingPills').map(s => 'GIVING:' + s),
+    ...getItemsFromPills('extractedAcceptingPills').map(s => 'ACCEPTING:' + s),
+    ...getItemsFromPills('extractedItemsPills')
+  ];
+
+  const payload = {
+    name:          nameVal,
+    address:       addressVal,
+    lat:           coords.lat,
+    lng:           coords.lng,
+    type:          [...selectedTypesEdit].join(','),
+    status:        document.getElementById('toggleStatus').checked,
+    main_hub:      document.getElementById('toggleHub').checked,
+    user_id:       ADMIN_UID,
+    hours:         hoursVal  || null,
+    contact_phone: phoneVal  || null,
+    website:       websiteVal || null,
+    notes:         notesVal  || null,
+    items:         itemsArr,
+    ...getTypeExtrasPayload(),
+  };
+
+  try {
+    btn.textContent = 'Creating…';
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create_listing', authUserId: ADMIN_UID, payload })
+    });
+    const result = await resp.json();
+
+    if (!resp.ok || result.error) {
+      msg.textContent = 'Error: ' + (result.error || resp.statusText);
+      msg.className = 'result-msg error';
+    } else {
+      window.location.href = `admin-success.html?type=created&id=${encodeURIComponent(result.id)}&name=${encodeURIComponent(nameVal)}`;
+      return;
+    }
+  } catch (err) {
+    msg.textContent = 'Network error: ' + err.message;
+    msg.className = 'result-msg error';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Create listing →';
+}
+
+async function pushUpdate() {
+  if (createMode) { await createNewListing(); return; }
+  if (!selectedListing) { alert('No listing selected.'); return; }
+
+  const btn = document.getElementById('pushBtn');
+  const msg = document.getElementById('resultMsg');
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+  msg.className = 'result-msg';
+
+  const hoursVal   = document.getElementById('extractedHours').value.trim();
+  const addressVal = document.getElementById('extractedAddress').value.trim();
+  const phoneVal   = document.getElementById('extractedPhone').value.trim();
+  const nameVal    = document.getElementById('extractedName').value.trim();
+  const websiteVal = document.getElementById('extractedWebsite').value.trim();
+  const notesVal   = document.getElementById('extractedNotes').value.trim();
+
+  const itemsArr = [
+    ...getItemsFromPills('extractedGivingPills').map(s => 'GIVING:' + s),
+    ...getItemsFromPills('extractedAcceptingPills').map(s => 'ACCEPTING:' + s),
+    ...getItemsFromPills('extractedItemsPills')
+  ];
+
+  const payload = {
+    items:    itemsArr,
+    status:   document.getElementById('toggleStatus').checked,
+    main_hub: document.getElementById('toggleHub').checked
+  };
+  if (selectedTypesEdit.size > 0) payload.type = [...selectedTypesEdit].join(',');
+  if (hoursVal)   payload.hours         = hoursVal;
+  if (notesVal)   payload.notes         = notesVal;
+  if (addressVal) {
+    payload.address = addressVal;
+    // If Places gave us coords for the new address, update them too
+    const sLat = document.getElementById('extractedLat')?.value;
+    const sLng = document.getElementById('extractedLng')?.value;
+    if (sLat && sLng) { payload.lat = parseFloat(sLat); payload.lng = parseFloat(sLng); }
+  }
+  if (phoneVal)   payload.contact_phone = phoneVal;
+  if (nameVal)    payload.name          = nameVal;
+  if (websiteVal) payload.website       = websiteVal;
+  Object.assign(payload, getTypeExtrasPayload());
+
+  try {
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_listing', authUserId: ADMIN_UID, listingId: selectedListing.id, payload })
+    });
+    const result = await resp.json();
+
+    if (!resp.ok || result.error) {
+      msg.textContent = 'Error: ' + (result.error || resp.statusText);
+      msg.className = 'result-msg error';
+    } else {
+      const displayName = (nameVal || selectedListing.name || '').trim();
+      window.location.href = `admin-success.html?type=updated&id=${encodeURIComponent(selectedListing.id)}&name=${encodeURIComponent(displayName)}`;
+      return;
+    }
+  } catch (err) {
+    msg.textContent = 'Network error: ' + err.message;
+    msg.className = 'result-msg error';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Update listing →';
+}
+
+// ══════════════════════════════════════
+// NOTIFY OWNER
+// ══════════════════════════════════════
+const AUTO_SUMMARIES = {
+  hours:    'Updated your listing\'s hours based on the latest information we had.',
+  items:    'Updated the items / needs list on your listing.',
+  type:     'Updated the listing type to better match what your location offers.',
+  contact:  'Updated the contact info on your listing.',
+  notes:    'Updated the notes / description on your listing.',
+  hub_badge:'Your location has been designated as a Fully Stocked Hub on Mālama Map.',
+  custom:   '',
+};
+
+function autoSelectCategory(payload) {
+  if (payload.main_hub) return 'hub_badge';
+  if (payload.hours)    return 'hours';
+  if (payload.items && payload.items.length) return 'items';
+  if (payload.type)     return 'type';
+  if (payload.address || payload.contact_phone || payload.website) return 'contact';
+  if (payload.notes)    return 'notes';
+  return 'custom';
+}
+
+function showNotifyPanel(payload) {
+  const cat = autoSelectCategory(payload);
+  document.getElementById('notifyCategory').value = cat;
+  document.getElementById('notifySummary').value  = AUTO_SUMMARIES[cat] || '';
+  document.getElementById('notifyResult').className = 'notify-result';
+  document.getElementById('notifyPanel').classList.add('show');
+}
+
+function onCategoryChange() {
+  const cat = document.getElementById('notifyCategory').value;
+  const summaryEl = document.getElementById('notifySummary');
+  if (!summaryEl.dataset.edited) summaryEl.value = AUTO_SUMMARIES[cat] || '';
+}
+
+// Mark summary as manually edited so auto-fill stops overriding
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.getElementById('notifySummary');
+  if (s) s.addEventListener('input', () => { s.dataset.edited = '1'; });
+});
+
+function dismissNotify() {
+  document.getElementById('notifyPanel').classList.remove('show');
+}
+
+async function sendNotification() {
+  const btn    = document.getElementById('notifyBtn');
+  const result = document.getElementById('notifyResult');
+  const category = document.getElementById('notifyCategory').value;
+  const summary  = document.getElementById('notifySummary').value.trim();
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="notify-spinner"></div> Sending…';
+  result.className = 'notify-result';
+
+  try {
+    const resp = await fetch('/api/notify-listing-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        listingId:  selectedListing.id,
+        category,
+        summary,
+        authUserId: ADMIN_UID
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'Failed');
+    result.textContent  = '✅ Notification sent';
+    result.className    = 'notify-result ok';
+    btn.textContent     = 'Sent ✓';
+    btn.style.background = 'var(--sage-deep)';
+    setTimeout(() => { document.getElementById('notifyPanel').classList.remove('show'); }, 2200);
+  } catch(err) {
+    result.textContent = 'Error: ' + err.message;
+    result.className   = 'notify-result err';
+    btn.disabled = false;
+    btn.innerHTML = 'Send notification →';
+  }
+}
+
+// ══════════════════════════════════════
+// RESET
+// ══════════════════════════════════════
+function resetTool() {
+  pendingItems = [];
+  document.getElementById('processingLog').innerHTML = '';
+  document.getElementById('processingLog').classList.remove('show');
+  document.getElementById('clarificationSection').classList.remove('show');
+  document.getElementById('reviewSection').classList.remove('show');
+  document.getElementById('resultMsg').className = 'result-msg';
+  document.getElementById('postSaveActions').classList.remove('show');
+  document.getElementById('notifyPanel').classList.remove('show');
+  ['extractedHours','extractedNotes'].forEach(id => { document.getElementById(id).value = ''; });
+  ['extractedGivingPills','extractedAcceptingPills','extractedItemsPills'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = '';
+  });
+  document.getElementById('extractedAddress').value = '';
+  document.getElementById('extractedLat').value     = '';
+  document.getElementById('extractedLng').value     = '';
+  document.getElementById('extractedPhone').value   = '';
+  document.getElementById('extractedName').value    = '';
+  document.getElementById('extractedWebsite').value = '';
+  resetExtHours();
+  resetTypeExtras();
+}
+
+function startAnother() {
+  resetTool();
+  selectedListing = null;
+  document.getElementById('listingSelect').value = '';
+  document.getElementById('currentData').classList.remove('show');
+  document.getElementById('listingTypeBadges').style.display = 'none';
+  initTypeChips('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════
+// IMAGE COMPRESSION
+// ══════════════════════════════════════
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const MAX = 1400;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ══════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════
+function addLogItem(container, text) {
+  const div = document.createElement('div');
+  div.className = 'log-item';
+  div.innerHTML = `<div class="spinner"></div><span>${escHtml(text)}</span>`;
+  container.appendChild(div);
+  return div;
+}
+function updateLogItem(el, text, state) {
+  const icon = state === 'done' ? '✅' : state === 'error' ? '❌' : '';
+  el.innerHTML = icon
+    ? `<span style="width:14px;text-align:center;flex-shrink:0;">${icon}</span><span>${escHtml(text)}</span>`
+    : `<div class="spinner"></div><span>${escHtml(text)}</span>`;
+  if (state) el.classList.add(state);
+}
+function setEl(id, text, isEmpty) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.toggle('empty', !!isEmpty);
+}
+function setStaticReview(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = text || '—';
+  el.classList.toggle('empty', !text);
+}
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

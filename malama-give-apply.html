@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Your Organization — Mālama Map</title>
+<link rel="icon" href="/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#1c4a3a;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --gold:#c9983a;--gold-pale:#fdf4e3;--gold-deep:#7a4f00;
+  --cream:#fdf8f2;--text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.1);--red:#c0392b;--red-pale:#fdf0ee;
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+
+.topbar{background:var(--sage-deep);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.75);text-decoration:none;display:flex;align-items:center;gap:4px;}
+.topbar-back:hover{color:white;}
+
+.content{max-width:600px;margin:0 auto;padding:1.75rem 1.25rem 4rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.3rem;}
+.page-sub{font-size:0.85rem;font-weight:500;color:var(--text-muted);margin-bottom:2rem;line-height:1.6;}
+
+.section{background:white;border-radius:14px;border:1.5px solid var(--border);padding:1.4rem;margin-bottom:1.1rem;}
+.section-label{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.1rem;display:flex;align-items:center;gap:6px;}
+.field{margin-bottom:1rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.field input,.field textarea,.field select{width:100%;padding:0.65rem 0.9rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;font-weight:500;color:var(--text-dark);outline:none;transition:border-color 0.15s;background:white;}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--gold);}
+.field textarea{resize:vertical;min-height:90px;line-height:1.5;}
+.field .hint{font-size:0.72rem;color:var(--text-muted);margin-top:5px;line-height:1.4;}
+
+/* Category chips */
+.cat-grid{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.25rem;}
+.cat-chip{padding:0.5rem 1.1rem;border-radius:100px;border:2px solid #ddd;background:white;font-size:0.82rem;font-weight:700;color:var(--text-mid);cursor:pointer;transition:all 0.15s;font-family:'Nunito',sans-serif;}
+.cat-chip:hover{border-color:var(--gold);color:var(--gold-deep);}
+.cat-chip.selected{background:var(--gold);border-color:var(--gold);color:white;}
+
+/* Verification section */
+.verify-section{background:white;border-radius:14px;border:2px solid var(--gold);padding:1.4rem;margin-bottom:1.1rem;}
+.verify-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-pale);border:1.5px solid rgba(201,152,58,0.3);border-radius:100px;padding:0.3rem 0.85rem;font-size:0.72rem;font-weight:700;color:var(--gold-deep);margin-bottom:1rem;}
+.verify-note{background:var(--gold-pale);border-radius:10px;padding:0.85rem 1rem;font-size:0.8rem;font-weight:600;color:var(--gold-deep);line-height:1.5;margin-bottom:1.1rem;}
+
+/* Status chips */
+.status-grid{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.status-chip{padding:0.45rem 1rem;border-radius:100px;border:2px solid #ddd;background:white;font-size:0.8rem;font-weight:700;color:var(--text-mid);cursor:pointer;transition:all 0.15s;font-family:'Nunito',sans-serif;}
+.status-chip:hover{border-color:var(--gold);color:var(--gold-deep);}
+.status-chip.selected{background:var(--gold-pale);border-color:var(--gold);color:var(--gold-deep);}
+
+.submit-btn{width:100%;padding:1rem;background:var(--gold);color:white;border:none;border-radius:100px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:background 0.2s;margin-top:0.5rem;}
+.submit-btn:hover{background:#b07a00;}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+
+.success-box{display:none;background:#edf7f1;border:1.5px solid var(--sage-light);border-radius:14px;padding:1.5rem;text-align:center;margin-top:1rem;}
+.success-box h3{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.success-box p{font-size:0.85rem;font-weight:500;color:var(--text-mid);line-height:1.6;}
+
+.error-box{display:none;background:var(--red-pale);border:1.5px solid rgba(192,57,43,0.2);border-radius:10px;padding:0.85rem 1rem;font-size:0.84rem;font-weight:600;color:var(--red);margin-bottom:1rem;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="malama-give-financially.html" class="topbar-back">← Back to Give Financially</a>
+  <a href="index.html" class="topbar-logo">Mālama Map</a>
+</div>
+
+<div class="content">
+  <h1 class="page-title">List your organization</h1>
+  <p class="page-sub">All submissions are reviewed by the Mālama Map team before going live. Verified 501(c)3 nonprofits and registered LLCs are given priority listing.</p>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Section 1: Organization info -->
+  <div class="section">
+    <p class="section-label">🏛 Organization info</p>
+
+    <div class="field">
+      <label>Organization name *</label>
+      <input type="text" id="orgName" placeholder="e.g. Maui United Way" maxlength="120">
+    </div>
+
+    <div class="field">
+      <label>Category *</label>
+      <div class="cat-grid">
+        <button type="button" class="cat-chip" onclick="selectCat('Org',this)">🏛 Org</button>
+        <button type="button" class="cat-chip" onclick="selectCat('Church',this)">⛪ Church</button>
+        <button type="button" class="cat-chip" onclick="selectCat('Resource',this)">🤝 Resource</button>
+      </div>
+      <input type="hidden" id="orgCategory">
+    </div>
+
+    <div class="field">
+      <label>Donation / giving link *</label>
+      <input type="url" id="orgLink" placeholder="https://donate.yourorg.org">
+      <p class="hint">Direct link to your donation page, GoFundMe, or giving site.</p>
+    </div>
+
+    <div class="field">
+      <label>Brief summary *</label>
+      <textarea id="orgSummary" placeholder="Who you are and what donations go toward — 1 to 3 sentences." maxlength="400"></textarea>
+      <p class="hint">This appears publicly on your listing card.</p>
+    </div>
+
+    <div class="field">
+      <label>Contact email *</label>
+      <input type="email" id="orgEmail" placeholder="your@organization.org">
+      <p class="hint">For Mālama Map to reach you — not shown publicly.</p>
+    </div>
+  </div>
+
+  <!-- Section 2: Verification -->
+  <div class="verify-section">
+    <div class="verify-badge">🔒 Verification — required for the ✅ Verified badge</div>
+    <p class="verify-note">Provide your EIN or registration details below. Once confirmed, your listing will display a ✅ Verified badge. You may be asked to email supporting documents.</p>
+
+    <div class="field">
+      <label>Legal business / organization name *</label>
+      <input type="text" id="legalName" placeholder="Exact name as registered">
+    </div>
+
+    <div class="field">
+      <label>Registration type *</label>
+      <div class="status-grid" id="regTypeGrid">
+        <button type="button" class="status-chip" onclick="selectReg('501(c)3 Nonprofit',this)">501(c)3 Nonprofit</button>
+        <button type="button" class="status-chip" onclick="selectReg('LLC',this)">LLC</button>
+        <button type="button" class="status-chip" onclick="selectReg('Church / Religious Org',this)">Church / Religious Org</button>
+        <button type="button" class="status-chip" onclick="selectReg('Other',this)">Other</button>
+      </div>
+      <input type="hidden" id="regType">
+    </div>
+
+    <div class="field">
+      <label>EIN (Employer Identification Number)</label>
+      <input type="text" id="orgEIN" placeholder="XX-XXXXXXX" maxlength="10">
+      <p class="hint">Required for 501(c)3 and LLC verification. Leave blank if you're a registered church without an EIN.</p>
+    </div>
+
+    <div class="field">
+      <label>Link to public registration or IRS letter <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional but speeds up review)</span></label>
+      <input type="url" id="orgDocsUrl" placeholder="https://apps.irs.gov/app/eos/ or Google Drive link">
+      <p class="hint">You can also email docs to <strong>aloha@malamamap.com</strong> after submitting.</p>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitApplication()">Submit for review →</button>
+
+  <div class="success-box" id="successBox">
+    <h3>🌺 Mahalo for submitting!</h3>
+    <p>Your application is under review. The Mālama Map team will reach out to <span id="confirmedEmail"></span> within 1–2 business days. Once approved, your organization will appear on the Give Financially page.</p>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+function selectCat(val, btn) {
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('orgCategory').value = val;
+}
+
+function selectReg(val, btn) {
+  document.querySelectorAll('.status-chip').forEach(c => c.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('regType').value = val;
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitApplication() {
+  const btn = document.getElementById('submitBtn');
+  const name = document.getElementById('orgName').value.trim();
+  const category = document.getElementById('orgCategory').value;
+  const link = document.getElementById('orgLink').value.trim();
+  const summary = document.getElementById('orgSummary').value.trim();
+  const email = document.getElementById('orgEmail').value.trim();
+  const legalName = document.getElementById('legalName').value.trim();
+  const regType = document.getElementById('regType').value;
+  const ein = document.getElementById('orgEIN').value.trim();
+  const docsUrl = document.getElementById('orgDocsUrl').value.trim();
+
+  document.getElementById('errorBox').style.display = 'none';
+
+  if (!name) return showError('Please enter your organization name.');
+  if (!category) return showError('Please select a category.');
+  if (!link) return showError('Please enter your donation link.');
+  if (!summary) return showError('Please add a brief summary.');
+  if (!email) return showError('Please enter a contact email.');
+  if (!legalName) return showError('Please enter your legal business name.');
+  if (!regType) return showError('Please select your registration type.');
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  // Build verification note stored in address field (not shown publicly)
+  const verifyNote = [
+    `Legal name: ${legalName}`,
+    `Type: ${regType}`,
+    ein ? `EIN: ${ein}` : null,
+    docsUrl ? `Docs: ${docsUrl}` : null,
+    `Contact: ${email}`
+  ].filter(Boolean).join(' | ');
+
+  const payload = {
+    name,
+    type: 'financial_giving',
+    location: category,       // category stored in location field (Org / Church / Resource)
+    website: link,
+    notes: summary,
+    address: verifyNote,      // verification info stored in address (not shown publicly)
+    contact_phone: email,     // contact email stored in phone field
+    status: false,            // pending review
+    pending_approval: true,
+    verified: false
+  };
+
+  const { error } = await sb.from('listings').insert(payload);
+
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'Submit for review →';
+    return showError('Error submitting: ' + error.message);
+  }
+
+  // Notify Star
+  fetch('/api/notify-new-financial-listing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, category, email, legalName, regType, ein, docsUrl, link, summary })
+  }).catch(() => {});
+
+  btn.style.display = 'none';
+  document.getElementById('confirmedEmail').textContent = email;
+  document.getElementById('successBox').style.display = 'block';
+  document.getElementById('successBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>

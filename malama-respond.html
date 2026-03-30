@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Respond to Need</title>
+<link rel="icon" href="/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-pale:#edf7f1;--sage-deep:#1c4a3a;
+  --gold:#c9983a;--gold-pale:#fdf4e3;--gold-deep:#7a5c1a;
+  --red:#c0392b;--red-pale:#fdf0ee;
+  --text-dark:#1a1a1a;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.08);
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--sage-deep);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;display:flex;align-items:center;gap:8px;}
+.topbar-logo img{height:28px;width:auto;}
+.topbar-right{display:flex;align-items:center;gap:0.5rem;}
+.topbar-btn{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.35rem 0.75rem;border-radius:100px;border:1.5px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.9);text-decoration:none;transition:all 0.2s;white-space:nowrap;}
+.topbar-btn:hover{background:rgba(255,255,255,0.1);}
+.topbar-btn.btn-add{background:rgba(255,255,255,0.12);}
+@media(max-width:600px){.topbar-btn{font-size:0.6rem;padding:0.3rem 0.6rem;}}
+.container{max-width:560px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.page-sub{font-size:0.88rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.75rem;}
+
+/* NEED CARD */
+.need-detail{background:white;border:1.5px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.75rem;}
+.need-detail-label{font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.75rem;}
+.need-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;}
+.need-tag{font-size:0.75rem;font-weight:700;padding:5px 12px;border-radius:100px;background:var(--gold-pale);color:var(--gold-deep);}
+.need-tag.urgent{background:var(--red-pale);color:var(--red);}
+.need-info{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;}
+@media(max-width:480px){.need-info{grid-template-columns:1fr;}}
+.need-info-item{font-size:0.82rem;color:var(--text-mid);}
+.need-info-item strong{font-weight:700;color:var(--text-dark);}
+.need-info-label{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px;}
+.need-note{background:#f8f8f6;border-radius:10px;padding:0.85rem 1rem;font-size:0.85rem;color:var(--text-mid);line-height:1.6;font-style:italic;}
+
+/* FORM */
+.form-card{background:white;border:1.5px solid var(--border);border-radius:16px;padding:1.75rem;margin-bottom:1.5rem;}
+.form-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.35rem;}
+.form-sub{font-size:0.82rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.5rem;}
+.field{margin-bottom:1.25rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;}
+.field label .req{color:var(--red);}
+.field input,.field textarea{width:100%;padding:0.7rem 0.85rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;transition:border-color 0.15s;background:white;color:var(--text-dark);}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--sage);}
+.field textarea{min-height:100px;resize:vertical;line-height:1.6;}
+.field .hint{font-size:0.72rem;color:var(--text-muted);margin-top:4px;}
+.submit-btn{width:100%;padding:0.85rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.15s;letter-spacing:0.03em;}
+.submit-btn:hover{background:var(--sage-deep);}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* SUCCESS */
+.success-card{background:white;border:1.5px solid var(--border);border-radius:16px;padding:2.5rem 1.75rem;text-align:center;display:none;}
+.success-icon{width:56px;height:56px;background:var(--sage-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;}
+.success-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.success-sub{font-size:0.85rem;color:var(--text-muted);line-height:1.6;}
+.back-link{display:inline-block;margin-top:1.25rem;font-size:0.85rem;font-weight:700;color:var(--sage);text-decoration:none;}
+
+/* LOADING / ERROR */
+.loading{text-align:center;padding:3rem 1rem;color:var(--text-muted);font-size:0.88rem;}
+.spinner{width:36px;height:36px;border:3px solid rgba(58,125,92,0.15);border-top-color:#3a7d5c;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 0.75rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.error-card{background:var(--red-pale);border:1.5px solid rgba(192,57,43,0.2);border-radius:16px;padding:2rem 1.5rem;text-align:center;}
+.error-card h3{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--red);margin-bottom:0.5rem;}
+.error-card p{font-size:0.85rem;color:var(--text-muted);line-height:1.6;}
+
+.footer{text-align:center;padding:2rem;color:var(--text-muted);font-size:0.72rem;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html" class="topbar-logo"><img src="logo.png" alt="">Mālama Map</a>
+  <div class="topbar-right">
+    <a href="malama-auth.html" class="topbar-btn btn-add">+ Add listing</a>
+    <a href="malama-auth.html" class="topbar-btn">Log in</a>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Loading state -->
+  <div id="loadingState" class="loading">
+    <div class="spinner"></div>
+    Loading request details…
+  </div>
+
+  <!-- Error state -->
+  <div id="errorState" style="display:none;">
+    <div class="error-card">
+      <h3>Request not found</h3>
+      <p>This community need may have expired or been removed.</p>
+      <a href="malama-requests.html" class="back-link">← Back to Community Needs</a>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div id="mainContent" style="display:none;">
+    <h1 class="page-title">Respond to a need</h1>
+    <p class="page-sub">Fill out the form below and your contact info will be sent to <strong id="posterNameInline">the person</strong> who posted this need so they can reach out.</p>
+
+    <!-- Need detail card -->
+    <div class="need-detail">
+      <p class="need-detail-label">The request</p>
+      <div class="need-tags" id="needTags"></div>
+      <div class="need-info">
+        <div>
+          <p class="need-info-label">Area</p>
+          <p class="need-info-item" id="needArea"></p>
+        </div>
+        <div>
+          <p class="need-info-label">Urgency</p>
+          <p class="need-info-item" id="needUrgency"></p>
+        </div>
+        <div>
+          <p class="need-info-label">Posted by</p>
+          <p class="need-info-item" id="needPoster"></p>
+        </div>
+        <div>
+          <p class="need-info-label">Posted</p>
+          <p class="need-info-item" id="needTime"></p>
+        </div>
+      </div>
+      <div id="needNoteWrap" style="display:none;">
+        <p class="need-note" id="needNote"></p>
+      </div>
+      <div id="needDropoffWrap" style="display:none;margin-top:0.75rem;">
+        <p class="need-info-label">Where to bring resources</p>
+        <p class="need-note" id="needDropoff" style="font-style:normal;font-weight:600;"></p>
+      </div>
+    </div>
+
+    <!-- Response form -->
+    <div class="form-card" id="responseForm">
+      <h2 class="form-title">Your information</h2>
+      <p class="form-sub">We'll pass this along so they can contact you directly.</p>
+      <div class="field">
+        <label>Your name <span class="req">*</span></label>
+        <input type="text" id="helperName" placeholder="Kai">
+      </div>
+      <div class="field">
+        <label>Your email <span class="req">*</span></label>
+        <input type="email" id="helperContact" placeholder="kai@email.com">
+        <p class="hint">This will be shared with the person who posted the need.</p>
+      </div>
+      <div class="field">
+        <label>Message <span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:0.75rem;">(optional)</span></label>
+        <textarea id="helperMessage" placeholder="Let them know how you can help — what you have, when you're available, etc."></textarea>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitResponse()">Send my info</button>
+    </div>
+
+    <!-- Success -->
+    <div class="success-card" id="successCard">
+      <div class="success-icon">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M6 13l5 5 9-10" stroke="#3a7d5c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <p class="success-title">Mahalo!</p>
+      <p class="success-sub">Your info has been sent. <strong id="posterNameSuccess">They</strong> will reach out if they'd like to connect.</p>
+      <a href="malama-requests.html" class="back-link">← Back to Community Needs</a>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Mālama Map · malamamap.org</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let needData = null;
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return mins + ' min ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' hr' + (hrs > 1 ? 's' : '') + ' ago';
+  const days = Math.floor(hrs / 24);
+  return days + ' day' + (days > 1 ? 's' : '') + ' ago';
+}
+
+function urgencyLabel(u) {
+  if (u === 'urgent') return '🔴 Urgent';
+  if (u === 'this_week') return '🟡 This week';
+  return 'When possible';
+}
+
+async function loadNeed() {
+  const params = new URLSearchParams(window.location.search);
+  const needId = params.get('id');
+
+  if (!needId) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    return;
+  }
+
+  const { data, error } = await sb.from('community_needs')
+    .select('*')
+    .eq('id', needId)
+    .single();
+
+  document.getElementById('loadingState').style.display = 'none';
+
+  if (error || !data) {
+    document.getElementById('errorState').style.display = 'block';
+    return;
+  }
+
+  needData = data;
+
+  // Populate need details
+  const tagsEl = document.getElementById('needTags');
+  const needs = data.needs || [];
+  tagsEl.innerHTML = needs.map(n =>
+    `<span class="need-tag">${escapeHtml(n)}</span>`
+  ).join('') + (data.urgency === 'urgent' ? '<span class="need-tag urgent">Urgent</span>' : '');
+
+  document.getElementById('needArea').textContent = '📍 ' + (data.area || 'Not specified');
+  document.getElementById('needUrgency').textContent = urgencyLabel(data.urgency);
+  document.getElementById('needPoster').textContent = data.first_name || 'Anonymous';
+  document.getElementById('needTime').textContent = timeAgo(data.created_at);
+
+  const posterName = data.first_name || 'the person';
+  document.getElementById('posterNameInline').textContent = posterName;
+  document.getElementById('posterNameSuccess').textContent = posterName;
+
+  if (data.note) {
+    document.getElementById('needNote').textContent = '"' + data.note + '"';
+    document.getElementById('needNoteWrap').style.display = 'block';
+  }
+
+  if (data.dropoff_location) {
+    document.getElementById('needDropoff').textContent = '📍 ' + data.dropoff_location;
+    document.getElementById('needDropoffWrap').style.display = 'block';
+  }
+
+  document.getElementById('mainContent').style.display = 'block';
+}
+
+async function submitResponse() {
+  const name = document.getElementById('helperName').value.trim();
+  const contact = document.getElementById('helperContact').value.trim();
+  const message = document.getElementById('helperMessage').value.trim();
+
+  if (!name || !contact) {
+    alert('Please fill in your name and email.');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    // Save to help_offers table
+    await sb.from('help_offers').insert({
+      need_id: needData.id,
+      helper_name: name,
+      helper_contact: contact,
+      message: message || null
+    });
+  } catch(e) { /* table may not exist yet */ }
+
+  // Send email notification — to poster directly if they chose email, otherwise to admin
+  try {
+    await fetch('/api/notify-help-offer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        need_id: needData.id,
+        need_type: (needData.needs || []).join(', '),
+        need_area: needData.area,
+        need_urgency: needData.urgency,
+        need_note: needData.note,
+        poster_name: needData.first_name,
+        poster_contact_preference: needData.contact_preference || 'anonymous',
+        poster_email: needData.contact_email || null,
+        dropoff_location: needData.dropoff_location || null,
+        helper_name: name,
+        helper_contact: contact,
+        helper_message: message
+      })
+    });
+  } catch(e) { /* email send failed silently */ }
+
+  document.getElementById('responseForm').style.display = 'none';
+  document.getElementById('successCard').style.display = 'block';
+}
+
+loadNeed();
+</script>
+</body>
+</html>

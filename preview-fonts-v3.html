@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Preview v3 — Mālama Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,800;1,9..144,400&family=Inter:wght@400;500;600;700&family=Cinzel:wght@400;600;700&family=Raleway:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600;700&family=Marcellus&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#111;padding:2.5rem;display:flex;flex-direction:column;gap:4rem;}
+
+.label{
+  font-family:monospace;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:#555;margin-bottom:0.5rem;padding-bottom:0.6rem;border-bottom:1px solid #222;
+}
+.label strong{color:#aaa;}
+.vibe{font-family:monospace;font-size:0.62rem;color:#444;margin-bottom:1.1rem;line-height:1.6;}
+
+.wrapper{border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5);max-width:680px;margin:0 auto;}
+.nav-row{background:#1c4a3a;padding:0.65rem 1.4rem;display:flex;align-items:center;gap:1.5rem;}
+.nav-logo{font-size:1.05rem;font-weight:800;color:white;}
+.nav-link{font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.72);}
+.hero{background:linear-gradient(135deg,#7a4f00 0%,#b07a00 60%,#c9983a 100%);padding:2.8rem 2rem 2.4rem;text-align:center;}
+.hero-eyebrow{font-size:0.62rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:0.55rem;}
+.hero-title{font-size:2.5rem;color:white;margin-bottom:0.65rem;line-height:1.1;}
+.hero-sub{font-size:0.88rem;font-weight:500;color:rgba(255,255,255,0.82);max-width:440px;margin:0 auto;line-height:1.65;}
+.filter-row{background:white;border-bottom:2px solid rgba(0,0,0,0.06);padding:0.65rem 1.4rem;display:flex;gap:0.5rem;}
+.chip{padding:0.38rem 1rem;border-radius:100px;border:1.5px solid #ddd;background:white;font-size:0.78rem;font-weight:700;color:#4a453f;}
+.chip.active{background:#c9983a;border-color:#c9983a;color:white;}
+.body-area{background:#f4f6f4;padding:1.4rem;display:flex;flex-direction:column;gap:0.9rem;}
+.card{background:white;border-radius:12px;border:1.5px solid rgba(0,0,0,0.08);padding:1.15rem 1.3rem;}
+.card-name{font-size:1.05rem;color:#1c1a18;margin-bottom:5px;}
+.card-body{font-size:0.84rem;color:#4a453f;line-height:1.55;}
+.card-link{display:inline-block;margin-top:0.65rem;padding:0.42rem 1.1rem;background:#c9983a;color:white;border-radius:100px;font-size:0.78rem;font-weight:700;text-decoration:none;}
+
+/* ── Current: Playfair Display + Nunito ── */
+.cur .nav-logo,.cur .hero-title,.cur .card-name{font-family:'Playfair Display',serif;font-weight:800;}
+.cur .nav-link,.cur .hero-eyebrow,.cur .hero-sub,.cur .card-body,.cur .card-link,.cur .chip{font-family:'Nunito',sans-serif;}
+
+/* ── Liked: Fraunces + Inter ── */
+.liked .nav-logo,.liked .hero-title,.liked .card-name{font-family:'Fraunces',serif;font-optical-sizing:auto;font-weight:700;}
+.liked .hero-title{letter-spacing:-0.02em;}
+.liked .nav-link,.liked .hero-eyebrow,.liked .hero-sub,.liked .card-body,.liked .card-link,.liked .chip{font-family:'Inter',sans-serif;}
+
+/* ── Curveball 1: Cinzel + Raleway ── */
+/* Cinzel = carved-in-marble Roman letterforms. Used by luxury hotels, Cartier-tier brands.
+   All-caps by nature = authority. Raleway = geometric elegance. */
+.cb1 .nav-logo,.cb1 .hero-title,.cb1 .card-name{font-family:'Cinzel',serif;}
+.cb1 .hero-title{font-weight:600;font-size:2.1rem;letter-spacing:0.06em;text-transform:uppercase;}
+.cb1 .nav-logo{font-weight:600;letter-spacing:0.08em;text-transform:uppercase;font-size:0.92rem;}
+.cb1 .card-name{font-weight:600;letter-spacing:0.04em;font-size:0.95rem;}
+.cb1 .nav-link,.cb1 .hero-eyebrow,.cb1 .hero-sub,.cb1 .card-body,.cb1 .card-link,.cb1 .chip{font-family:'Raleway',sans-serif;}
+.cb1 .hero-sub{letter-spacing:0.02em;font-weight:500;}
+
+/* ── Curveball 2: Lora + Source Sans 3 ── */
+/* Lora = brushed warm serif. Literary, editorial, slightly unexpected.
+   Not a cold luxury — warm luxury. Think high-end charity gala program. */
+.cb2 .nav-logo,.cb2 .hero-title,.cb2 .card-name{font-family:'Lora',serif;font-weight:700;}
+.cb2 .hero-title{font-size:2.4rem;letter-spacing:-0.01em;}
+.cb2 .nav-link,.cb2 .hero-eyebrow,.cb2 .hero-sub,.cb2 .card-body,.cb2 .card-link,.cb2 .chip{font-family:'Source Sans 3',sans-serif;}
+
+/* ── Curveball 3: Marcellus + Lato ── */
+/* Marcellus = architectural display serif. Refined, Roman, quiet authority.
+   Not decorative — structural. Like the lettering on a government building or museum. */
+.cb3 .nav-logo,.cb3 .hero-title,.cb3 .card-name{font-family:'Marcellus',serif;}
+.cb3 .hero-title{font-size:2.6rem;letter-spacing:0.01em;}
+.cb3 .nav-logo{letter-spacing:0.04em;}
+.cb3 .card-name{font-size:1.1rem;}
+.cb3 .nav-link,.cb3 .hero-eyebrow,.cb3 .hero-sub,.cb3 .card-body,.cb3 .card-link,.cb3 .chip{font-family:'Lato',sans-serif;}
+</style>
+</head>
+<body>
+
+<!-- CURRENT -->
+<div>
+<p class="label"><strong>Current</strong> — Playfair Display + Nunito</p>
+<p class="vibe">What you have now. Classic editorial serif, warm rounded body.</p>
+<div class="wrapper cur">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Organization</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- LIKED FROM LAST TIME -->
+<div>
+<p class="label"><strong>Your pick last time</strong> — Fraunces + Inter</p>
+<p class="vibe">Modern variable serif designed for screens. Editorial warmth, sharp body. Used by contemporary luxury and nonprofit brands.</p>
+<div class="wrapper liked">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Organization</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- CURVEBALL 1 -->
+<div>
+<p class="label"><strong>Curveball 1</strong> — Cinzel + Raleway</p>
+<p class="vibe">Cinzel = Roman inscription letterforms. Carved-in-marble authority. Used by Cartier-tier luxury, high-end hospitality, museums.<br>Raleway body = geometric elegance. Headers go all-caps naturally — feels monumental.</p>
+<div class="wrapper cb1">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Organization</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- CURVEBALL 2 -->
+<div>
+<p class="label"><strong>Curveball 2</strong> — Lora + Source Sans 3</p>
+<p class="vibe">Lora has brushed serifs — warm, literary, unexpected. Not cold luxury, warm luxury. Like a high-end charity gala program or a respected foundation.<br>Source Sans 3 keeps body text clean and highly readable.</p>
+<div class="wrapper cb2">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Organization</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+<!-- CURVEBALL 3 -->
+<div>
+<p class="label"><strong>Curveball 3</strong> — Marcellus + Lato</p>
+<p class="vibe">Marcellus is architectural — quiet, structural authority. Not decorative. Like lettering on a government building, museum, or historic foundation.<br>Lato body is warm and humanist. Unexpected pairing that reads as deeply trustworthy.</p>
+<div class="wrapper cb3">
+  <div class="nav-row"><span class="nav-logo">Mālama Map</span><span class="nav-link">Give Financially</span></div>
+  <div class="hero">
+    <p class="hero-eyebrow">Financial giving</p>
+    <h1 class="hero-title">Give Financially</h1>
+    <p class="hero-sub">Verified organizations and churches accepting financial donations to support Hawaiʻi recovery.</p>
+  </div>
+  <div class="filter-row"><button class="chip active">All</button><button class="chip">Organization</button><button class="chip">Church</button><button class="chip">Resource</button></div>
+  <div class="body-area">
+    <div class="card"><p class="card-name">Maui United Way</p><p class="card-body">Supporting Maui families through emergency financial assistance, housing support, and long-term recovery programs.</p><a class="card-link">Donate →</a></div>
+    <div class="card"><p class="card-name">Kākoʻo Maui</p><p class="card-body">A community-led recovery fund directing donations to families who lost homes and livelihoods in the 2023 fires.</p><a class="card-link">Donate →</a></div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>
