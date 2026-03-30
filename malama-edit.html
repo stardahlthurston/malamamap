@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Mālama Map — Edit listing</title>
+<link rel="icon" href="/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#275c42;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --blue:#2a6496;--gold:#c9983a;--purple:#7b5ea7;--teal:#2e6b6b;--red:#c0392b;
+  --text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.1);
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--sage-deep);padding:0.7rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:white;text-decoration:none;}
+.topbar-back{font-size:0.78rem;font-weight:700;color:white;text-decoration:none;display:flex;align-items:center;gap:4px;}
+.content{max-width:600px;margin:0 auto;padding:1.5rem 1.25rem 6rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.25rem;}
+.page-sub{font-size:0.85rem;font-weight:500;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.5;}
+.section{background:white;border-radius:14px;border:1.5px solid var(--border);padding:1.25rem;margin-bottom:1rem;}
+.section-title{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:1rem;display:block;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:0.75rem 1rem;border:1.5px solid #ddd;border-radius:10px;font-size:1rem;font-family:'Nunito',sans-serif;font-weight:500;color:var(--text-dark);background:white;-webkit-appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--sage);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+.hint{font-size:0.72rem;font-weight:500;color:var(--text-muted);margin-top:4px;line-height:1.5;}
+
+/* TYPE CARDS */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0.5rem;}
+.type-card{padding:0.85rem;border:2px solid #ddd;border-radius:12px;cursor:pointer;text-align:center;background:white;transition:all 0.15s;}
+.type-card:active{transform:scale(0.97);}
+.type-card .emoji{font-size:1.4rem;display:block;margin-bottom:5px;}
+.type-card .type-name{font-size:0.82rem;font-weight:700;color:var(--text-dark);}
+.type-full{grid-column:1/-1;}
+
+/* CHECKBOXES */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.check-label{display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;cursor:pointer;padding:9px 11px;border:1.5px solid #ddd;border-radius:10px;transition:all 0.15s;background:white;}
+.check-label input{accent-color:var(--sage);width:15px;height:15px;flex-shrink:0;}
+.check-label.checked{border-color:var(--sage);background:var(--sage-pale);color:var(--sage-deep);}
+
+/* DAYS */
+.day-row{display:flex;gap:6px;flex-wrap:wrap;}
+.day-label{display:flex;align-items:center;gap:5px;font-size:0.8rem;font-weight:700;cursor:pointer;padding:7px 11px;border:1.5px solid #ddd;border-radius:100px;transition:all 0.15s;background:white;}
+.day-label input{accent-color:var(--sage);width:13px;height:13px;}
+.day-label.checked{border-color:var(--sage);background:var(--sage-pale);color:var(--sage-deep);}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;}
+.toggle{position:relative;width:52px;height:28px;cursor:pointer;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;border-radius:100px;background:#ddd;transition:background 0.25s;}
+.toggle-slider::before{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:white;top:3px;left:3px;transition:transform 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.15);}
+.toggle input:checked + .toggle-slider{background:var(--sage-light);}
+.toggle input:checked + .toggle-slider::before{transform:translateX(24px);}
+
+.giving-row{display:flex;align-items:center;gap:10px;padding:0.5rem 0;}
+.giving-row input[type="checkbox"]{accent-color:var(--sage);width:17px;height:17px;}
+.giving-row label{font-size:0.88rem;font-weight:700;cursor:pointer;}
+
+/* STICKY FOOTER */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1.5px solid var(--border);padding:1rem 1.25rem;display:flex;gap:0.75rem;z-index:100;max-width:600px;margin:0 auto;}
+.btn-save{flex:1;padding:0.9rem;background:var(--sage);color:white;border:none;border-radius:100px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+.btn-save:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-discard{padding:0.9rem 1.25rem;background:white;color:var(--text-muted);border:1.5px solid #ddd;border-radius:100px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+
+.toast{display:none;position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:var(--sage-deep);color:white;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.88rem;font-weight:700;z-index:900;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="malama-portal.html" class="topbar-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    My listings
+  </a>
+  <a href="index.html" class="topbar-logo"><img src="logo.png" alt="" style="height:28px;width:auto;margin-right:6px;vertical-align:middle;">Mālama Map</a>
+  <div style="width:60px;"></div>
+</div>
+
+<div class="content">
+  <h1 class="page-title">Edit listing</h1>
+  <p class="page-sub" id="editSub">Loading your listing…</p>
+
+  <!-- TYPE -->
+  <div class="section">
+    <span class="section-title">Listing type</span>
+    <div class="type-grid" id="typeGrid">
+      <div class="type-card" data-type="shelter" onclick="selectType('shelter',this)"><span class="emoji">🏠</span><span class="type-name">Shelter</span></div>
+      <div class="type-card" data-type="supply_station" onclick="selectType('supply_station',this)"><span class="emoji">🛖</span><span class="type-name">Supply Station</span></div>
+      <div class="type-card" data-type="donation_dropoff" onclick="selectType('donation_dropoff',this)"><span class="emoji">📦</span><span class="type-name">Donation Drop-off</span></div>
+      <div class="type-card" data-type="volunteer_event" onclick="selectType('volunteer_event',this)"><span class="emoji">🙋</span><span class="type-name">Volunteers Needed</span></div>
+      <div class="type-card" data-type="skills_labor" onclick="selectType('skills_labor',this)"><span class="emoji">🔧</span><span class="type-name">Skills & Labor</span></div>
+      <div class="type-card" data-type="medical_assistance" onclick="selectType('medical_assistance',this)" style="border-color:#fcc;"><span class="emoji">🏥</span><span class="type-name">Medical Aid Station</span></div>
+    </div>
+    <input type="hidden" id="editType">
+    <div class="toggle-row">
+      <div><p style="font-size:0.88rem;font-weight:700;">Currently open</p><p style="font-size:0.75rem;color:var(--text-muted);">Toggle off if temporarily closed</p></div>
+      <label class="toggle"><input type="checkbox" id="editStatus" checked><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <!-- SHELTER EXTRAS -->
+  <div id="shelterExtras" class="section" style="display:none;">
+    <span class="section-title">🏠 Shelter details</span>
+    <div class="field-row">
+      <div class="field"><label>Capacity (people)</label><input type="number" id="editCapacity" placeholder="50"></div>
+      <div class="field"><label>Pet friendly?</label><select id="editPetFriendly"><option value="false">No pets</option><option value="true">Yes, pets welcome</option></select></div>
+    </div>
+  </div>
+
+  <!-- EVENT EXTRAS -->
+  <div id="eventExtras" class="section" style="display:none;">
+    <span class="section-title">🙋 Event details</span>
+    <div class="field-row">
+      <div class="field"><label>Event date</label><input type="date" id="editEventDate"></div>
+      <div class="field"><label>Start time</label>
+        <select id="editEventTime"><option value="">Select</option><option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Volunteers needed</label><input type="text" id="editVolunteerNeeds" placeholder="e.g. Mud removal, debris clearing"></div>
+  </div>
+
+  <!-- DROPOFF TOGGLE -->
+  <div id="dropoffToggle" class="section" style="display:none;">
+    <div class="giving-row">
+      <input type="checkbox" id="acceptingDropoffs">
+      <label for="acceptingDropoffs">Also accepting donation drop-offs at this location</label>
+    </div>
+  </div>
+
+  <!-- SKILLS EXTRAS -->
+  <div id="skillsExtras" class="section" style="display:none;">
+    <span class="section-title">🔧 Skills & contact</span>
+    <div class="field"><label>Contact email for requests</label><input type="email" id="editContactEmail" placeholder="you@email.com"></div>
+  </div>
+
+  <!-- LOCATION & NAME -->
+  <div class="section">
+    <span class="section-title">📍 Location & name</span>
+    <div class="field">
+      <label>Listing name</label>
+      <input type="text" id="editName" placeholder="e.g. Kaimana Church — Nuuanu Drop-off">
+      <p class="hint">Give each location a specific name if you have multiple.</p>
+    </div>
+    <div class="field"><label>Full address</label><input type="text" id="editAddress" placeholder="1842 Nuuanu Ave, Honolulu, HI 96817"></div>
+    <div class="field"><label>Contact phone</label><input type="tel" id="editPhone" placeholder="(808) 555-0000"></div>
+  </div>
+
+  <!-- HOURS -->
+  <div class="section">
+    <span class="section-title">🕐 Availability & hours</span>
+    <div class="field">
+      <label>Available days</label>
+      <div class="day-row">
+        <label class="day-label"><input type="checkbox" value="Mon" class="day-check"> Mon</label>
+        <label class="day-label"><input type="checkbox" value="Tue" class="day-check"> Tue</label>
+        <label class="day-label"><input type="checkbox" value="Wed" class="day-check"> Wed</label>
+        <label class="day-label"><input type="checkbox" value="Thu" class="day-check"> Thu</label>
+        <label class="day-label"><input type="checkbox" value="Fri" class="day-check"> Fri</label>
+        <label class="day-label"><input type="checkbox" value="Sat" class="day-check"> Sat</label>
+        <label class="day-label"><input type="checkbox" value="Sun" class="day-check"> Sun</label>
+        <label class="day-label"><input type="checkbox" value="Daily" class="day-check"> Every day</label>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Opens at</label>
+        <select id="editHoursOpen"><option value="">Select</option><option>5:00 AM</option><option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option><option>6:00 PM</option><option>7:00 PM</option><option>8:00 PM</option><option>Open 24 hours</option></select>
+      </div>
+      <div class="field"><label>Closes at</label>
+        <select id="editHoursClose"><option value="">Select</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option><option>6:00 PM</option><option>7:00 PM</option><option>8:00 PM</option><option>9:00 PM</option><option>10:00 PM</option><option>Midnight</option></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Available from</label><input type="date" id="editDateFrom"></div>
+      <div class="field"><label>Available until</label><input type="date" id="editDateUntil"></div>
+    </div>
+  </div>
+
+  <!-- ITEMS -->
+  <div class="section" id="itemsSection">
+    <span class="section-title">📋 What you're offering</span>
+    <div class="check-grid">
+      <label class="check-label"><input type="checkbox" value="Water" class="item-check"> Water</label>
+      <label class="check-label"><input type="checkbox" value="Canned food" class="item-check"> Canned food</label>
+      <label class="check-label"><input type="checkbox" value="Hot meals" class="item-check"> Hot meals</label>
+      <label class="check-label"><input type="checkbox" value="Baby formula" class="item-check"> Baby formula</label>
+      <label class="check-label"><input type="checkbox" value="Diapers" class="item-check"> Diapers</label>
+      <label class="check-label"><input type="checkbox" value="Clothing" class="item-check"> Clothing</label>
+      <label class="check-label"><input type="checkbox" value="Blankets" class="item-check"> Blankets</label>
+      <label class="check-label"><input type="checkbox" value="Bedding" class="item-check"> Bedding</label>
+      <label class="check-label"><input type="checkbox" value="Gasoline" class="item-check"> Gasoline</label>
+      <label class="check-label"><input type="checkbox" value="Propane" class="item-check"> Propane</label>
+      <label class="check-label"><input type="checkbox" value="Generators" class="item-check"> Generators</label>
+      <label class="check-label"><input type="checkbox" value="Flashlights" class="item-check"> Flashlights</label>
+      <label class="check-label"><input type="checkbox" value="First aid supplies" class="item-check"> First aid</label>
+      <label class="check-label"><input type="checkbox" value="Medications" class="item-check"> Medications</label>
+      <label class="check-label"><input type="checkbox" value="Hygiene kits" class="item-check"> Hygiene kits</label>
+      <label class="check-label"><input type="checkbox" value="Cleanup supplies" class="item-check"> Cleanup supplies</label>
+      <label class="check-label"><input type="checkbox" value="Pet food & supplies" class="item-check"> Pet food</label>
+      <label class="check-label"><input type="checkbox" value="Non-perishable foods" class="item-check"> Non-perishable foods</label>
+    </div>
+    <div class="field" style="margin-top:0.75rem;">
+      <label>Anything else? <span style="font-weight:400;text-transform:none;letter-spacing:0;">(commas)</span></label>
+      <input type="text" id="editCustomItems" placeholder="e.g. Ice, Tarps, Power banks">
+    </div>
+  </div>
+
+  <!-- NOTES & LINKS -->
+  <div class="section">
+    <span class="section-title">📝 Notes & links</span>
+    <div class="field">
+      <label>Notes for visitors <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+      <textarea id="editNotes" rows="3" placeholder="Drive-through available, bring your own bags, etc."></textarea>
+    </div>
+    <div class="field"><label>Website <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="url" id="editWebsite" placeholder="https://yourchurch.org"></div>
+    <div class="giving-row">
+      <input type="checkbox" id="givingCheck" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'">
+      <label for="givingCheck">We accept online financial donations</label>
+    </div>
+    <div id="givingUrlWrap" style="display:none;">
+      <div class="field"><label>Online giving link</label><input type="url" id="editGivingUrl" placeholder="https://yourchurch.org/give"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- STICKY SAVE BAR -->
+<div class="save-bar">
+  <button class="btn-discard" onclick="discardEdits()">Discard</button>
+  <button class="btn-save" id="saveBtn" onclick="saveEdits()">Save changes →</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TYPE_COLORS = {shelter:'#2a6496',supply_station:'#3a7d5c',donation_dropoff:'#c9983a',volunteer_event:'#7b5ea7',skills_labor:'#2e6b6b',medical_assistance:'#c0392b'};
+const bgMap = {shelter:'#eaf3fb',supply_station:'#edf7f1',donation_dropoff:'#fdf4e3',volunteer_event:'#f3eeff',skills_labor:'#e8f4f4',medical_assistance:'#fdf0ee'};
+
+function selectType(type, el) {
+  document.getElementById('editType').value = type;
+  document.querySelectorAll('.type-card').forEach(c => { c.style.borderColor='#ddd'; c.style.background='white'; });
+  if (el) { el.style.borderColor = TYPE_COLORS[type]||'#3a7d5c'; el.style.background = bgMap[type]||'white'; }
+  document.getElementById('shelterExtras').style.display = type==='shelter' ? 'block' : 'none';
+  document.getElementById('eventExtras').style.display = type==='volunteer_event' ? 'block' : 'none';
+  document.getElementById('dropoffToggle').style.display = type==='supply_station' ? 'block' : 'none';
+  document.getElementById('skillsExtras').style.display = type==='skills_labor' ? 'block' : 'none';
+  document.getElementById('itemsSection').style.display = (type==='skills_labor'||type==='medical_assistance') ? 'none' : 'block';
+}
+
+document.addEventListener('change', function(e) {
+  if (e.target.classList.contains('item-check')) {
+    e.target.closest('label').classList.toggle('checked', e.target.checked);
+  }
+  if (e.target.classList.contains('day-check')) {
+    e.target.closest('label').classList.toggle('checked', e.target.checked);
+    if (e.target.value === 'Daily' && e.target.checked) {
+      document.querySelectorAll('.day-check:not([value="Daily"])').forEach(d => { d.checked=false; d.closest('label').classList.remove('checked'); });
+    } else if (e.target.value !== 'Daily') {
+      const daily = document.querySelector('.day-check[value="Daily"]');
+      if (daily) { daily.checked=false; daily.closest('label').classList.remove('checked'); }
+    }
+  }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SURL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SURL, SKEY);
+
+let currentUser = null;
+let listingId = null;
+let originalData = null;
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'malama-auth.html'; return; }
+  currentUser = session.user;
+  const params = new URLSearchParams(window.location.search);
+  listingId = params.get('id');
+  if (!listingId) { window.location.href = 'malama-portal.html'; return; }
+  await loadListing();
+}
+
+async function loadListing() {
+  const { data, error } = await sb.from('listings').select('*').eq('id', listingId).single();
+  if (error || !data) { window.location.href = 'malama-portal.html'; return; }
+  originalData = data;
+  prefill(data);
+}
+
+function prefill(l) {
+  document.getElementById('editSub').textContent = 'Editing: ' + l.name;
+  document.getElementById('editName').value = l.name || '';
+  document.getElementById('editAddress').value = l.address || '';
+  document.getElementById('editPhone').value = l.contact_phone || '';
+  document.getElementById('editNotes').value = l.notes || '';
+  document.getElementById('editWebsite').value = l.website || '';
+  document.getElementById('editStatus').checked = l.status !== false;
+  document.getElementById('editCapacity').value = l.capacity || '';
+  document.getElementById('editPetFriendly').value = String(l.pet_friendly || false);
+  document.getElementById('editEventDate').value = l.event_date || '';
+  document.getElementById('editVolunteerNeeds').value = l.volunteer_needs || '';
+  document.getElementById('editContactEmail').value = l.contact_email || '';
+  document.getElementById('acceptingDropoffs').checked = l.accepting_dropoffs || false;
+
+  // Giving URL
+  if (l.giving_url) {
+    document.getElementById('givingCheck').checked = true;
+    document.getElementById('givingUrlWrap').style.display = 'block';
+    document.getElementById('editGivingUrl').value = l.giving_url;
+  }
+
+  // Parse hours back into fields
+  if (l.hours) {
+    const hoursStr = l.hours;
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Daily'];
+    days.forEach(d => {
+      if (hoursStr.includes(d === 'Daily' ? 'Every day' : d)) {
+        const cb = document.querySelector(`.day-check[value="${d}"]`);
+        if (cb) { cb.checked = true; cb.closest('label').classList.add('checked'); }
+      }
+    });
+    const timeMatch = hoursStr.match(/(\d+:\d+ [AP]M)\s*[–-]\s*(\d+:\d+ [AP]M)/);
+    if (timeMatch) {
+      setSelectValue('editHoursOpen', timeMatch[1]);
+      setSelectValue('editHoursClose', timeMatch[2]);
+    }
+    if (hoursStr.includes('Open 24 hours')) setSelectValue('editHoursOpen', 'Open 24 hours');
+  }
+
+  // Items
+  if (l.items && l.items.length) {
+    const knownItems = l.items.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+    knownItems.forEach(item => {
+      const cb = document.querySelector(`.item-check[value="${item}"]`);
+      if (cb) { cb.checked = true; cb.closest('label').classList.add('checked'); }
+    });
+    const unknown = knownItems.filter(i => !document.querySelector(`.item-check[value="${i}"]`));
+    if (unknown.length) document.getElementById('editCustomItems').value = unknown.join(', ');
+  }
+
+  // Type — select last so extras show correctly
+  if (l.type) {
+    const card = document.querySelector(`.type-card[data-type="${l.type}"]`);
+    selectType(l.type, card);
+  }
+}
+
+function setSelectValue(id, val) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  for (let i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === val || sel.options[i].text === val) { sel.selectedIndex = i; return; }
+  }
+}
+
+async function geocodeAddress(address) {
+  try {
+    const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaiʻi')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`);
+    const d = await r.json();
+    if (d.results?.[0]) return { lat: d.results[0].geometry.location.lat, lng: d.results[0].geometry.location.lng };
+  } catch(e) {}
+  return { lat: originalData?.lat || 21.3069, lng: originalData?.lng || -157.8583 };
+}
+
+async function saveEdits() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const type = document.getElementById('editType').value;
+  const name = document.getElementById('editName').value.trim();
+  const address = document.getElementById('editAddress').value.trim();
+
+  if (!name) { showToast('Please enter a listing name'); btn.disabled=false; btn.textContent='Save changes →'; return; }
+  if (!address) { showToast('Please enter an address'); btn.disabled=false; btn.textContent='Save changes →'; return; }
+
+  // Build hours string
+  const days = [...document.querySelectorAll('.day-check:checked')].map(d => d.value);
+  const openTime = document.getElementById('editHoursOpen').value;
+  const closeTime = document.getElementById('editHoursClose').value;
+  let hours = '';
+  if (openTime === 'Open 24 hours') { hours = 'Open 24 hours'; }
+  else if (openTime && closeTime) { hours = openTime + ' – ' + closeTime; }
+  else if (openTime) { hours = 'Opens at ' + openTime; }
+  if (days.length) { const ds = days.includes('Daily') ? 'Every day' : days.join(', '); hours = ds + (hours ? ' · ' + hours : ''); }
+  const df = document.getElementById('editDateFrom').value;
+  const du = document.getElementById('editDateUntil').value;
+  if (df && du) { const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); hours += (hours?' · ':'')+fmt(df)+' – '+fmt(du); }
+
+  // Items
+  const checkedItems = [...document.querySelectorAll('.item-check:checked')].map(c => c.value);
+  const customItems = (document.getElementById('editCustomItems').value||'').split(',').map(i=>i.trim()).filter(Boolean);
+  const items = [...checkedItems, ...customItems];
+
+  // Only re-geocode if address changed
+  let coords = { lat: originalData?.lat, lng: originalData?.lng };
+  if (address !== originalData?.address) coords = await geocodeAddress(address);
+
+  const payload = {
+    name, type,
+    status: document.getElementById('editStatus').checked,
+    address, lat: coords.lat, lng: coords.lng,
+    hours: hours || null,
+    contact_phone: document.getElementById('editPhone').value.trim(),
+    contact_email: document.getElementById('editContactEmail').value.trim(),
+    items,
+    notes: document.getElementById('editNotes').value.trim(),
+    website: document.getElementById('editWebsite').value.trim(),
+    giving_url: document.getElementById('givingCheck').checked ? document.getElementById('editGivingUrl').value.trim() : null,
+    accepting_dropoffs: document.getElementById('acceptingDropoffs').checked,
+    capacity: document.getElementById('editCapacity').value || null,
+    pet_friendly: document.getElementById('editPetFriendly').value === 'true',
+    event_date: document.getElementById('editEventDate').value || null,
+    volunteer_needs: document.getElementById('editVolunteerNeeds').value.trim() || null,
+    expires_at: new Date(Date.now() + 72 * 3600000).toISOString()
+  };
+
+  const { error } = await sb.from('listings').update(payload).eq('id', listingId);
+  if (!error) fetch('/api/check-item-thresholds', { method: 'POST' }).catch(() => {});
+  if (error) { showToast('Error: ' + error.message); btn.disabled=false; btn.textContent='Save changes →'; return; }
+
+  showToast('🌺 Changes saved!');
+  setTimeout(() => window.location.href = 'malama-portal.html', 1500);
+}
+
+function discardEdits() {
+  if (confirm('Discard all changes?')) window.location.href = 'malama-portal.html';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display='none', 3000);
+}
+
+init();
+</script>
+</body>
+</html>
