@@ -524,8 +524,11 @@ function initAddressAutocomplete() {
           <div class="review-field">
             <label>Event dates <span style="font-weight:400;text-transform:none;letter-spacing:0;">— add one or more</span></label>
             <div id="extEventDatePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;min-height:24px;"></div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input type="date" id="extEventDate" style="flex:1;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;color:var(--text);">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <input type="date" id="extEventDate" style="flex:1;min-width:100px;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;outline:none;color:var(--text);">
+              <select id="extEventOpen" style="padding:0.5rem 0.5rem;border:1px solid var(--border);border-radius:8px;font-size:0.78rem;font-family:inherit;color:var(--text);"></select>
+              <span style="font-size:0.78rem;color:var(--muted);">–</span>
+              <select id="extEventClose" style="padding:0.5rem 0.5rem;border:1px solid var(--border);border-radius:8px;font-size:0.78rem;font-family:inherit;color:var(--text);"></select>
               <button type="button" onclick="addExtEventDate()" style="padding:0.48rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid var(--sage);background:white;color:var(--sage);white-space:nowrap;transition:all 0.15s;">+ Add</button>
               <button type="button" id="extOngoingBtn" onclick="toggleExtOngoing()" style="padding:0.48rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid #ddd;background:white;color:var(--muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
             </div>
@@ -910,12 +913,34 @@ function resetExtHours() {
 // ══════════════════════════════════════
 let _extEventDates = [];
 
+const EVENT_TIME_OPTS = ['12:00 AM','12:30 AM','1:00 AM','1:30 AM','2:00 AM','2:30 AM','3:00 AM','3:30 AM','4:00 AM','4:30 AM','5:00 AM','5:30 AM','6:00 AM','6:30 AM','7:00 AM','7:30 AM','8:00 AM','8:30 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM','9:00 PM','9:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM'].map(t=>`<option>${t}</option>`).join('');
+
+function parseEventEntry(e) {
+  if (e === 'ongoing') return {date:'ongoing', open:'', close:''};
+  const parts = e.split('|');
+  return {date: parts[0], open: parts[1]||'', close: parts[2]||''};
+}
+function entryDateLabel(entry) {
+  const {date, open, close} = parseEventEntry(entry);
+  if (date === 'ongoing') return 'Ongoing';
+  const d = new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  return open ? `${d} · ${open}${close ? ' – '+close : ''}` : d;
+}
+
 function addExtEventDate(dateVal) {
   const input = document.getElementById('extEventDate');
   const val = dateVal || input?.value;
-  if (!val) return;
-  if (_extEventDates.includes(val)) { if (input) input.value = ''; return; }
-  _extEventDates.push(val);
+  if (!val || val === 'ongoing') return;
+  if (_extEventDates.some(e => e === val || e.startsWith(val+'|'))) { if (input) input.value = ''; return; }
+  // Lazy init selects
+  const eo = document.getElementById('extEventOpen');
+  const ec = document.getElementById('extEventClose');
+  if (eo && !eo.innerHTML) { eo.innerHTML = EVENT_TIME_OPTS; eo.value = '9:00 AM'; }
+  if (ec && !ec.innerHTML) { ec.innerHTML = EVENT_TIME_OPTS; ec.value = '5:00 PM'; }
+  const open = eo ? eo.value : '';
+  const close = ec ? ec.value : '';
+  const entry = open ? `${val}|${open}|${close}` : val;
+  _extEventDates.push(entry);
   renderExtEventDatePills();
   if (input) input.value = '';
 }
@@ -932,9 +957,10 @@ function removeExtEventDate(val) {
 function renderExtEventDatePills() {
   const container = document.getElementById('extEventDatePills');
   if (!container) return;
-  container.innerHTML = _extEventDates.map(d => {
-    const label = d === 'ongoing' ? 'Ongoing' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-    return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--sage-pale,#edf7f1);border:1.5px solid var(--sage,#3a7d5c);border-radius:100px;padding:4px 10px;font-size:0.78rem;font-weight:700;color:var(--sage-deep,#2d5c3f);">${label}<button type="button" onclick="removeExtEventDate('${d}')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:0.9rem;font-weight:700;padding:0 0 0 2px;line-height:1;">×</button></span>`;
+  container.innerHTML = _extEventDates.map(e => {
+    const label = entryDateLabel(e);
+    const safe = e.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--sage-pale,#edf7f1);border:1.5px solid var(--sage,#3a7d5c);border-radius:100px;padding:4px 10px;font-size:0.78rem;font-weight:700;color:var(--sage-deep,#2d5c3f);">${label}<button type="button" onclick="removeExtEventDate('${safe}')" style="background:none;border:none;cursor:pointer;color:var(--sage);font-size:0.9rem;font-weight:700;padding:0 0 0 2px;line-height:1;">×</button></span>`;
   }).join('');
 }
 
@@ -983,9 +1009,9 @@ function resetTypeExtras() {
 
 function getTypeExtrasPayload() {
   const payload = {};
-  if (selectedTypesEdit.has('volunteer_event')) {
+  if (selectedTypesEdit.has('volunteer_event') || selectedTypesEdit.has('food_distribution')) {
     payload.event_dates = _extEventDates.length > 0 ? _extEventDates : null;
-    payload.event_date = _extEventDates.includes('ongoing') ? 'ongoing' : (_extEventDates.length > 0 ? [..._extEventDates].filter(d=>d!=='ongoing').sort()[0] : null);
+    payload.event_date = _extEventDates.includes('ongoing') ? 'ongoing' : (_extEventDates.length > 0 ? [..._extEventDates].filter(d=>d!=='ongoing').map(e=>e.split('|')[0]).sort()[0] : null);
     payload.volunteer_signup_url = document.getElementById('extVolSignupUrl')?.value.trim() || null;
   }
   if (selectedTypesEdit.has('shelter')) {
@@ -1095,7 +1121,7 @@ function onListingSelect() {
 
   // ── Populate event_dates if volunteer_event ──
   _extEventDates = [];
-  if ((selectedListing.type||'').includes('volunteer_event')) {
+  if ((selectedListing.type||'').includes('volunteer_event') || (selectedListing.type||'').includes('food_distribution')) {
     if (selectedListing.event_dates && selectedListing.event_dates.length > 0) {
       _extEventDates = selectedListing.event_dates;
       if (_extEventDates.includes('ongoing')) {

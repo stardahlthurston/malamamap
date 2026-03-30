@@ -187,8 +187,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     <div class="field-row">
       <div class="field"><label>Event dates <span style="font-weight:400;font-size:0.78rem;text-transform:none;letter-spacing:0;">— add one or more</span></label>
         <div id="eventDatePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.5rem;min-height:24px;"></div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="date" id="editEventDateAdd" style="flex:1;">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:0.25rem;">
+          <input type="date" id="editEventDateAdd" style="flex:1;min-width:100px;">
+          <select id="editEventOpen" style="padding:0.4rem 0.5rem;border:1.5px solid #ddd;border-radius:8px;font-size:0.78rem;font-family:'Nunito',sans-serif;color:var(--text-dark);"></select>
+          <span style="font-size:0.78rem;color:var(--text-muted);">–</span>
+          <select id="editEventClose" style="padding:0.4rem 0.5rem;border:1.5px solid #ddd;border-radius:8px;font-size:0.78rem;font-family:'Nunito',sans-serif;color:var(--text-dark);"></select>
           <button type="button" onclick="addEventDatePill()" style="padding:0.5rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid var(--sage,#3a7d5c);background:white;color:var(--sage,#3a7d5c);white-space:nowrap;transition:all 0.15s;">+ Add</button>
           <button type="button" id="ongoingToggle" onclick="toggleOngoing()" style="padding:0.5rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid #ddd;background:white;color:var(--text-muted);white-space:nowrap;transition:all 0.15s;">Ongoing</button>
         </div>
@@ -505,12 +508,38 @@ const TYPE_LABELS_CREATE = {
 const selectedTypes = new Set();
 let _eventDates = [];
 
+const EVENT_TIME_OPTS = ['12:00 AM','12:30 AM','1:00 AM','1:30 AM','2:00 AM','2:30 AM','3:00 AM','3:30 AM','4:00 AM','4:30 AM','5:00 AM','5:30 AM','6:00 AM','6:30 AM','7:00 AM','7:30 AM','8:00 AM','8:30 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM','9:00 PM','9:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM'].map(t=>`<option>${t}</option>`).join('');
+
+function parseEventEntry(e) {
+  if (e === 'ongoing') return {date:'ongoing', open:'', close:''};
+  const parts = e.split('|');
+  return {date: parts[0], open: parts[1]||'', close: parts[2]||''};
+}
+function entryDateLabel(entry) {
+  const {date, open, close} = parseEventEntry(entry);
+  if (date === 'ongoing') return 'Ongoing';
+  const d = new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  return open ? `${d} · ${open}${close ? ' – '+close : ''}` : d;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const eo = document.getElementById('editEventOpen');
+  const ec = document.getElementById('editEventClose');
+  if (eo) { eo.innerHTML = EVENT_TIME_OPTS; eo.value = '9:00 AM'; }
+  if (ec) { ec.innerHTML = EVENT_TIME_OPTS; ec.value = '5:00 PM'; }
+});
+
 function addEventDatePill(dateVal) {
   const input = document.getElementById('editEventDateAdd');
   const val = dateVal || input?.value;
-  if (!val) return;
-  if (_eventDates.includes(val)) { if (input) input.value = ''; return; }
-  _eventDates.push(val);
+  if (!val || val === 'ongoing') return;
+  if (_eventDates.some(e => e === val || e.startsWith(val+'|'))) { if (input) input.value = ''; return; }
+  const openSel = document.getElementById('editEventOpen');
+  const closeSel = document.getElementById('editEventClose');
+  const open = openSel ? openSel.value : '';
+  const close = closeSel ? closeSel.value : '';
+  const entry = open ? `${val}|${open}|${close}` : val;
+  _eventDates.push(entry);
   renderEventDatePills();
   if (input) input.value = '';
 }
@@ -527,9 +556,10 @@ function removeEventDate(val) {
 function renderEventDatePills() {
   const container = document.getElementById('eventDatePills');
   if (!container) return;
-  container.innerHTML = _eventDates.map(d => {
-    const label = d === 'ongoing' ? 'Ongoing' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-    return `<span style="display:inline-flex;align-items:center;gap:5px;background:#edf7f1;border:1.5px solid #3a7d5c;border-radius:100px;padding:4px 10px;font-size:0.78rem;font-weight:700;color:#2d5c3f;">${label}<button type="button" onclick="removeEventDate('${d}')" style="background:none;border:none;cursor:pointer;color:#3a7d5c;font-size:0.9rem;font-weight:700;padding:0 0 0 2px;line-height:1;">×</button></span>`;
+  container.innerHTML = _eventDates.map(e => {
+    const label = entryDateLabel(e);
+    const safe = e.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:#edf7f1;border:1.5px solid #3a7d5c;border-radius:100px;padding:4px 10px;font-size:0.78rem;font-weight:700;color:#2d5c3f;">${label}<button type="button" onclick="removeEventDate('${safe}')" style="background:none;border:none;cursor:pointer;color:#3a7d5c;font-size:0.9rem;font-weight:700;padding:0 0 0 2px;line-height:1;">×</button></span>`;
   }).join('');
 }
 
@@ -1358,7 +1388,7 @@ async function saveListing() {
     capacity: document.getElementById('editCapacity')?.value||null,
     pet_friendly: document.getElementById('editPetFriendly')?.value==='true',
     event_dates: _eventDates.length > 0 ? _eventDates : null,
-    event_date: _eventDates.includes('ongoing') ? 'ongoing' : (_eventDates.length > 0 ? [..._eventDates].filter(d=>d!=='ongoing').sort()[0] : null),
+    event_date: _eventDates.includes('ongoing') ? 'ongoing' : (_eventDates.length > 0 ? [..._eventDates].filter(d=>d!=='ongoing').map(e=>e.split('|')[0]).sort()[0] : null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
     volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim()||null,
     skills_direction: window._skillsDir || 'offering',

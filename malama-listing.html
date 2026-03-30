@@ -270,19 +270,33 @@ function renderListing(l) {
   }
   const hoursDisplay = formatListingHours(l);
 
-  // Event dates display for volunteer_event listings
+  // Event dates display for volunteer_event and food_distribution listings
   function formatEventDates(l) {
-    if (!types.includes('volunteer_event')) return '';
-    let dates = [];
+    const affectedTypes = ['volunteer_event','food_distribution'];
+    if (!types.some(t => affectedTypes.includes(t))) return '';
+    let entries = [];
     if (l.event_dates && l.event_dates.length > 0) {
-      dates = l.event_dates;
+      entries = l.event_dates;
     } else if (l.event_date) {
-      dates = [l.event_date];
+      entries = [l.event_date];
     }
-    if (!dates.length) return '';
-    if (dates.includes('ongoing')) return 'Ongoing';
-    const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-    return dates.filter(d => d !== 'ongoing').sort().map(fmt).join(' · ');
+    if (!entries.length) return '';
+    if (entries.includes('ongoing')) return 'Ongoing';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const future = entries
+      .filter(e => e !== 'ongoing')
+      .map(e => {
+        const parts = e.split('|');
+        return {date: parts[0], open: parts[1]||'', close: parts[2]||''};
+      })
+      .filter(e => new Date(e.date+'T00:00:00') >= today)
+      .sort((a,b) => a.date.localeCompare(b.date));
+    if (!future.length) return '';
+    const fmtDate = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    return future.map(e => {
+      const timeStr = e.open ? ` · ${e.open}${e.close ? ' – '+e.close : ''}` : '';
+      return `<span style="display:block;">${fmtDate(e.date)}${timeStr}</span>`;
+    }).join('');
   }
   const eventDatesDisplay = formatEventDates(l);
 
@@ -426,7 +440,7 @@ function renderListing(l) {
       ${eventDatesDisplay ? `
       <div class="info-row">
         <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><rect x="3" y="4" width="14" height="13" rx="2" stroke="#3a7d5c" stroke-width="1.5"/><path d="M3 8h14M7 2v4M13 2v4" stroke="#3a7d5c" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <div><p class="info-label">Event date${(l.event_dates && l.event_dates.filter(d=>d!=='ongoing').length > 1) ? 's' : ''}</p><p class="info-value">${eventDatesDisplay}</p></div>
+        <div><p class="info-label">Upcoming event dates</p><p class="info-value">${eventDatesDisplay}</p></div>
       </div>` : ''}
       <div class="info-row">
         <div class="info-icon"><svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><circle cx="10" cy="10" r="7.5" stroke="#3a7d5c" stroke-width="1.5"/><path d="M10 6v4l2.5 2.5" stroke="#3a7d5c" stroke-width="1.5" stroke-linecap="round"/></svg></div>

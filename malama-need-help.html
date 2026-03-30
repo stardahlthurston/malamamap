@@ -264,7 +264,8 @@ function isCurrentlyOpen(l) {
   const today = new Date(); today.setHours(0,0,0,0);
   // Check event_dates array first (recurring events)
   if (l.event_dates && l.event_dates.length > 0) {
-    return l.event_dates.some(d => {
+    return l.event_dates.some(e => {
+      const d = e === 'ongoing' ? 'ongoing' : e.split('|')[0];
       if (d === 'ongoing') return true;
       return new Date(d + 'T00:00:00') >= today;
     });
@@ -272,7 +273,7 @@ function isCurrentlyOpen(l) {
   // Fall back to single event_date
   if (l.event_date) {
     if (l.event_date === 'ongoing') return true;
-    return new Date(l.event_date + 'T00:00:00') >= today;
+    return new Date(l.event_date.split('|')[0] + 'T00:00:00') >= today;
   }
   if (l.expires_at) return new Date(l.expires_at) >= today;
 
