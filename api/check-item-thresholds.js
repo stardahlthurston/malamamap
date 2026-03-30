@@ -73,7 +73,7 @@ export default async function handler(req, res) {
 <!DOCTYPE html><html><body style="margin:0;padding:0;background:#f4f6f4;font-family:'Helvetica Neue',Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px;">
 <table width="560" cellpadding="0" cellspacing="0" style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-  <tr><td style="background:linear-gradient(135deg,#275c42 0%,#3a7d5c 100%);padding:28px 32px;">
+  <tr><td style="background:linear-gradient(135deg,#1c4a3a 0%,#3a7d5c 100%);padding:28px 32px;">
     <p style="margin:0;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.65);">Mālama Map — Item Alert</p>
     <h1 style="margin:8px 0 0;font-size:1.4rem;font-weight:800;color:white;">🔥 High-demand item${newCrossings.length > 1 ? 's' : ''} detected</h1>
   </td></tr>

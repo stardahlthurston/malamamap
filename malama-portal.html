@@ -23,7 +23,7 @@ window.addEventListener('load', loadGooglePlaces);
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --sage:#3a7d5c;--sage-deep:#275c42;--sage-light:#6ab98a;--sage-pale:#edf7f1;
+  --sage:#3a7d5c;--sage-deep:#1c4a3a;--sage-light:#6ab98a;--sage-pale:#edf7f1;
   --blue:#2a6496;--blue-deep:#1a4a72;--blue-light:#5a9fd4;--blue-pale:#eaf3fb;
   --cream:#fdf8f2;--gold:#c9983a;--gold-pale:#fdf4e3;
   --red:#c0392b;--red-pale:#fdf0ee;
@@ -2458,7 +2458,7 @@ function showInAppBrowserOverlay() {
 
 let shareListingId = null;
 // Active card color (hex)
-let shareCardColor = '#275c42';
+let shareCardColor = '#1c4a3a';
 
 // ── Color helpers ──
 function hexToHsl(hex) {
@@ -2522,10 +2522,10 @@ function openShareModal(id) {
   document.body.style.overflow = 'hidden';
 
   // Now safely reset color + build card
-  shareCardColor = '#275c42';
+  shareCardColor = '#1c4a3a';
   document.querySelectorAll('.color-swatch').forEach((b,i) => b.classList.toggle('selected', i===0));
   const picker = document.getElementById('customColorPicker');
-  if (picker) picker.value = '#275c42';
+  if (picker) picker.value = '#1c4a3a';
   buildShareCard(l);
   const modalUnused = document.getElementById('shareModal'); // keep ref for compat
   modal.style.display = 'flex';

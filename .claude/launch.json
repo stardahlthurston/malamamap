@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "malama-preview",
+      "runtimeExecutable": "ruby",
+      "runtimeArgs": ["-run", "-e", "httpd", "--", "--port=8080", "/Users/stardahl-thurston/Desktop/MALAMA_MAP_CODE/.claude/worktrees/wizardly-cori"],
+      "port": 8080
+    }
+  ]
+}
