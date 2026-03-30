@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mālama Map — Offer My Skills</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sage:#3a7d5c;--sage-deep:#275c42;--sage-pale:#edf7f1;
+  --teal:#2e6b6b;--teal-pale:#e8f4f4;--teal-deep:#1a4040;
+  --purple:#7b5ea7;--purple-pale:#f5f0ff;--purple-deep:#4a2d7a;
+  --blue:#2a6496;--blue-pale:#eaf3fb;
+  --gold:#c9983a;--gold-pale:#fdf4e3;
+  --cream:#fdf8f2;--text-dark:#1c1a18;--text-mid:#4a453f;--text-muted:#8a827a;
+  --border:rgba(0,0,0,0.08);--red:#c0392b;
+}
+body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--sage-deep);padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:white;text-decoration:none;display:flex;align-items:center;gap:8px;}
+.topbar-back{font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.8);text-decoration:none;display:flex;align-items:center;gap:4px;}
+.topbar-back:hover{color:white;}
+
+.hero-bar{background:linear-gradient(135deg,#5a3d8a,#7b5ea7);padding:1.5rem;color:white;text-align:center;}
+.hero-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;margin-bottom:0.35rem;}
+.hero-sub{font-size:0.85rem;font-weight:600;color:rgba(255,255,255,0.9);line-height:1.55;}
+
+.page-wrap{max-width:600px;margin:0 auto;padding:1.5rem;}
+
+.form-card{background:white;border-radius:16px;border:1.5px solid var(--border);padding:1.5rem;margin-bottom:1rem;}
+.section-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:var(--text-dark);margin-bottom:0.1rem;}
+.section-sub{font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;}
+
+label{display:block;font-size:0.67rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;margin-top:0.9rem;}
+label:first-of-type{margin-top:0;}
+input[type=text],input[type=email],input[type=tel],textarea,select{width:100%;padding:0.6rem 0.85rem;border:1.5px solid #ddd;border-radius:10px;font-size:0.88rem;font-family:'Nunito',sans-serif;color:var(--text-dark);background:white;outline:none;transition:border-color 0.15s;}
+input:focus,textarea:focus,select:focus{border-color:var(--purple);}
+textarea{resize:vertical;min-height:80px;}
+.req{color:var(--red);}
+.hint{font-size:0.72rem;color:var(--text-muted);margin-top:4px;line-height:1.5;}
+.hint a{color:var(--blue);}
+
+/* Skills chips */
+.skills-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:0.5rem;}
+.skill-chip{font-size:0.78rem;font-weight:700;padding:5px 13px;border-radius:100px;border:1.5px solid #ddd;background:white;color:var(--text-mid);cursor:pointer;transition:all 0.15s;font-family:'Nunito',sans-serif;}
+.skill-chip:hover{border-color:var(--purple);color:var(--purple);}
+.skill-chip.selected{border-color:var(--purple);background:var(--purple-pale);color:var(--purple-deep);}
+.custom-skill-row{display:flex;gap:8px;margin-top:8px;}
+.custom-skill-row input{flex:1;margin:0;}
+.btn-add-skill{padding:0.5rem 1rem;background:var(--purple);color:white;border:none;border-radius:100px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;}
+
+/* Contact toggle */
+.contact-toggle-wrap{display:flex;gap:8px;margin-top:0.5rem;}
+.contact-opt{flex:1;border:2px solid #ddd;border-radius:12px;padding:0.85rem;cursor:pointer;transition:all 0.18s;text-align:center;}
+.contact-opt.selected{border-color:var(--purple);background:var(--purple-pale);}
+.contact-opt-icon{font-size:1.4rem;margin-bottom:4px;}
+.contact-opt-title{font-size:0.82rem;font-weight:800;color:var(--text-dark);}
+.contact-opt-desc{font-size:0.7rem;color:var(--text-muted);line-height:1.4;margin-top:3px;}
+
+/* Verification card */
+.verify-card{background:var(--gold-pale);border:1.5px solid rgba(201,152,58,0.35);border-radius:12px;padding:1rem 1.1rem;}
+.verify-title{font-size:0.82rem;font-weight:800;color:#7a5c1a;margin-bottom:0.25rem;}
+.verify-desc{font-size:0.75rem;color:#8a6b1a;line-height:1.5;margin-bottom:0.75rem;}
+
+/* Two-col grid */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+@media(max-width:480px){.two-col{grid-template-columns:1fr;}}
+
+/* Submit */
+.submit-btn{width:100%;padding:0.9rem;background:var(--purple);color:white;border:none;border-radius:100px;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:1.25rem;transition:background 0.2s;}
+.submit-btn:hover{background:var(--purple-deep);}
+.submit-btn:disabled{background:#ccc;cursor:not-allowed;}
+
+.error-msg{background:#fdf0ee;border:1.5px solid rgba(192,57,43,0.25);border-radius:10px;padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:var(--red);margin-top:0.75rem;display:none;}
+.success-card{background:white;border-radius:16px;border:1.5px solid var(--border);padding:2.5rem 1.5rem;text-align:center;display:none;}
+.success-icon{font-size:2.5rem;margin-bottom:0.75rem;}
+.success-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:800;color:var(--sage-deep);margin-bottom:0.5rem;}
+.success-sub{font-size:0.85rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;}
+.btn-back{display:inline-block;padding:0.65rem 1.5rem;background:var(--purple);color:white;border-radius:100px;font-size:0.85rem;font-weight:800;text-decoration:none;}
+
+.login-prompt{background:white;border-radius:16px;border:1.5px solid var(--border);padding:2rem 1.5rem;text-align:center;display:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="malama-skills.html" class="topbar-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back
+  </a>
+  <a href="index.html" class="topbar-logo">
+    <img src="logo.png" alt="" style="height:28px;width:auto;">
+    Mālama Map
+  </a>
+  <div style="width:60px;"></div>
+</div>
+
+<div class="hero-bar">
+  <h1 class="hero-title">🙌 Offer My Skills</h1>
+  <p class="hero-sub">Share what you can do. People who need your help will reach out — you stay in control.</p>
+</div>
+
+<div class="page-wrap">
+
+  <!-- Login prompt (shown if not logged in) -->
+  <div class="login-prompt" id="loginPrompt">
+    <div style="font-size:2rem;margin-bottom:0.75rem;">👤</div>
+    <p style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:800;color:var(--text-dark);margin-bottom:0.5rem;">Sign in to post your skills</p>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6;">You'll need a free Mālama Map account to add yourself to the skills directory.</p>
+    <a href="malama-auth.html?return=malama-skills-offer.html" style="display:inline-block;padding:0.65rem 1.5rem;background:var(--purple);color:white;border-radius:100px;font-size:0.85rem;font-weight:800;text-decoration:none;">Sign in / Create account →</a>
+  </div>
+
+  <!-- Main form -->
+  <div id="offerForm" style="display:none;">
+
+    <!-- Your Skills -->
+    <div class="form-card">
+      <p class="section-title">Your skills</p>
+      <p class="section-sub">What can you offer to the community? Select all that apply or add your own.</p>
+
+      <div class="skills-grid" id="skillChips">
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Physical labor')">Physical labor</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Truck / hauling')">Truck / hauling</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Heavy equipment')">Heavy equipment</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Chainsaw work')">Chainsaw work</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Electrician')">Electrician</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Plumber')">Plumber</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Carpenter')">Carpenter</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Roofing')">Roofing</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Medical / nursing')">Medical / nursing</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Mental health support')">Mental health support</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Childcare')">Childcare</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Elder care')">Elder care</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Cooking / food prep')">Cooking / food prep</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Translation')">Translation</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Photography / media')">Photography / media</button>
+        <button type="button" class="skill-chip" onclick="toggleSkill(this,'Administrative / office')">Administrative / office</button>
+      </div>
+
+      <div class="custom-skill-row" style="margin-top:0.75rem;">
+        <input type="text" id="customSkillInput" placeholder="Add a skill not listed…" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomSkill();}">
+        <button type="button" class="btn-add-skill" onclick="addCustomSkill()">+ Add</button>
+      </div>
+      <p id="skillsError" style="font-size:0.72rem;color:var(--red);display:none;margin-top:4px;">Please select or add at least one skill.</p>
+
+      <label style="margin-top:1rem;">Description / notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.78rem;">(optional)</span></label>
+      <textarea id="offerNotes" placeholder="Anything else people should know — your experience, availability, limitations, etc."></textarea>
+
+      <label>Your neighborhood / area <span class="req">*</span></label>
+      <input type="text" id="offerLocation" placeholder="e.g. Kaimukī, North Shore, Mililani">
+    </div>
+
+    <!-- Contact preference -->
+    <div class="form-card">
+      <p class="section-title">How should people reach you?</p>
+      <p class="section-sub">Choose how you want to be contacted. You can change this any time from your portal.</p>
+
+      <div class="contact-toggle-wrap">
+        <div class="contact-opt selected" id="optPrivate" onclick="selectContactPref('private')">
+          <div class="contact-opt-icon">🔒</div>
+          <div class="contact-opt-title">Contact me</div>
+          <div class="contact-opt-desc">People fill out a form — your info stays private until you reply</div>
+        </div>
+        <div class="contact-opt" id="optPublic" onclick="selectContactPref('public')">
+          <div class="contact-opt-icon">📢</div>
+          <div class="contact-opt-title">Show my info</div>
+          <div class="contact-opt-desc">Your name and contact info appear directly on your listing</div>
+        </div>
+      </div>
+
+      <!-- Private: just needs email for routing -->
+      <div id="privateFields">
+        <label style="margin-top:1rem;">Your email <span class="req">*</span> <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.78rem;">(never shown publicly — only used to route requests to you)</span></label>
+        <input type="email" id="privateEmail" placeholder="you@email.com">
+      </div>
+
+      <!-- Public: name + phone/email shown on listing -->
+      <div id="publicFields" style="display:none;">
+        <div class="two-col" style="margin-top:1rem;">
+          <div>
+            <label>First name <span class="req">*</span></label>
+            <input type="text" id="pubFirstName" placeholder="Kai">
+          </div>
+          <div>
+            <label>Last name</label>
+            <input type="text" id="pubLastName" placeholder="Akana">
+          </div>
+        </div>
+        <label>Company or organization <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.78rem;">(optional)</span></label>
+        <input type="text" id="pubCompany" placeholder="e.g. Akana Construction">
+        <label>Phone <span style="font-weight:400;text-transform:none;letter-spacing:0;">(phone or email required)</span></label>
+        <input type="tel" id="pubPhone" placeholder="(808) 555-0000">
+        <label>Email</label>
+        <input type="email" id="pubEmail" placeholder="you@email.com">
+        <p class="hint" style="margin-top:6px;">⚠️ This info will be visible to anyone who views your listing.</p>
+      </div>
+    </div>
+
+    <!-- Business verification (optional) -->
+    <div class="form-card">
+      <div class="verify-card">
+        <p class="verify-title">🏅 Optional: Request a verified badge</p>
+        <p class="verify-desc">If you represent a licensed business or registered organization, you can request a verified badge. We'll confirm your registration through the Hawaii Business Registry. Leave blank to skip.</p>
+        <label>Business / organization name</label>
+        <input type="text" id="dccaOrgName" placeholder="e.g. Akana Construction LLC">
+        <label style="margin-top:0.75rem;">Hawaii Business Registry # (DCCA)</label>
+        <input type="text" id="dccaNumber" placeholder="e.g. 123456 C">
+        <p class="hint"><a href="https://hbe.ehawaii.gov/documents/search.html" target="_blank" rel="noopener">🔍 Look up your DCCA registration number →</a></p>
+      </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="submit-btn" id="submitBtn" onclick="submitOffer()">Post my skills →</button>
+  </div>
+
+  <!-- Success state -->
+  <div class="success-card" id="successCard">
+    <div class="success-icon">🌺</div>
+    <p class="success-title">You're on the map!</p>
+    <p class="success-sub">Your skills listing is live. People in your community can now find you and reach out for help. Mahalo for showing up.</p>
+    <a href="malama-skills.html" class="btn-back">← View the skills directory</a>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGxtcW1xbG5mdGxweXJxbmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDgyMDIsImV4cCI6MjA4OTc4NDIwMn0.r5GLgPk-xywtkQdrmTAFcKZny1-Wrh8b5YezAHmU9yU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let selectedSkills = new Set();
+let contactPref = 'private';
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    document.getElementById('loginPrompt').style.display = 'block';
+    return;
+  }
+  currentUser = session.user;
+  document.getElementById('offerForm').style.display = 'block';
+  // Pre-fill email for private contact
+  if (currentUser.email) document.getElementById('privateEmail').value = currentUser.email;
+}
+
+function toggleSkill(el, skill) {
+  if (selectedSkills.has(skill)) {
+    selectedSkills.delete(skill);
+    el.classList.remove('selected');
+  } else {
+    selectedSkills.add(skill);
+    el.classList.add('selected');
+  }
+}
+
+function addCustomSkill() {
+  const input = document.getElementById('customSkillInput');
+  const val = input.value.trim();
+  if (!val) return;
+  if (selectedSkills.has(val)) { input.value = ''; return; }
+  selectedSkills.add(val);
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'skill-chip selected';
+  chip.textContent = val;
+  chip.onclick = () => toggleSkill(chip, val);
+  document.getElementById('skillChips').appendChild(chip);
+  input.value = '';
+}
+
+function selectContactPref(pref) {
+  contactPref = pref;
+  document.getElementById('optPrivate').classList.toggle('selected', pref === 'private');
+  document.getElementById('optPublic').classList.toggle('selected', pref === 'public');
+  document.getElementById('privateFields').style.display = pref === 'private' ? 'block' : 'none';
+  document.getElementById('publicFields').style.display = pref === 'public' ? 'block' : 'none';
+}
+
+async function submitOffer() {
+  const btn = document.getElementById('submitBtn');
+  const errEl = document.getElementById('errorMsg');
+  errEl.style.display = 'none';
+
+  // Validate
+  if (selectedSkills.size === 0) {
+    document.getElementById('skillsError').style.display = 'block';
+    return;
+  }
+  document.getElementById('skillsError').style.display = 'none';
+
+  const location = document.getElementById('offerLocation').value.trim();
+  if (!location) { showError('Please enter your neighborhood or area.'); return; }
+
+  let contactEmail = '';
+  let contactFirstName = '', contactLastName = '', contactPhone = '', contactCompany = '';
+
+  if (contactPref === 'private') {
+    contactEmail = document.getElementById('privateEmail').value.trim();
+    if (!contactEmail) { showError('Please enter your email so requests can reach you.'); return; }
+  } else {
+    contactFirstName = document.getElementById('pubFirstName').value.trim();
+    contactLastName = document.getElementById('pubLastName').value.trim();
+    contactPhone = document.getElementById('pubPhone').value.trim();
+    contactEmail = document.getElementById('pubEmail').value.trim();
+    contactCompany = document.getElementById('pubCompany').value.trim();
+    if (!contactFirstName) { showError('Please enter your first name.'); return; }
+    if (!contactPhone && !contactEmail) { showError('Please provide a phone number or email so people can reach you.'); return; }
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Posting…';
+
+  const payload = {
+    user_id: currentUser.id,
+    type: 'skills_labor',
+    skills_direction: 'offering',
+    name: contactFirstName ? `${contactFirstName}${contactLastName ? ' ' + contactLastName : ''}` : (currentUser.email?.split('@')[0] || 'Community Member'),
+    items: [...selectedSkills].map(s => `GIVING:${s}`),
+    notes: document.getElementById('offerNotes').value.trim() || null,
+    address: location,
+    location: location,
+    lat: 21.3069,
+    lng: -157.8583,
+    status: true,
+    contact_preference: contactPref,
+    contact_first_name: contactFirstName || null,
+    contact_last_name: contactLastName || null,
+    contact_phone: contactPhone || null,
+    contact_email: contactEmail || null,
+    contact_company: contactCompany || null,
+    dcca_number: document.getElementById('dccaNumber').value.trim() || null,
+  };
+
+  // Add org name to notes if provided
+  const dccaOrg = document.getElementById('dccaOrgName').value.trim();
+  if (dccaOrg) payload.notes = (payload.notes ? payload.notes + '\n\n' : '') + `Business: ${dccaOrg}`;
+
+  try {
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create_listing', payload })
+    });
+    const result = await resp.json();
+    if (!result.success) throw new Error(result.error || 'Failed to post listing');
+    document.getElementById('offerForm').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Post my skills →';
+    showError('Something went wrong: ' + e.message);
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+init();
+</script>
+</body>
+</html>

@@ -110,24 +110,19 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
 </div>
 
 <div class="hero-bar" style="background:linear-gradient(135deg,#5a3d8a,#7b5ea7);">
-  <h1 class="hero-title">Connect directly</h1>
+  <h1 class="hero-title">I Have Skills</h1>
   <p class="hero-sub">Have a chainsaw, truck, or free hands? Need someone who does? Find each other here — no middleman, just community.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0.75rem;">
-    <span style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,0.15);color:white;">Skills &amp; Labor</span>
-    <span style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,0.15);color:white;">Equipment</span>
-    <span style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,0.15);color:white;">Rides &amp; Hauling</span>
-    <span style="font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,0.15);color:white;">Trades</span>
-  </div>
-  <p style="font-size:0.76rem;font-weight:500;color:rgba(255,255,255,0.88);margin-top:0.5rem;line-height:1.6;border-top:1px solid rgba(255,255,255,0.2);padding-top:0.6rem;">🔒 Your personal contact info is never shown publicly. When someone needs your help, they fill out a request on this site and it goes directly to your private email — no one else sees it.</p>
+  <a href="malama-skills-offer.html" style="display:inline-block;margin-top:0.9rem;padding:0.55rem 1.4rem;background:white;color:#5a3d8a;border-radius:100px;font-size:0.85rem;font-weight:800;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">Offer my skills →</a>
+  <p style="font-size:0.74rem;font-weight:500;color:rgba(255,255,255,0.82);margin-top:0.85rem;line-height:1.6;border-top:1px solid rgba(255,255,255,0.2);padding-top:0.65rem;">Your personal contact info is never shown publicly. When someone needs your help, they fill out a request on this site and it goes directly to your private email — no one else sees it.</p>
 </div>
 
 <div class="filter-bar">
   <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
-  <button class="chip" id="chipOffering" onclick="setDirFilter('offering',this)">🙌 Offering skills</button>
-  <button class="chip" id="chipSeeking" onclick="setDirFilter('seeking',this)">🔍 Looking for help</button>
+  <button class="chip" id="chipOffering" onclick="setDirFilter('offering',this)">Offering skills</button>
+  <button class="chip" id="chipSeeking" onclick="setDirFilter('seeking',this)">Looking for help</button>
 
-  <button class="chip" data-filter="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">🙌 Offering skills</button>
-  <button class="chip" data-filter="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">🔍 Looking for help</button>
+  <button class="chip" data-filter="offering" onclick="setDirFilter('offering',this)" style="background:#edf7f1;border-color:var(--sage);color:var(--sage-deep);">Offering skills</button>
+  <button class="chip" data-filter="seeking" onclick="setDirFilter('seeking',this)" style="background:#f5f0ff;border-color:#7b5ea7;color:#4a2d7a;">Looking for help</button>
   <button class="chip" data-filter="Physical labor" onclick="setFilter('Physical labor',this)">Physical labor</button>
   <button class="chip" data-filter="Truck / hauling" onclick="setFilter('Truck / hauling',this)">Truck & hauling</button>
   <button class="chip" data-filter="Heavy equipment" onclick="setFilter('Heavy equipment',this)">Heavy equipment</button>
