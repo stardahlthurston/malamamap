@@ -188,7 +188,7 @@
   /* ── HERO SPLIT ── */
   .hero {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     min-height: 100vh;
     padding-top: 106px;
   }
@@ -228,20 +228,20 @@
 
   .panel-help { border-left: none; }
 
-  /* ── SKILLS PANEL (third column, matches other panels) ── */
+  /* ── SKILLS PANEL (full-width banner below the two panels) ── */
   .panel-skills {
+    grid-column: 1 / -1;
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 5rem 3.5rem;
+    padding: 3.5rem 3.5rem;
     text-align: center;
     cursor: pointer;
     overflow: hidden;
-    min-height: calc(100vh - 106px);
     background: var(--teal-pale);
-    border-left: 1px solid rgba(46,107,107,0.12);
+    border-top: 1px solid rgba(46,107,107,0.12);
     transition: background 0.3s ease;
   }
   .panel-skills:hover { background: #d8ecec; }
@@ -752,7 +752,7 @@
     .hero { grid-template-columns: 1fr; padding-top: 88px; }
     .panel { min-height: 55vh; padding: 3.5rem 2rem; }
     .panel-help { border-left: none; border-top: 1px solid rgba(42,100,150,0.12); }
-    .panel-skills { min-height: 55vh; padding: 3.5rem 2rem; border-left: none; border-top: 1px solid rgba(46,107,107,0.12); }
+    .panel-skills { padding: 2.5rem 2rem; }
     .skills-banner-title { font-size: 1.6rem; }
     .panel-cta-skills { align-self: stretch; justify-content: center; }
     .center-mark { display: none; }
