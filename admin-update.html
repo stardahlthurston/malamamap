@@ -598,8 +598,20 @@ function checkPassword() {
 // ══════════════════════════════════════
 // TYPE CHIPS
 // ══════════════════════════════════════
+function movePills(fromId, toId) {
+  const from = document.getElementById(fromId);
+  const to   = document.getElementById(toId);
+  if (!from || !to) return;
+  [...from.querySelectorAll('.item-pill-edit')].forEach(pill => to.appendChild(pill));
+}
+
 function toggleTypeChip(btn) {
   const t = btn.dataset.type;
+
+  // Snapshot state BEFORE the change
+  const wasSupply  = selectedTypesEdit.has('supply_station');
+  const wasDropoff = selectedTypesEdit.has('donation_dropoff');
+
   if (selectedTypesEdit.has(t)) {
     selectedTypesEdit.delete(t);
     btn.classList.remove('selected');
@@ -607,6 +619,31 @@ function toggleTypeChip(btn) {
     selectedTypesEdit.add(t);
     btn.classList.add('selected');
   }
+
+  const isSupply  = selectedTypesEdit.has('supply_station');
+  const isDropoff = selectedTypesEdit.has('donation_dropoff');
+
+  // Migrate pills so they follow the type change rather than disappearing
+  if (wasSupply && !isSupply && isDropoff && !wasDropoff) {
+    // Supply Station → Donation Drop-off: move giving pills → accepting
+    movePills('extractedGivingPills', 'extractedAcceptingPills');
+  } else if (wasDropoff && !isDropoff && isSupply && !wasSupply) {
+    // Donation Drop-off → Supply Station: move accepting pills → giving
+    movePills('extractedAcceptingPills', 'extractedGivingPills');
+  } else if (wasSupply && !isSupply && !isDropoff) {
+    // Removed supply with no dropoff left: consolidate to plain
+    movePills('extractedGivingPills', 'extractedItemsPills');
+  } else if (wasDropoff && !isDropoff && !isSupply) {
+    // Removed dropoff with no supply left: consolidate to plain
+    movePills('extractedAcceptingPills', 'extractedItemsPills');
+  } else if (!wasSupply && isSupply && !wasDropoff && !isDropoff) {
+    // Added supply station from a plain state: move plain → giving
+    movePills('extractedItemsPills', 'extractedGivingPills');
+  } else if (!wasDropoff && isDropoff && !wasSupply && !isSupply) {
+    // Added dropoff from a plain state: move plain → accepting
+    movePills('extractedItemsPills', 'extractedAcceptingPills');
+  }
+
   updateItemSections();
 }
 
