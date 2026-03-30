@@ -207,6 +207,11 @@
   @keyframes notifySpin { to { transform: rotate(360deg); } }
   .notify-spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: notifySpin 0.7s linear infinite; flex-shrink: 0; }
 
+  /* ── MODE TOGGLE ── */
+  .mode-btn { padding: 0.52rem 1.2rem; border-radius: 100px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; border: 1.5px solid #ddd; background: white; color: var(--muted); transition: all 0.15s; }
+  .mode-btn.active { background: var(--sage); color: white; border-color: var(--sage); }
+  .review-grid.single-col { grid-template-columns: 1fr !important; }
+
   /* ── NO-EDIT WARNING ── */
   .no-edit-warning { background: #fff8e6; border: 1.5px solid #e6a817; border-radius: 10px; padding: 10px 14px; margin-bottom: 0.75rem; font-size: 0.8rem; font-weight: 700; color: #7a5c1a; display: none; }
   .no-edit-warning.show { display: block; }
@@ -245,9 +250,21 @@
     <span>Internal use only</span>
   </div>
 
+  <!-- MODE TOGGLE -->
+  <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+    <button id="modeUpdateBtn" class="mode-btn active" onclick="setMode('update')">Update listing</button>
+    <button id="modeCreateBtn" class="mode-btn" onclick="setMode('create')">+ New listing</button>
+  </div>
+
   <!-- 1. LISTING SELECTOR -->
   <div class="section">
-    <p class="section-title">1 — Select a listing</p>
+    <p class="section-title" id="sectionOneTitle">1 — Select a listing</p>
+
+    <!-- Create mode note (shown instead of selector) -->
+    <div id="createModeNote" style="display:none;background:var(--sage-pale);border:1px solid rgba(58,125,92,0.2);border-radius:8px;padding:0.75rem 1rem;font-size:0.83rem;font-weight:600;color:var(--sage-deep);">✨ Creating a new listing — upload a photo below or fill in manually. Name and address are required.</div>
+
+    <!-- Update-only: listing selector + current data -->
+    <div id="updateOnlySection">
     <select class="listing-select" id="listingSelect" onchange="onListingSelect()">
       <option value="">Loading listings…</option>
     </select>
@@ -288,6 +305,7 @@
         <div class="current-value" id="currentNotes"></div>
       </div>
     </div>
+    </div><!-- end updateOnlySection -->
   </div>
 
   <!-- 2. UPLOAD SCREENSHOTS -->
@@ -323,9 +341,9 @@
   <div class="section" id="reviewSection">
     <p class="section-title" id="reviewSectionTitle">3 — Review & edit before pushing</p>
 
-    <div class="review-grid">
+    <div class="review-grid" id="reviewGrid">
       <!-- LEFT: current -->
-      <div>
+      <div id="reviewCurrentCol">
         <p class="review-col-label">Current</p>
         <div class="review-field"><label>Hours</label><div class="static-value" id="reviewCurrentHours"></div></div>
         <div class="review-field" id="reviewCurrentGivingWrap" style="display:none;">
@@ -482,6 +500,27 @@ let selectedListing = null;
 let pendingItems    = []; // items waiting for clarification (mixed-type listings)
 let selectedTypesEdit = new Set();
 let _curGiving = [], _curAccepting = [], _curPlain = []; // current listing's items by section
+let createMode = false;
+
+// ══════════════════════════════════════
+// MODE TOGGLE
+// ══════════════════════════════════════
+function setMode(mode) {
+  createMode = (mode === 'create');
+  document.getElementById('modeUpdateBtn').classList.toggle('active', !createMode);
+  document.getElementById('modeCreateBtn').classList.toggle('active', createMode);
+  document.getElementById('updateOnlySection').style.display = createMode ? 'none' : '';
+  document.getElementById('createModeNote').style.display = createMode ? 'block' : 'none';
+  document.getElementById('sectionOneTitle').textContent = createMode ? '1 — New listing' : '1 — Select a listing';
+  document.getElementById('reviewCurrentCol').style.display = createMode ? 'none' : '';
+  document.getElementById('reviewGrid').classList.toggle('single-col', createMode);
+  document.getElementById('pushBtn').textContent = createMode ? 'Create listing →' : 'Update listing →';
+  // Reset any previous work
+  resetTool();
+  selectedTypesEdit = new Set();
+  document.querySelectorAll('#typeChipsContainer .type-chip').forEach(b => b.classList.remove('selected'));
+  updateItemSections();
+}
 
 // ── Title case ──
 function toTitleCase(s) {
@@ -714,6 +753,23 @@ function showReviewCurrentItems(wrapId, valueId, items) {
 // MANUAL EDIT (no photo)
 // ══════════════════════════════════════
 function openManualEdit() {
+  if (createMode) {
+    // Blank form for new listing
+    document.getElementById('extractedHours').value   = '';
+    document.getElementById('extractedAddress').value = '';
+    document.getElementById('extractedPhone').value   = '';
+    document.getElementById('extractedName').value    = '';
+    document.getElementById('extractedWebsite').value = '';
+    document.getElementById('extractedNotes').value   = '';
+    setExtractedPills('extractedGivingPills',    [], 'giving');
+    setExtractedPills('extractedAcceptingPills', [], 'accepting');
+    setExtractedPills('extractedItemsPills',     [], 'plain');
+    document.getElementById('reviewSectionTitle').textContent = '3 — Fill in new listing details';
+    document.getElementById('reviewSection').classList.add('show');
+    document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
   if (!selectedListing) { alert('Please select a listing first.'); return; }
 
   const rawItems = Array.isArray(selectedListing.items) ? selectedListing.items : [];
@@ -754,7 +810,7 @@ function onFilePick(e) {
 }
 
 async function processFiles(files) {
-  if (!selectedListing) { alert('Please select a listing first.'); return; }
+  if (!createMode && !selectedListing) { alert('Please select a listing first.'); return; }
 
   const log = document.getElementById('processingLog');
   log.innerHTML = '';
@@ -825,7 +881,7 @@ async function processFiles(files) {
   document.getElementById('extractedHours').value   = mergedHours;
   document.getElementById('extractedAddress').value = mergedAddress;
   document.getElementById('extractedNotes').value   = mergedNotes;
-  document.getElementById('reviewSectionTitle').textContent = '4 — Review & edit before pushing';
+  document.getElementById('reviewSectionTitle').textContent = createMode ? '3 — Fill in new listing details' : '4 — Review & edit before pushing';
 
   const hasDropoff = selectedTypesEdit.has('donation_dropoff');
   const hasSupply  = selectedTypesEdit.has('supply_station');
@@ -863,7 +919,96 @@ function routeItems(items, choice) {
 // ══════════════════════════════════════
 // PUSH UPDATE
 // ══════════════════════════════════════
+async function geocodeAddress(addr) {
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.results && d.results[0]) {
+      const loc = d.results[0].geometry.location;
+      return { lat: loc.lat, lng: loc.lng };
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function createNewListing() {
+  const btn = document.getElementById('pushBtn');
+  const msg = document.getElementById('resultMsg');
+  btn.disabled = true;
+  msg.className = 'result-msg';
+
+  const nameVal    = document.getElementById('extractedName').value.trim();
+  const addressVal = document.getElementById('extractedAddress').value.trim();
+  const hoursVal   = document.getElementById('extractedHours').value.trim();
+  const phoneVal   = document.getElementById('extractedPhone').value.trim();
+  const websiteVal = document.getElementById('extractedWebsite').value.trim();
+  const notesVal   = document.getElementById('extractedNotes').value.trim();
+
+  if (!nameVal)    { alert('Listing name is required.'); btn.disabled = false; btn.textContent = 'Create listing →'; return; }
+  if (!addressVal) { alert('Address is required for a new listing.'); btn.disabled = false; btn.textContent = 'Create listing →'; return; }
+  if (selectedTypesEdit.size === 0) { alert('Please select at least one listing type.'); btn.disabled = false; btn.textContent = 'Create listing →'; return; }
+
+  btn.textContent = 'Geocoding address…';
+  const coords = await geocodeAddress(addressVal);
+  if (!coords) {
+    alert('Could not find coordinates for that address. Double-check the address and try again.');
+    btn.disabled = false; btn.textContent = 'Create listing →'; return;
+  }
+
+  const itemsArr = [
+    ...getItemsFromPills('extractedGivingPills').map(s => 'GIVING:' + s),
+    ...getItemsFromPills('extractedAcceptingPills').map(s => 'ACCEPTING:' + s),
+    ...getItemsFromPills('extractedItemsPills')
+  ];
+
+  const payload = {
+    name:          nameVal,
+    address:       addressVal,
+    lat:           coords.lat,
+    lng:           coords.lng,
+    type:          [...selectedTypesEdit].join(','),
+    status:        document.getElementById('toggleStatus').checked,
+    main_hub:      document.getElementById('toggleHub').checked,
+    user_id:       ADMIN_UID,
+    hours:         hoursVal  || null,
+    contact_phone: phoneVal  || null,
+    website:       websiteVal || null,
+    notes:         notesVal  || null,
+    items:         itemsArr,
+  };
+
+  try {
+    btn.textContent = 'Creating…';
+    const resp = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create_listing', authUserId: ADMIN_UID, payload })
+    });
+    const result = await resp.json();
+
+    if (!resp.ok || result.error) {
+      msg.textContent = 'Error: ' + (result.error || resp.statusText);
+      msg.className = 'result-msg error';
+    } else {
+      msg.textContent = '✅ New listing created and live on the map!';
+      msg.className = 'result-msg success';
+      const postSave = document.getElementById('postSaveActions');
+      postSave.classList.add('show');
+      document.getElementById('viewListingBtn').href = `https://www.malamamap.org/malama-listing.html?id=${result.id}`;
+      loadListings(); // refresh dropdown for next time
+    }
+  } catch (err) {
+    msg.textContent = 'Network error: ' + err.message;
+    msg.className = 'result-msg error';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Create listing →';
+}
+
 async function pushUpdate() {
+  if (createMode) { await createNewListing(); return; }
   if (!selectedListing) { alert('No listing selected.'); return; }
 
   const btn = document.getElementById('pushBtn');
