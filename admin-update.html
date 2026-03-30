@@ -826,7 +826,7 @@ function updateItemSections() {
   document.getElementById('extractedGivingWrap').style.display    = hasSupply  ? 'block' : 'none';
   document.getElementById('extractedAcceptingWrap').style.display = hasDropoff ? 'block' : 'none';
   document.getElementById('extractedItemsWrap').style.display     = (!hasSupply && !hasDropoff) ? 'block' : 'none';
-  document.getElementById('extVolExtras').style.display     = hasVol     ? 'block' : 'none';
+  document.getElementById('extVolExtras').style.display     = (hasVol || selectedTypesEdit.has('food_distribution')) ? 'block' : 'none';
   document.getElementById('extShelterExtras').style.display = hasShelter ? 'block' : 'none';
   document.getElementById('extSkillsExtras').style.display  = hasSkills  ? 'block' : 'none';
 }
