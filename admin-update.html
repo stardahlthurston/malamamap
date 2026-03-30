@@ -850,6 +850,24 @@ function toggle247Ext(checked) {
   else buildExtHours();
 }
 
+function collapseDays(days) {
+  if (!days.length) return '';
+  if (days.includes('Every day')) return 'Every day';
+  const order = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const sorted = days.filter(d => order.includes(d)).sort((a,b) => order.indexOf(a) - order.indexOf(b));
+  if (!sorted.length) return days.join(', ');
+  const runs = [];
+  let start = 0;
+  for (let i = 1; i <= sorted.length; i++) {
+    if (i === sorted.length || order.indexOf(sorted[i]) !== order.indexOf(sorted[i-1]) + 1) {
+      const run = sorted.slice(start, i);
+      runs.push(run.length >= 2 ? run[0] + '–' + run[run.length-1] : run[0]);
+      start = i;
+    }
+  }
+  return runs.join(', ');
+}
+
 function buildExtHours() {
   if (document.getElementById('ext247')?.checked) { document.getElementById('extractedHours').value = '24/7'; return; }
   const days = [...document.querySelectorAll('#extDayPills .ext-day-pill.selected')].map(b => b.dataset.day);
@@ -868,7 +886,7 @@ function buildExtHours() {
   else if (dateFrom && dateUntil) dateText = fmt(dateFrom) + ' – ' + fmt(dateUntil);
   else if (dateFrom) dateText = 'From ' + fmt(dateFrom);
   const parts = [];
-  if (days.length) parts.push(days.includes('Every day') ? 'Every day' : days.join(', '));
+  if (days.length) parts.push(collapseDays(days));
   if (hoursText) parts.push(hoursText);
   if (dateText)  parts.push(dateText);
   document.getElementById('extractedHours').value = parts.join(' · ');
