@@ -188,7 +188,7 @@
   /* ── HERO SPLIT ── */
   .hero {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     min-height: 100vh;
     padding-top: 106px;
   }
@@ -228,75 +228,41 @@
 
   .panel-help { border-left: none; }
 
-  /* ── SKILLS BANNER (full-width strip under the two panels) ── */
+  /* ── SKILLS PANEL (third column, matches other panels) ── */
   .panel-skills {
-    grid-column: 1 / -1;
     position: relative;
-    background: var(--purple-pale);
-    border-top: 1px solid rgba(123,94,167,0.15);
-    padding: 2.25rem 4rem;
     display: flex;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    justify-content: space-between;
-    gap: 2.5rem;
+    padding: 5rem 3.5rem;
+    text-align: center;
     cursor: pointer;
-    transition: background 0.25s ease;
     overflow: hidden;
+    min-height: calc(100vh - 106px);
+    background: var(--teal-pale);
+    border-left: 1px solid rgba(46,107,107,0.12);
+    transition: background 0.3s ease;
   }
-  .panel-skills:hover { background: #ece5fa; }
-  .panel-skills .panel-stripe { background: var(--purple); }
-  .panel-skills:hover .panel-cta-skills { background: var(--purple); color: white; border-color: var(--purple); }
-
-  .skills-banner-left {
-    display: flex;
-    align-items: center;
-    gap: 1.75rem;
-    flex: 1;
-    min-width: 0;
+  .panel-skills:hover { background: #d8ecec; }
+  .panel-skills .panel-stripe { background: var(--teal); }
+  .panel-skills .panel-icon-wrap {
+    background: rgba(46,107,107,0.1);
+    border: 2px solid rgba(46,107,107,0.22);
   }
-  .skills-banner-icon-wrap {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    background: rgba(123,94,167,0.1);
-    border: 2px solid rgba(123,94,167,0.22);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .panel-skills:hover .skills-banner-icon-wrap { transform: scale(1.07) translateY(-3px); }
-  .skills-banner-text { min-width: 0; }
-  .skills-banner-eyebrow {
-    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--purple);
-    margin-bottom: 0.3rem;
-  }
-  .skills-banner-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.5rem, 2.5vw, 2.2rem);
-    font-weight: 800; color: var(--purple-deep);
-    line-height: 1.1; margin-bottom: 0.55rem;
-  }
-  .skills-banner-desc {
-    font-size: 0.88rem; font-weight: 500;
-    color: var(--text-mid); line-height: 1.55;
-    max-width: 460px;
-  }
-  .skills-banner-tags {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.7rem;
-  }
-  .skills-banner-tags .tag {
-    background: rgba(123,94,167,0.1);
-    color: var(--purple-deep);
-  }
+  .panel-skills:hover .panel-icon-wrap { transform: scale(1.07) translateY(-4px); }
+  .panel-skills .panel-eyebrow { color: var(--teal); }
+  .panel-skills .panel-title { color: var(--teal-deep); }
+  .panel-skills .tag { background: rgba(46,107,107,0.1); color: var(--teal-deep); }
+  .panel-skills:hover .panel-cta-skills { background: var(--teal); color: white; border-color: var(--teal); }
   .panel-cta-skills {
-    flex-shrink: 0;
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 0.75rem 1.75rem;
-    border-radius: 100px;
-    border: 2px solid var(--purple);
-    color: var(--purple);
-    font-family: 'Nunito', sans-serif;
+    display: inline-flex; align-items: center; gap: 0.55rem;
     font-size: 0.88rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.85rem 1.9rem;
+    border-radius: 100px;
+    border: 2px solid var(--teal);
+    color: var(--teal);
     text-decoration: none;
     transition: all 0.22s;
   }
@@ -786,9 +752,7 @@
     .hero { grid-template-columns: 1fr; padding-top: 88px; }
     .panel { min-height: 55vh; padding: 3.5rem 2rem; }
     .panel-help { border-left: none; border-top: 1px solid rgba(42,100,150,0.12); }
-    .panel-skills { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; gap: 1.25rem; }
-    .skills-banner-left { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .skills-banner-icon-wrap { width: 56px; height: 56px; }
+    .panel-skills { min-height: 55vh; padding: 3.5rem 2rem; border-left: none; border-top: 1px solid rgba(46,107,107,0.12); }
     .skills-banner-title { font-size: 1.6rem; }
     .panel-cta-skills { align-self: stretch; justify-content: center; }
     .center-mark { display: none; }
@@ -1046,31 +1010,25 @@
     <!-- Skilled Trades & Labor -->
     <div class="panel-skills" role="button" tabindex="0" onclick="window.location.href='malama-skills.html'" onkeydown="if(event.key==='Enter')window.location.href='malama-skills.html'">
       <div class="panel-stripe"></div>
-      <div class="skills-banner-left">
-        <div class="skills-banner-icon-wrap">
-          <svg viewBox="0 0 42 42" fill="none" width="36" height="36">
-            <path d="M14 22c0-2 1.5-3.5 3.5-3.5h7c2 0 3.5 1.5 3.5 3.5v2H14v-2z" stroke="#7b5ea7" stroke-width="1.8" fill="rgba(123,94,167,0.08)"/>
-            <circle cx="21" cy="13" r="4" stroke="#7b5ea7" stroke-width="1.8" fill="rgba(123,94,167,0.08)"/>
-            <path d="M28 28l3 3M10 28c0-1.1.9-2 2-2h18c1.1 0 2 .9 2 2v1H10v-1z" stroke="#7b5ea7" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
+      <div class="panel-inner" style="animation-delay:0.41s;">
+        <div class="panel-icon-wrap">
+          <span style="font-size:2rem;line-height:1;">🔨</span>
         </div>
-        <div class="skills-banner-text">
-          <p class="skills-banner-eyebrow">Skilled labor &amp; trades</p>
-          <h2 class="skills-banner-title">I have skills</h2>
-          <p class="skills-banner-desc">Got a truck, a toolbelt, or two free hands? Connect with neighbors who need your expertise — chainsaw work, plumbing, medical help, childcare, and more.</p>
-          <div class="skills-banner-tags">
-            <span class="tag">Physical Labor</span>
-            <span class="tag">Trades</span>
-            <span class="tag">Medical</span>
-            <span class="tag">Truck &amp; Hauling</span>
-            <span class="tag">Childcare</span>
-          </div>
+        <p class="panel-eyebrow">Skilled trades &amp; labor</p>
+        <h2 class="panel-title">I have<em>skills</em></h2>
+        <p class="panel-desc">Electrician, plumber, roofer, or just two free hands? Connect with families who need your expertise right now.</p>
+        <div class="panel-tags">
+          <span class="tag">Electricians</span>
+          <span class="tag">Plumbers</span>
+          <span class="tag">Roofers</span>
+          <span class="tag">Truck &amp; Hauling</span>
+          <span class="tag">Physical Labor</span>
         </div>
+        <a href="malama-skills.html" class="panel-cta panel-cta-skills" onclick="event.stopPropagation()">
+          See the directory
+          <svg viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </div>
-      <a href="malama-skills.html" class="panel-cta-skills" onclick="event.stopPropagation()">
-        See the directory
-        <svg viewBox="0 0 15 15" fill="none" width="14" height="14"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
     </div>
 
   </section>
