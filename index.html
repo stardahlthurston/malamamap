@@ -604,6 +604,56 @@
     .impact-section { padding: 3rem 1.5rem; }
   }
 
+  /* ── SKILLED TRADES BANNER ── */
+  .trades-banner {
+    background: #1a4a3a;
+    padding: 3.5rem 2rem;
+  }
+  .trades-banner-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+  }
+  .trades-banner-text { flex: 1; }
+  .trades-banner-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7ecba5;
+    margin-bottom: 0.75rem;
+  }
+  .trades-banner-body {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.65;
+  }
+  .trades-banner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f5a623;
+    color: #1a1a1a;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 800;
+    padding: 0.85rem 1.5rem;
+    border-radius: 100px;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.18s, transform 0.15s;
+  }
+  .trades-banner-btn:hover { background: #fbbf3a; transform: translateY(-1px); }
+  @media (max-width: 640px) {
+    .trades-banner-inner { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+    .trades-banner-body { font-size: 0.95rem; }
+    .trades-banner-btn { width: 100%; justify-content: center; }
+  }
+
   /* ── FOOTER ── */
   footer {
     background: var(--sage-deep);
@@ -1069,6 +1119,20 @@
         </div>
         <p class="verified-text"><strong>Verified organizations</strong> earn a verified badge by confirming their registration through the Hawaii Business Registry. Duplicate locations at the same address require admin approval — keeping the map clean and trustworthy.</p>
       </div>
+    </div>
+  </section>
+
+  <!-- Skilled Trades CTA Banner -->
+  <section class="trades-banner">
+    <div class="trades-banner-inner">
+      <div class="trades-banner-text">
+        <p class="trades-banner-eyebrow">Are you an electrician, plumber, roofer, or other skilled tradesperson?</p>
+        <p class="trades-banner-body">Families affected by the Kona Low flooding need your help. Add yourself to our Skilled Trades directory so people in need can find and contact you directly.</p>
+      </div>
+      <a href="malama-create.html?type=skills_labor" class="trades-banner-btn">
+        Add Myself to Skilled Trades
+        <svg viewBox="0 0 15 15" fill="none" style="width:14px;height:14px;flex-shrink:0;"><path d="M2 7.5h11M8.5 3l4.5 4.5-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
     </div>
   </section>
 
