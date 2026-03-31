@@ -1222,12 +1222,17 @@ async function loadEditListing(id) {
 }
 
 async function geocodeAddress(address) {
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaii')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`;
   try {
-    const r = await fetch(url); const d = await r.json();
-    if (d.results && d.results[0]) return { lat: d.results[0].geometry.location.lat, lng: d.results[0].geometry.location.lng };
-  } catch(e) {}
-  return { lat: 21.3069, lng: -157.8583 };
+    const geocoder = new google.maps.Geocoder();
+    const result = await geocoder.geocode({ address: address + ', Hawaiʻi' });
+    if (result.results && result.results[0]) {
+      return {
+        lat: result.results[0].geometry.location.lat(),
+        lng: result.results[0].geometry.location.lng()
+      };
+    }
+  } catch(e) { console.warn('Geocode failed for:', address, e); }
+  return null;
 }
 
 function dedupeItems(arr) {
@@ -1384,6 +1389,11 @@ async function saveListing() {
     coords = { lat: parseFloat(addrInput.dataset.lat), lng: parseFloat(addrInput.dataset.lng) };
   } else {
     coords = await geocodeAddress(address);
+    if (!coords) {
+      alert('Could not find coordinates for this address. Please select an address from the autocomplete dropdown so the map pin is placed correctly.');
+      btn.disabled = false; btn.textContent = 'Create listing →';
+      return;
+    }
   }
 
   const payload = {

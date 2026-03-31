@@ -365,11 +365,16 @@ function setSelectValue(id, val) {
 
 async function geocodeAddress(address) {
   try {
-    const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address + ', Hawaiʻi')}&key=AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU`);
-    const d = await r.json();
-    if (d.results?.[0]) return { lat: d.results[0].geometry.location.lat, lng: d.results[0].geometry.location.lng };
-  } catch(e) {}
-  return { lat: originalData?.lat || 21.3069, lng: originalData?.lng || -157.8583 };
+    const geocoder = new google.maps.Geocoder();
+    const result = await geocoder.geocode({ address: address + ', Hawaiʻi' });
+    if (result.results && result.results[0]) {
+      return {
+        lat: result.results[0].geometry.location.lat(),
+        lng: result.results[0].geometry.location.lng()
+      };
+    }
+  } catch(e) { console.warn('Geocode failed for:', address, e); }
+  return null;
 }
 
 async function saveEdits() {
@@ -403,7 +408,14 @@ async function saveEdits() {
 
   // Only re-geocode if address changed
   let coords = { lat: originalData?.lat, lng: originalData?.lng };
-  if (address !== originalData?.address) coords = await geocodeAddress(address);
+  if (address !== originalData?.address) {
+    coords = await geocodeAddress(address);
+    if (!coords) {
+      alert('Could not find coordinates for this address. Please select an address from the autocomplete dropdown so the map pin is placed correctly.');
+      btn.disabled = false; btn.textContent = 'Save changes →';
+      return;
+    }
+  }
 
   const payload = {
     name, type,
