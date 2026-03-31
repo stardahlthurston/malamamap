@@ -226,8 +226,13 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
 <div class="result-chip" id="resultChip">Loading listings…</div>
 
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:var(--sage);"></div>Giving / supply</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--gold);"></div>Accepting donations</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2a6496;"></div>🏠 Shelter</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3a7d5c;"></div>🛖 Supply Station</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c9983a;"></div>📦 Donation Drop-off</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7b5ea7;"></div>🙋 Volunteers Needed</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c0392b;"></div>🏥 Medical Aid</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d4580a;"></div>🔧 Skills & Labor</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2e8b8b;"></div>🍱 Food Distribution</div>
   <div class="legend-item"><div class="legend-dot" style="background:#888;"></div>Closed</div>
 </div>
 
@@ -309,7 +314,8 @@ let map, markers = [], selectedId = null;
 
 const TYPE_COLORS = {
   shelter:'#2a6496', supply_station:'#3a7d5c', donation_dropoff:'#c9983a',
-  volunteer_event:'#7b5ea7', medical_assistance:'#c0392b', skills_labor:'#2e6b6b',
+  volunteer_event:'#7b5ea7', medical_assistance:'#c0392b', skills_labor:'#d4580a',
+  food_distribution:'#2e8b8b',
   giving:'#3a7d5c', accepting:'#2a6496'
 };
 const TYPE_LABELS = {
@@ -319,18 +325,25 @@ const TYPE_LABELS = {
 };
 const NEEDS_TYPES = ['donation_dropoff','accepting'];
 
+const TYPE_EMOJI = {
+  shelter:'🏠', supply_station:'🛖', donation_dropoff:'📦',
+  volunteer_event:'🙋', medical_assistance:'🏥', skills_labor:'🔧'
+};
+
 function createPinElement(l) {
   const color = !l.open ? '#888' : (TYPE_COLORS[l.type] || '#3a7d5c');
-  const label = l.location || (!l.open ? 'Closed' : ((l.type||'').split(',').map(t=>TYPE_LABELS[t.trim()]||t.trim()).join(' · ')));
-  const w = Math.max(70, label.length * 7 + 30);
+  const emoji = TYPE_EMOJI[l.type] || '📍';
+  const name = l.name.length > 25 ? l.name.substring(0, 23) + '…' : l.name;
   const el = document.createElement('div');
-  el.style.cssText = 'cursor:pointer;';
-  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="34">
-    <rect x="1" y="1" width="${w-2}" height="24" rx="12" fill="${color}"/>
-    <circle cx="12" cy="13" r="3.5" fill="rgba(255,255,255,0.9)"/>
-    <text x="20" y="17" font-family="Nunito,sans-serif" font-size="9.5" font-weight="700" fill="white" letter-spacing="0.2">${escapeHtml(label)}</text>
-    <polygon points="${w/2-5},25 ${w/2},32 ${w/2+5},25" fill="${color}"/>
-  </svg>`;
+  el.style.cssText = 'cursor:pointer;display:flex;flex-direction:column;align-items:center;';
+  el.innerHTML = `
+    <div style="background:${color};color:white;font-family:Nunito,sans-serif;font-size:10px;font-weight:700;
+                padding:4px 10px;border-radius:12px;white-space:nowrap;letter-spacing:0.2px;
+                display:flex;align-items:center;gap:3px;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+      <span style="font-size:11px;">${emoji}</span> ${escapeHtml(name)}
+    </div>
+    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;
+                border-top:7px solid ${color};"></div>`;
   return el;
 }
 
@@ -355,7 +368,9 @@ async function initMap() {
   map = new Map(document.getElementById("map"), {
     center:{lat:21.3750,lng:-157.9600}, zoom:11,
     styles:mapStyles, mapId:"malama_map_id",
-    mapTypeControl:false, streetViewControl:false, fullscreenControl:false
+    mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
+    gestureHandling:'cooperative',
+    zoomControl:true, zoomControlOptions:{position:google.maps.ControlPosition.RIGHT_BOTTOM}
   });
 
   try {
@@ -367,7 +382,22 @@ async function initMap() {
   renderCards();
 }
 
+let clusterer = null;
+
+function clusterRenderer({ count, position }, stats) {
+  const size = count < 10 ? 36 : count < 30 ? 48 : 56;
+  const color = count < 10 ? '#3a7d5c' : count < 30 ? '#2a6496' : '#c9983a';
+  const el = document.createElement('div');
+  el.style.cssText = `cursor:pointer;width:${size}px;height:${size}px;`;
+  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${size/2-2}" fill="${color}" stroke="rgba(255,255,255,0.7)" stroke-width="3"/>
+    <text x="${size/2}" y="${size/2+5}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="white">${count}</text>
+  </svg>`;
+  return new window._AdvancedMarker({ position, content: el, zIndex: 1000 + count });
+}
+
 function renderMarkers() {
+  if (clusterer) { clusterer.clearMarkers(); }
   markers.forEach(m => m.map = null);
   markers = [];
   const AME = window._AdvancedMarker;
@@ -376,7 +406,7 @@ function renderMarkers() {
   visibleListings.forEach(l => {
     if (!l.lat || !l.lng) return;
     const marker = new AME({
-      position:{lat:l.lat, lng:l.lng}, map, title:l.name,
+      position:{lat:l.lat, lng:l.lng}, map:null, title:l.name,
       content:createPinElement(l), zIndex:l.open ? 10 : 5
     });
     marker.addListener('click', () => {
@@ -384,6 +414,12 @@ function renderMarkers() {
       map.panTo({lat:l.lat, lng:l.lng});
     });
     markers.push(marker);
+  });
+
+  clusterer = new markerClusterer.MarkerClusterer({
+    map, markers,
+    renderer: { render: clusterRenderer },
+    algorithm: new markerClusterer.SuperClusterAlgorithm({ radius: 120, maxZoom: 14 })
   });
 
   document.getElementById('resultChip').textContent =
@@ -524,6 +560,7 @@ function switchView(v, el) {
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 <script>
 (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src='https://maps.'+c+'apis.com/maps/api/js?'+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
 ({key:"AIzaSyD-KsLINzlZ2QR2d34IRvQusES-VRwEJNU",v:"weekly"});
