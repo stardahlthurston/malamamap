@@ -3555,24 +3555,41 @@ async function resolveIssue(issueId) {
   }
 }
 
-async function renderInquiriesPage() {
+async function markInquiryHandled(id, handled) {
+  const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await sb2.from('contact_inquiries').update({ handled }).eq('id', id);
+  renderInquiriesPage();
+}
+
+async function renderInquiriesPage(filter) {
+  filter = filter || localStorage.getItem('inquiryFilter') || 'open';
+  localStorage.setItem('inquiryFilter', filter);
   const main = document.getElementById('mainContent');
   main.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);"><div class="malama-loader"></div><p style="font-size:0.85rem;font-weight:600;margin-top:0.75rem;">Loading inquiries…</p></div>';
 
   const sb2 = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data: inquiries } = await sb2.from('contact_inquiries').select('*').order('submitted_at', { ascending: false });
-  const items = inquiries || [];
+  const all = inquiries || [];
+  const open = all.filter(i => !i.handled);
+  const handled = all.filter(i => i.handled);
+  const items = filter === 'handled' ? handled : filter === 'all' ? all : open;
+
+  const tabBtn = (f, label, count) => `<button onclick="renderInquiriesPage('${f}')" style="padding:6px 16px;border-radius:100px;border:1.5px solid var(--border);background:${filter===f?'var(--sage-deep)':'white'};color:${filter===f?'white':'var(--text-muted)'};font-size:0.78rem;font-weight:700;cursor:pointer;">${label}${count > 0 ? ` <span style="opacity:0.75">(${count})</span>` : ''}</button>`;
 
   main.innerHTML = `
     <div style="padding:1.5rem;">
       <h1 class="page-title">📬 Inquiries</h1>
-      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">${items.length} message${items.length !== 1 ? 's' : ''} received</p>
-      ${items.length === 0 ? '<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">No inquiries yet. When someone uses the contact form, their messages will appear here.</div>' : ''}
+      <div style="display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;">
+        ${tabBtn('open','Open',open.length)}
+        ${tabBtn('handled','Handled',handled.length)}
+        ${tabBtn('all','All',all.length)}
+      </div>
+      ${items.length === 0 ? `<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">No ${filter === 'open' ? 'open' : filter === 'handled' ? 'handled' : ''} inquiries.</div>` : ''}
       ${items.map(i => `
-      <div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:0.75rem;">
+      <div style="background:white;border:1.5px solid ${i.handled ? '#e0e0dc' : 'var(--border)'};border-radius:14px;padding:1.25rem;margin-bottom:0.75rem;opacity:${i.handled ? '0.65' : '1'};">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
           <div>
-            <p style="font-weight:800;font-size:0.95rem;color:var(--sage-deep);margin:0;">${escHtml(i.first_name)} ${escHtml(i.last_name || '')}</p>
+            <p style="font-weight:800;font-size:0.95rem;color:var(--sage-deep);margin:0;">${escHtml(i.first_name)} ${escHtml(i.last_name || '')}${i.handled ? ' <span style="font-size:0.7rem;background:#e8f5e9;color:#388e3c;border-radius:100px;padding:2px 10px;font-weight:700;vertical-align:middle;">Handled</span>' : ''}</p>
             <a href="mailto:${escHtml(i.email)}" style="font-size:0.8rem;color:var(--blue);text-decoration:none;">${escHtml(i.email)}</a>
           </div>
           <span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">${new Date(i.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>
@@ -3582,6 +3599,7 @@ async function renderInquiriesPage() {
         </div>
         <div style="margin-top:0.75rem;display:flex;gap:8px;">
           <a href="mailto:${escHtml(i.email)}" class="admin-action-btn" style="color:white;background:var(--sage);border-color:var(--sage);padding:8px 18px;font-size:0.78rem;text-decoration:none;display:inline-block;">Reply</a>
+          <button onclick="markInquiryHandled(${i.id},${!i.handled})" class="admin-action-btn" style="padding:8px 18px;font-size:0.78rem;background:${i.handled ? 'white' : '#f0f7f0'};color:${i.handled ? 'var(--text-muted)' : '#388e3c'};border-color:${i.handled ? 'var(--border)' : '#a5d6a7'};">${i.handled ? 'Reopen' : '✓ Mark handled'}</button>
         </div>
       </div>`).join('')}
     </div>`;
