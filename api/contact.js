@@ -1,11 +1,34 @@
 import { Resend } from 'resend';
 
+const SUPABASE_URL = 'https://wvplmqmqlnftlpyrqnle.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   try {
     const { first_name, last_name, email, message } = req.body;
+
+    // Save to Supabase (server-side, bypasses RLS)
+    if (SUPABASE_KEY) {
+      await fetch(`${SUPABASE_URL}/rest/v1/contact_inquiries`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          first_name,
+          last_name: last_name || null,
+          email,
+          message,
+          submitted_at: new Date().toISOString()
+        })
+      });
+    }
 
     await resend.emails.send({
       from: 'Mālama Map <noreply@malamamap.org>',

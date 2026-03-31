@@ -117,35 +117,19 @@ async function submitContact() {
   btn.textContent = 'Sending…';
 
   try {
-    // Save to Supabase
-    await sb.from('contact_inquiries').insert({
-      first_name: first,
-      last_name: last,
-      email: email,
-      message: message,
-      submitted_at: new Date().toISOString()
-    });
-
-    // Send email notification
-    await fetch('/api/contact', {
+    const r = await fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ first_name: first, last_name: last, email, message })
     });
+    if (!r.ok) throw new Error('Send failed');
 
     document.getElementById('contactForm').style.display = 'none';
     document.getElementById('successCard').style.display = 'block';
   } catch(e) {
-    // Even if DB insert fails, try to send email
-    try {
-      await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ first_name: first, last_name: last, email, message })
-      });
-    } catch(e2) {}
-    document.getElementById('contactForm').style.display = 'none';
-    document.getElementById('successCard').style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Send Message';
+    alert('Something went wrong. Please try again.');
   }
 }
 </script>
