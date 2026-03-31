@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "functions": {
     "api/parse-image.js": { "maxDuration": 30 },
     "api/test-email.js": { "maxDuration": 10 },
