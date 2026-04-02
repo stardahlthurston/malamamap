@@ -113,6 +113,8 @@ html, body { height: 100%; font-family: 'Nunito', sans-serif; color: var(--text-
 .btn-give:hover { background: var(--gold); color: white; border-color: var(--gold); }
 .btn-web { color: var(--blue); background: var(--blue-pale); border-color: var(--blue-light); }
 .btn-web:hover { background: var(--blue); color: white; }
+.btn-ig { color: #c13584; background: #fce4f1; border-color: #e8a0c8; }
+.btn-ig:hover { background: #c13584; color: white; border-color: #c13584; }
 .btn-detail { color: white; background: var(--sage); border-color: var(--sage); }
 .btn-detail:hover { background: var(--sage-deep); border-color: var(--sage-deep); }
 .btn-report { color: var(--text-muted); background: white; border-color: #ddd; margin-left: auto; }
@@ -293,7 +295,7 @@ async function loadListingsFromDB() {
       id: l.id, name: l.name, type: l.type, open: l.status, verified: l.verified,
       address: l.address, location: loc, hours: l.hours || 'See listing',
       categories: l.categories || [], items: Array.isArray(l.items) ? l.items : [],
-      notes: l.notes || '', website: l.website || '', givingUrl: l.giving_url || '',
+      notes: l.notes || '', website: l.website || '', givingUrl: l.giving_url || '', instagram: l.instagram || '',
       lat: l.lat, lng: l.lng, user_id: l.user_id
     };
   });
@@ -469,8 +471,9 @@ function buildCard(l, inPopup) {
             <svg viewBox="0 0 14 14" fill="none" style="width:11px;height:11px;"><path d="M7 1l5 5-5 5M2 6h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Take me there
           </a>
-          ${l.givingUrl ? `<a href="https://${escapeHtml(l.givingUrl)}" target="_blank" class="lc-btn btn-give" onclick="event.stopPropagation()">Donate online</a>` : ''}
-          ${l.website ? `<a href="https://${escapeHtml(l.website)}" target="_blank" class="lc-btn btn-web" onclick="event.stopPropagation()">Website</a>` : ''}
+          ${l.givingUrl ? `<a href="${escapeHtml(l.givingUrl.startsWith('http')?l.givingUrl:'https://'+l.givingUrl)}" target="_blank" class="lc-btn btn-give" onclick="event.stopPropagation()">Donate online</a>` : ''}
+          ${l.website ? `<a href="${escapeHtml(l.website.startsWith('http')?l.website:'https://'+l.website)}" target="_blank" class="lc-btn btn-web" onclick="event.stopPropagation()">Website</a>` : ''}
+          ${l.instagram ? `<a href="https://instagram.com/${escapeHtml(l.instagram)}" target="_blank" class="lc-btn btn-ig" onclick="event.stopPropagation()">Instagram</a>` : ''}
         </div>
 
       </div>

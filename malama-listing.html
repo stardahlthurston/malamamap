@@ -379,6 +379,12 @@ function renderListing(l) {
       <div><p class="info-label">Website</p><a href="${l.website}" target="_blank" class="info-link">${l.website.replace('https://','').replace('http://','')}</a></div>
     </div>` : '';
 
+  const instagramHtml = l.instagram ? `
+    <div class="info-row">
+      <div class="info-icon" style="background:#fce4f1;"><svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px;"><rect x="2" y="2" width="16" height="16" rx="5" stroke="#c13584" stroke-width="1.5"/><circle cx="10" cy="10" r="4" stroke="#c13584" stroke-width="1.5"/><circle cx="14.5" cy="5.5" r="1.2" fill="#c13584"/></svg></div>
+      <div><p class="info-label">Instagram</p><a href="https://instagram.com/${l.instagram}" target="_blank" class="info-link" style="color:#c13584;">@${l.instagram}</a></div>
+    </div>` : '';
+
   // Donation display — show link if they have one, "not accepting" if supply station with no giving url
   const DONATION_TYPES = ['supply_station','donation_dropoff','shelter'];
   const givingUrlHtml = l.giving_url
@@ -448,6 +454,7 @@ function renderListing(l) {
       </div>
       ${phoneHtml}
       ${websiteHtml}
+      ${instagramHtml}
       ${givingUrlHtml}
     </div>
 

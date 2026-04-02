@@ -476,7 +476,11 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
     </div>
     <div class="field">
       <label>Your website <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-      <input type="url" id="editWebsite" placeholder="https://yourchurch.org">
+      <input type="url" id="editWebsite" placeholder="https://yourwebsite.org">
+    </div>
+    <div class="field">
+      <label>Instagram handle <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+      <div style="display:flex;align-items:center;gap:0;"><span style="font-size:0.95rem;font-weight:600;color:var(--text-muted);padding:0.55rem 0 0.55rem 0.75rem;background:#f5f5f0;border:1.5px solid #ddd;border-right:none;border-radius:10px 0 0 10px;">@</span><input type="text" id="editInstagram" placeholder="yourhandle" style="border-radius:0 10px 10px 0;border-left:none;"></div>
     </div>
     <div class="giving-row">
       <input type="checkbox" id="givingCheck" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'">
@@ -1097,6 +1101,7 @@ async function loadEditListing(id) {
   document.getElementById('editPhone').value = data.contact_phone || '';
   document.getElementById('editNotes').value = data.notes || '';
   document.getElementById('editWebsite').value = data.website || '';
+  document.getElementById('editInstagram').value = data.instagram || '';
   if (data.status !== undefined) document.getElementById('editStatus').checked = data.status;
   // Load types — support both types array and single type
   const typesToLoad = data.types && data.types.length
@@ -1406,6 +1411,7 @@ async function saveListing() {
     contact_email: document.getElementById('editContactEmail')?.value.trim()||null,
     items, notes: document.getElementById('editNotes').value.trim(),
     website: document.getElementById('editWebsite').value.trim(),
+    instagram: (document.getElementById('editInstagram').value.trim()||'').replace(/^@/,'') || null,
     giving_url: document.getElementById('givingCheck').checked ? document.getElementById('editGivingUrl').value.trim() : null,
     accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked||false,
     capacity: document.getElementById('editCapacity')?.value||null,
@@ -1473,7 +1479,7 @@ async function saveListing() {
 
 // ── DRAFT AUTO-SAVE / RESTORE ──
 const DRAFT_KEY = 'malama_create_draft';
-const DRAFT_FIELDS = ['editType','editName','editAddress','editZip','editCity','editLocation','editPhone','editNotes','editWebsite',
+const DRAFT_FIELDS = ['editType','editName','editAddress','editZip','editCity','editLocation','editPhone','editNotes','editWebsite','editInstagram',
   'editHoursOpen','editHoursClose','editDateFrom','editDateUntil','editCapacity','editPetFriendly',
   'editEventDate','editEventTime','editVolunteerNeeds','editVolunteerSignupUrl','editContactEmail','editCustomItems',
   'givingCustomItems','acceptingCustomItems','editGivingUrl'];

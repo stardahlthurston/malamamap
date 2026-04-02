@@ -332,6 +332,10 @@ function initAddressAutocomplete() {
         <div class="current-label">Website</div>
         <div class="current-value" id="currentWebsite"></div>
       </div>
+      <div class="current-row" id="currentInstagramRow">
+        <div class="current-label">Instagram</div>
+        <div class="current-value" id="currentInstagram"></div>
+      </div>
       <div class="current-row">
         <div class="current-label">Notes</div>
         <div class="current-value" id="currentNotes"></div>
@@ -516,6 +520,7 @@ function initAddressAutocomplete() {
         <div class="review-field"><label>Phone</label><input type="text" id="extractedPhone" placeholder="Leave blank to keep current"></div>
         <div class="review-field"><label>Name</label><input type="text" id="extractedName" placeholder="Leave blank to keep current"></div>
         <div class="review-field"><label>Website</label><input type="text" id="extractedWebsite" placeholder="https://... (leave blank to keep current)"></div>
+        <div class="review-field"><label>Instagram handle</label><input type="text" id="extractedInstagram" placeholder="handle (no @, leave blank to keep current)"></div>
         <div class="review-field"><label>Notes</label><textarea id="extractedNotes" rows="3" placeholder="Important notes…"></textarea></div>
 
         <!-- ── VOLUNTEER EVENT extras ── -->
@@ -1096,6 +1101,7 @@ function onListingSelect() {
   setEl('currentAddress', selectedListing.address || '—', !selectedListing.address);
   setEl('currentPhone',   selectedListing.contact_phone || '—', !selectedListing.contact_phone);
   setEl('currentWebsite', selectedListing.website || '—', !selectedListing.website);
+  setEl('currentInstagram', selectedListing.instagram ? '@' + selectedListing.instagram : '—', !selectedListing.instagram);
   setEl('currentNotes',   selectedListing.notes   || '—', !selectedListing.notes);
 
   showCurrentItemRow('currentGivingRow',    'currentGiving',    givingItems);
@@ -1205,6 +1211,7 @@ function openManualEdit() {
   document.getElementById('extractedPhone').value   = selectedListing.contact_phone || '';
   document.getElementById('extractedName').value    = selectedListing.name || '';
   document.getElementById('extractedWebsite').value = selectedListing.website || '';
+  document.getElementById('extractedInstagram').value = selectedListing.instagram || '';
   document.getElementById('extractedNotes').value   = selectedListing.notes || '';
   // Populate pills with current items (all shown as "existing")
   setExtractedPills('extractedGivingPills',    [], 'giving');
@@ -1368,6 +1375,7 @@ async function createNewListing() {
   const hoursVal   = document.getElementById('extractedHours').value.trim();
   const phoneVal   = document.getElementById('extractedPhone').value.trim();
   const websiteVal = document.getElementById('extractedWebsite').value.trim();
+  const instagramVal = (document.getElementById('extractedInstagram').value.trim()||'').replace(/^@/,'');
   const notesVal   = document.getElementById('extractedNotes').value.trim();
 
   if (!nameVal)    { alert('Listing name is required.'); btn.disabled = false; btn.textContent = 'Create listing →'; return; }
@@ -1407,6 +1415,7 @@ async function createNewListing() {
     hours:         hoursVal  || null,
     contact_phone: phoneVal  || null,
     website:       websiteVal || null,
+    instagram:     instagramVal || null,
     notes:         notesVal  || null,
     items:         itemsArr,
     ...getTypeExtrasPayload(),
@@ -1452,6 +1461,7 @@ async function pushUpdate() {
   const phoneVal   = document.getElementById('extractedPhone').value.trim();
   const nameVal    = document.getElementById('extractedName').value.trim();
   const websiteVal = document.getElementById('extractedWebsite').value.trim();
+  const instagramVal = (document.getElementById('extractedInstagram').value.trim()||'').replace(/^@/,'');
   const notesVal   = document.getElementById('extractedNotes').value.trim();
 
   const itemsArr = [
@@ -1478,6 +1488,7 @@ async function pushUpdate() {
   if (phoneVal)   payload.contact_phone = phoneVal;
   if (nameVal)    payload.name          = nameVal;
   if (websiteVal) payload.website       = websiteVal;
+  if (instagramVal) payload.instagram   = instagramVal;
   Object.assign(payload, getTypeExtrasPayload());
 
   try {
@@ -1610,6 +1621,7 @@ function resetTool() {
   document.getElementById('extractedPhone').value   = '';
   document.getElementById('extractedName').value    = '';
   document.getElementById('extractedWebsite').value = '';
+  document.getElementById('extractedInstagram').value = '';
   resetExtHours();
   resetTypeExtras();
 }

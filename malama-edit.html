@@ -219,7 +219,8 @@ body{font-family:'Nunito',sans-serif;background:#f4f6f4;color:var(--text-dark);m
       <label>Notes for visitors <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
       <textarea id="editNotes" rows="3" placeholder="Drive-through available, bring your own bags, etc."></textarea>
     </div>
-    <div class="field"><label>Website <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="url" id="editWebsite" placeholder="https://yourchurch.org"></div>
+    <div class="field"><label>Website <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><input type="url" id="editWebsite" placeholder="https://yourwebsite.org"></div>
+    <div class="field"><label>Instagram handle <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><div style="display:flex;align-items:center;gap:0;"><span style="font-size:0.95rem;font-weight:600;color:var(--text-muted);padding:0.55rem 0 0.55rem 0.75rem;background:#f5f5f0;border:1.5px solid #ddd;border-right:none;border-radius:10px 0 0 10px;">@</span><input type="text" id="editInstagram" placeholder="yourhandle" style="border-radius:0 10px 10px 0;border-left:none;"></div></div>
     <div class="giving-row">
       <input type="checkbox" id="givingCheck" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'">
       <label for="givingCheck">We accept online financial donations</label>
@@ -304,6 +305,7 @@ function prefill(l) {
   document.getElementById('editPhone').value = l.contact_phone || '';
   document.getElementById('editNotes').value = l.notes || '';
   document.getElementById('editWebsite').value = l.website || '';
+  document.getElementById('editInstagram').value = l.instagram || '';
   document.getElementById('editStatus').checked = l.status !== false;
   document.getElementById('editCapacity').value = l.capacity || '';
   document.getElementById('editPetFriendly').value = String(l.pet_friendly || false);
@@ -427,6 +429,7 @@ async function saveEdits() {
     items,
     notes: document.getElementById('editNotes').value.trim(),
     website: document.getElementById('editWebsite').value.trim(),
+    instagram: (document.getElementById('editInstagram').value.trim()||'').replace(/^@/,'') || null,
     giving_url: document.getElementById('givingCheck').checked ? document.getElementById('editGivingUrl').value.trim() : null,
     accepting_dropoffs: document.getElementById('acceptingDropoffs').checked,
     capacity: document.getElementById('editCapacity').value || null,

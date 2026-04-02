@@ -268,6 +268,10 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .area-bubble:hover { border-color:var(--sage); color:var(--sage-deep); }
 .area-bubble.selected { background:var(--sage); border-color:var(--sage); color:white; }
 
+.listings-tab-toggle { display:flex; background:#f0ede8; border-radius:100px; padding:4px; gap:0; margin-bottom:1.25rem; width:fit-content; }
+.listings-tab-toggle button { border:none; background:transparent; border-radius:100px; padding:0.45rem 1.25rem; font-size:0.82rem; font-weight:700; font-family:'Nunito',sans-serif; color:var(--text-muted); cursor:pointer; transition:all 0.22s; letter-spacing:0.02em; white-space:nowrap; }
+.listings-tab-toggle button.active-tab { background:white; color:var(--sage-deep); box-shadow:0 1px 6px rgba(0,0,0,0.1); }
+.listings-tab-toggle button.inactive-tab.active-tab { color:#c05a20; }
 .vol-toggle-wrap { background:var(--sage-pale); border:1.5px solid rgba(58,125,92,0.2); border-radius:12px; padding:1rem 1.1rem; margin-bottom:0.85rem; display:none; }
 .vol-toggle-wrap.show { display:block; }
 .vol-toggle-label { font-size:0.88rem; font-weight:700; color:var(--sage-deep); display:flex; align-items:center; gap:8px; }
@@ -643,7 +647,9 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 
     <p class="modal-section">Links</p>
     <p class="modal-label">Your website (optional)</p>
-    <input type="url" class="modal-input" id="editWebsite" placeholder="https://yourchurch.org">
+    <input type="url" class="modal-input" id="editWebsite" placeholder="https://yourwebsite.org">
+    <p class="modal-label">Instagram handle (optional)</p>
+    <div style="display:flex;align-items:center;gap:0;"><span style="font-size:0.95rem;font-weight:600;color:var(--text-muted);padding:0.55rem 0 0.55rem 0.75rem;background:#f5f5f0;border:1.5px solid #ddd;border-right:none;border-radius:10px 0 0 10px;">@</span><input type="text" class="modal-input" id="editInstagram" placeholder="yourhandle" style="border-radius:0 10px 10px 0;border-left:none;margin:0;"></div>
     <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:600;margin:0.75rem 0;cursor:pointer;">
       <input type="checkbox" id="givingCheck" style="accent-color:var(--sage);width:15px;height:15px;" onchange="document.getElementById('givingUrlWrap').style.display=this.checked?'block':'none'">
       We accept online donations
@@ -776,6 +782,7 @@ function getSb() { return sb; }
 let currentUser = null;
 let myListings = [];
 let portalSearchQuery = '';
+let listingsTabFilter = 'active'; // 'active' | 'inactive'
 let reportingListingId = null;
 let currentPage = 'listings';
 // In-memory collaborators list (saved to user_metadata)
@@ -1298,9 +1305,13 @@ function handlePortalSearch(val) {
   if (input) { input.focus(); input.setSelectionRange(val.length, val.length); }
 }
 
+function setListingsTab(tab) {
+  listingsTabFilter = tab;
+  renderListingsPage();
+}
+
 function renderListingsPage() {
   const main = document.getElementById('mainContent');
-  const showClosedChecked = document.getElementById('showClosedToggle')?.checked || false;
   if (!myListings.length) {
     main.innerHTML = `
       <div class="page-header">
@@ -1316,7 +1327,9 @@ function renderListingsPage() {
     return;
   }
 
-  let displayListings = showClosedChecked ? myListings : myListings.filter(l => l.status);
+  let displayListings = listingsTabFilter === 'inactive'
+    ? myListings.filter(l => !l.status)
+    : myListings.filter(l => l.status);
   if (portalSearchQuery) {
     displayListings = displayListings.filter(l => {
       const items = (l.items || []).join(' ').toLowerCase();
@@ -1339,17 +1352,21 @@ function renderListingsPage() {
       <div class="stat-card"><p class="stat-label">Active listings</p><p class="stat-val">${myListings.filter(l => l.status).length}</p><p class="stat-sub">Visible to public</p></div>
       <div class="stat-card"><p class="stat-label">Total listings</p><p class="stat-val">${myListings.length}</p><p class="stat-sub">All time</p></div>
       <div class="stat-card"><p class="stat-label">Account</p><p class="stat-val" style="font-size:1rem;color:var(--sage);padding-top:6px;text-transform:capitalize;">${getDisplayName(currentUser)}</p><p class="stat-sub">Organization</p></div>
-      <div class="stat-card"><p class="stat-label">Verified</p><p class="stat-val" style="font-size:1rem;padding-top:6px;color:${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'var(--sage)' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '#c9983a' : 'var(--text-muted)'};">${(currentUser.user_metadata||{}).ein_status === 'verified' ? '✅ Yes' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '⏳ Pending' : 'No'}</p><p class="stat-sub">${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'Organization verified' : (currentUser.user_metadata||{}).ein_status === 'pending' ? 'EIN under review' : 'Submit EIN to verify'}</p></div>
+      <div class="stat-card"><p class="stat-label">Verified</p><p class="stat-val" style="font-size:1rem;padding-top:6px;color:${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'var(--sage)' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '#c9983a' : 'var(--text-muted)'};">${(currentUser.user_metadata||{}).ein_status === 'verified' ? '✅ Yes' : (currentUser.user_metadata||{}).ein_status === 'pending' ? '⏳ Pending' : 'No'}</p><p class="stat-sub">${(currentUser.user_metadata||{}).ein_status === 'verified' ? 'Organization verified' : (currentUser.user_metadata||{}).ein_status === 'pending' ? 'License under review' : 'Submit license to verify'}</p></div>
+    </div>
+    <div class="listings-tab-toggle">
+      <button onclick="setListingsTab('active')" class="${listingsTabFilter === 'active' ? 'active-tab' : ''}">
+        ✅ Active (${myListings.filter(l => l.status).length})
+      </button>
+      <button onclick="setListingsTab('inactive')" class="inactive-tab ${listingsTabFilter === 'inactive' ? 'active-tab' : ''}">
+        ⏸ Inactive / Expired (${myListings.filter(l => !l.status).length})
+      </button>
     </div>
     <div style="position:relative;margin-bottom:1rem;">
       <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;" width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="#8a827a" stroke-width="1.8"/><path d="M15 15l-3-3" stroke="#8a827a" stroke-width="1.8" stroke-linecap="round"/></svg>
       <input type="text" id="portalListingSearch" placeholder="Search listings…" oninput="handlePortalSearch(this.value)" value="${portalSearchQuery.replace(/"/g,'&quot;')}" style="width:100%;padding:0.65rem 1rem 0.65rem 2.25rem;border:1.5px solid rgba(0,0,0,0.1);border-radius:100px;font-size:0.88rem;font-family:'Nunito',sans-serif;background:white;color:#1a1a1a;box-sizing:border-box;outline:none;">
     </div>
-    ${myListings.filter(l => l.status).length < myListings.length ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
-      <label class="toggle"><input type="checkbox" id="showClosedToggle" onchange="renderListingsPage()"><span class="toggle-slider"></span></label>
-      <span style="font-size:0.82rem;font-weight:600;color:var(--text-muted);">Show inactive listings</span>
-    </div>` : ''}
-    ${displayListings.map(l => renderListingCard(l)).join('')}`;
+    ${displayListings.length === 0 ? `<div class="empty-state" style="padding:2rem;"><p style="color:var(--text-muted);font-size:0.9rem;text-align:center;">No ${listingsTabFilter === 'inactive' ? 'inactive' : 'active'} listings.</p></div>` : displayListings.map(l => renderListingCard(l)).join('')}`;
 }
 
 function renderListingCard(l) {
@@ -1388,6 +1405,7 @@ function renderListingCard(l) {
           ${plainItems.length ? `<div style="grid-column:1/-1;"><p class="field-label">Items</p><div class="items-wrap" style="margin-top:6px;">${plainItems.map(i => `<span class="item-tag">${escapeHtml(i)}</span>`).join('')}</div></div>` : ''}
           ${l.notes ? `<div style="grid-column:1/-1;"><p class="field-label">Notes</p><p class="field-value muted">${escapeHtml(l.notes)}</p></div>` : ''}
           ${l.website ? `<div><p class="field-label">Website</p><a href="${escapeHtml(l.website)}" target="_blank" class="field-link">${escapeHtml(l.website.replace('https://',''))}</a></div>` : ''}
+          ${l.instagram ? `<div><p class="field-label">Instagram</p><a href="https://instagram.com/${escapeHtml(l.instagram)}" target="_blank" class="field-link" style="color:#c13584;">@${escapeHtml(l.instagram)}</a></div>` : ''}
           ${l.giving_url ? `<div><p class="field-label">Giving link</p><a href="${escapeHtml(l.giving_url)}" target="_blank" class="field-link giving-link">Donate online</a></div>` : ''}
         </div>
       </div>
@@ -2014,6 +2032,7 @@ async function openEditModal(id) {
     }
     document.getElementById('editNotes').value = l.notes || '';
     document.getElementById('editWebsite').value = l.website || '';
+    document.getElementById('editInstagram').value = l.instagram || '';
 
     // Type card
     if (l.type) selectType(l.type);
@@ -2145,6 +2164,7 @@ async function openEditModal(id) {
     if (cb247Clear) { cb247Clear.checked = false; toggle247(false); }
     document.getElementById('editNotes').value = '';
     document.getElementById('editWebsite').value = '';
+    document.getElementById('editInstagram').value = '';
     document.getElementById('editCustomItems').value = '';
     const pillsClear = document.getElementById('customItemPills');
     if (pillsClear) pillsClear.innerHTML = '';
@@ -2327,6 +2347,7 @@ async function saveListing() {
     items,
     notes: document.getElementById('editNotes').value.trim(),
     website: document.getElementById('editWebsite').value.trim(),
+    instagram: (document.getElementById('editInstagram').value.trim()||'').replace(/^@/,'') || null,
     giving_url: document.getElementById('givingCheck').checked ? document.getElementById('editGivingUrl').value.trim() : null,
     accepting_dropoffs: document.getElementById('acceptingDropoffs')?.checked || false,
     capacity: document.getElementById('editCapacity')?.value || null,

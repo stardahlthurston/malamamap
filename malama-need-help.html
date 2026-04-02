@@ -431,7 +431,7 @@ function renderList() {
     const showItems = givingItems.length ? givingItems : plainItems;
     const expHrs = Math.max(0, Math.round((new Date(l.expires_at) - new Date()) / 3600000));
     return `
-    <div class="listing-card" onclick="window.open('malama-listing.html?id=${l.id}','_self')" style="border-top:4px solid ${(()=>{const t=(l.type||'').split(',')[0].trim();return t==='donation_dropoff'?'var(--gold)':t==='volunteer_event'?'#7b5ea7':t==='shelter'?'var(--blue)':t==='medical_assistance'?'var(--red)':'var(--sage)'})()};">
+    <div class="listing-card" onclick="if(!event.target.closest('a,button'))window.open('malama-listing.html?id=${l.id}','_self')" style="border-top:4px solid ${(()=>{const t=(l.type||'').split(',')[0].trim();return t==='donation_dropoff'?'var(--gold)':t==='volunteer_event'?'#7b5ea7':t==='shelter'?'var(--blue)':t==='medical_assistance'?'var(--red)':'var(--sage)'})()};">
       <div class="lc-header">
         <div>
           <p class="lc-name">${escapeHtml(l.name)}</p>
@@ -456,9 +456,10 @@ function renderList() {
           ${l.contact_phone ? `<span class="lc-meta-item">📞 ${escapeHtml(l.contact_phone)}</span>` : ''}
         </div>
         ${l.notes ? `<p class="lc-notes">${escapeHtml(l.notes)}</p>` : ''}
-        <div class="lc-actions" onclick="event.preventDefault();event.stopPropagation();">
-          ${l.address ? `<a href="https://maps.google.com/?q=${l.lat&&l.lng?l.lat+','+l.lng:encodeURIComponent(l.address)}" target="_blank" class="lc-btn btn-dir">Take me there</a>` : ''}
-          ${l.website ? `<a href="${escapeHtml(l.website.startsWith('http')?l.website:'https://'+l.website)}" target="_blank" class="lc-btn" style="color:var(--blue);background:var(--blue-pale);border-color:var(--blue-light);">Website</a>` : ''}
+        <div class="lc-actions" onclick="event.stopPropagation();">
+          ${l.address ? `<a href="https://maps.google.com/?q=${l.lat&&l.lng?l.lat+','+l.lng:encodeURIComponent(l.address)}" target="_blank" class="lc-btn btn-dir" onclick="event.stopPropagation();">Take me there</a>` : ''}
+          ${l.website ? `<a href="${escapeHtml(l.website.startsWith('http')?l.website:'https://'+l.website)}" target="_blank" class="lc-btn" style="color:var(--blue);background:var(--blue-pale);border-color:var(--blue-light);" onclick="event.stopPropagation();">Website</a>` : ''}
+          ${l.instagram ? `<a href="https://instagram.com/${escapeHtml(l.instagram)}" target="_blank" class="lc-btn" style="color:#c13584;background:#fce4f1;border-color:#e8a0c8;" onclick="event.stopPropagation();">Instagram</a>` : ''}
         </div>
         <button class="share-card-btn" data-id="${l.id}" onclick="event.preventDefault();event.stopPropagation();handleShare(this,'${l.id}')">
           <svg viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M15 7l-5-5-5 5M10 2v11M4 13v3a2 2 0 002 2h8a2 2 0 002-2v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
