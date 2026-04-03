@@ -3868,8 +3868,8 @@ async function renderAdminPage() {
   window._adminClaims = claims;
   window._adminOwnerMap = ownerMap;
 
-  // Apply default filter (Active only) after rendering
-  filterAdminTable();
+  // Apply default filter (Active only) after DOM is painted
+  requestAnimationFrame(() => filterAdminTable());
 }
 
 function renderAdminRows(listings, claims, ownerMap={}) {
