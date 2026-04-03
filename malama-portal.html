@@ -3898,15 +3898,19 @@ function renderAdminRows(listings, claims, ownerMap={}) {
       <td style="color:var(--sage);font-weight:600;">${escapeHtml(l.location || '—')}</td>
       <td style="color:var(--text-muted);font-size:0.75rem;">${TYPE_SHORT[l.type]||l.type||'—'}</td>
       <td>
-        ${['shelter','supply_station','medical_assistance'].includes(l.type)
-          ? '<span class="admin-tag" style="background:var(--blue-pale);color:var(--blue-deep);">🆘 I Need Help</span>'
-          : ['donation_dropoff','volunteer_event'].includes(l.type)
-            ? '<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🤝 I Want to Help</span>'
-            : l.type === 'skills_labor'
-              ? (l.skills_direction === 'seeking'
-                ? '<span class="admin-tag" style="background:#f5f0ff;color:#4a2d7a;">🔍 Want to Help + Skills</span>'
-                : '<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🙌 Need Help + Skills</span>')
-              : '<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🙌 Need Help + Skills</span>'}
+        ${(() => {
+          const types = (l.type||'').split(',').map(t=>t.trim());
+          const tags = [];
+          const NEED = ['shelter','supply_station','medical_assistance','food_distribution'];
+          const WANT = ['donation_dropoff','volunteer_event'];
+          if (types.some(t => NEED.includes(t))) tags.push('<span class="admin-tag" style="background:var(--blue-pale);color:var(--blue-deep);">🆘 I Need Help</span>');
+          if (types.some(t => WANT.includes(t))) tags.push('<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🤝 I Want to Help</span>');
+          if (types.includes('skills_labor')) tags.push(l.skills_direction === 'seeking'
+            ? '<span class="admin-tag" style="background:#f5f0ff;color:#4a2d7a;">🔍 Skills (Seeking)</span>'
+            : '<span class="admin-tag" style="background:var(--sage-pale);color:var(--sage-deep);">🙌 Skills (Offering)</span>');
+          if (types.includes('financial_giving')) tags.push('<span class="admin-tag" style="background:#fff8e1;color:#7a5c1a;">💛 Give Financially</span>');
+          return tags.length ? tags.join(' ') : '<span class="admin-tag" style="background:#f0f0f0;color:#888;">—</span>';
+        })()}
       </td>
       <td style="font-size:0.75rem;color:${isUnclaimed?'var(--gold)':'var(--text-muted)'};">
         ${isUnclaimed
