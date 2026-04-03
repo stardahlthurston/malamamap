@@ -1282,6 +1282,9 @@ async function signOut() {
 // LOAD LISTINGS
 // ══════════════════════════════════════
 async function loadListings() {
+  // Auto-expire any of this user's listings whose dates have passed
+  try { await autoExpireListings(sb, currentUser.id); } catch(e) { console.error('Auto-expire error:', e); }
+
   // My Listings always shows only YOUR listings — admin access to all listings
   // is handled separately inside renderAdminPage()
   const { data, error } = await sb
@@ -3492,22 +3495,60 @@ async function updateVolStatus(signupId, btn) {
 // ══════════════════════════════════════
 const ADMIN_EMAIL = 'dahlthurstonstar@gmail.com';
 
-async function autoExpireListings(sb2) {
-  // Find listings that are within a date range and that range has now passed
-  // Check listings where hours contains a date range like "Mar 23 – Mar 24"
+async function autoExpireListings(sb2, userId) {
+  // Auto-close listings whose dates have passed.
+  // Checks: event_date, event_dates, expires_at, AND hours date-range text.
+  // If userId is provided, only check that user's listings (regular users).
+  // If omitted, checks all listings (admin context).
   const now = new Date();
-  const { data: activeListing } = await sb2.from('listings').select('id, hours').eq('status', true);
+
+  let query = sb2.from('listings')
+    .select('id, hours, event_date, event_dates, expires_at')
+    .eq('status', true);
+  if (userId) query = query.eq('user_id', userId);
+  const { data: activeListing } = await query;
   if (!activeListing?.length) return 0;
 
   const toClose = [];
   activeListing.forEach(l => {
-    // Check if hours string has a date range that's passed
-    // Pattern: "Mar 23" or "March 23" at the end or "From Mar 23 – Mar 24"
+    // --- 1. Check event_dates array (multiple/recurring dates) ---
+    if (l.event_dates && l.event_dates.length > 0) {
+      const hasOngoing = l.event_dates.some(e => e === 'ongoing');
+      if (hasOngoing) return; // ongoing = never expires
+      // All dates must be in the past for the listing to expire
+      const allPast = l.event_dates.every(e => {
+        const d = e.split('|')[0];
+        const dt = new Date(d + 'T23:59:59');
+        return !isNaN(dt) && dt < now;
+      });
+      if (allPast) { toClose.push(l.id); return; }
+      // Has future dates, don't expire
+      return;
+    }
+
+    // --- 2. Check single event_date ---
+    if (l.event_date) {
+      if (l.event_date === 'ongoing') return; // never expires
+      const d = l.event_date.split('|')[0];
+      const dt = new Date(d + 'T23:59:59');
+      if (!isNaN(dt) && dt < now) { toClose.push(l.id); return; }
+      // Date is in the future, don't expire
+      return;
+    }
+
+    // --- 3. Check expires_at timestamp ---
+    if (l.expires_at) {
+      const exp = new Date(l.expires_at);
+      if (!isNaN(exp) && exp < now) { toClose.push(l.id); return; }
+      return;
+    }
+
+    // --- 4. Fall back to hours text date-range parsing ---
     if (l.hours) {
       const dateMatch = l.hours.match(/(\w+ \d+)\s*[–-]\s*(\w+ \d+)/);
       if (dateMatch) {
         try {
-          const endDate = new Date(dateMatch[2] + ' 2026 23:59:59');
+          const endDate = new Date(dateMatch[2] + ' ' + now.getFullYear() + ' 23:59:59');
           if (!isNaN(endDate) && endDate < now) {
             toClose.push(l.id);
           }
