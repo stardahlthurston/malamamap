@@ -28,9 +28,16 @@ export default async function handler(req, res) {
     const toClose = [];
 
     listings.forEach(l => {
-      // 1. Check event_dates array
+      const hours = (l.hours || '').toLowerCase();
+
+      // "Until further notice", "ongoing", or open-ended → never auto-expire
+      const isOpenEnded = /until further notice|ongoing/i.test(hours)
+        || (l.event_date === 'ongoing')
+        || (l.event_dates && l.event_dates.some(e => e === 'ongoing'));
+      if (isOpenEnded) return;
+
+      // 1. event_dates array: expire only if ALL dates are in the past
       if (l.event_dates && l.event_dates.length > 0) {
-        if (l.event_dates.some(e => e === 'ongoing')) return;
         const allPast = l.event_dates.every(e => {
           const d = e.split('|')[0];
           const dt = new Date(d + 'T23:59:59');
@@ -40,31 +47,35 @@ export default async function handler(req, res) {
         return;
       }
 
-      // 2. Check single event_date
-      if (l.event_date) {
-        if (l.event_date === 'ongoing') return;
-        const d = l.event_date.split('|')[0];
-        const dt = new Date(d + 'T23:59:59');
-        if (!isNaN(dt) && dt < now) toClose.push(l.id);
-        return;
-      }
-
-      // 3. Check expires_at
-      if (l.expires_at) {
-        const exp = new Date(l.expires_at);
-        if (!isNaN(exp) && exp < now) toClose.push(l.id);
-        return;
-      }
-
-      // 4. Fall back to hours text date-range
+      // 2. hours text with explicit end date range (e.g. "Mar 25 – Mar 30")
+      //    This is the most reliable signal of a fixed-duration listing
       if (l.hours) {
         const dateMatch = l.hours.match(/(\w+ \d+)\s*[–-]\s*(\w+ \d+)/);
         if (dateMatch) {
           try {
             const endDate = new Date(dateMatch[2] + ' ' + now.getFullYear() + ' 23:59:59');
-            if (!isNaN(endDate) && endDate < now) toClose.push(l.id);
+            if (!isNaN(endDate) && endDate < now) { toClose.push(l.id); return; }
           } catch(e) {}
+          return; // has a date range that hasn't ended yet
         }
+      }
+
+      // 3. expires_at — only trust if the listing has no "From [date]" start-only pattern
+      //    "From Mar 24" without an end date = open-ended, so skip
+      const hasStartOnly = /from\s+\w+/i.test(hours);
+      if (l.expires_at && !hasStartOnly) {
+        const exp = new Date(l.expires_at);
+        if (!isNaN(exp) && exp < now) toClose.push(l.id);
+        return;
+      }
+
+      // 4. Single event_date (not ongoing) — this is a start date, only expire
+      //    if it looks like a one-day event (no "From" prefix, no ongoing indicator)
+      if (l.event_date && !hasStartOnly) {
+        const d = l.event_date.split('|')[0];
+        const dt = new Date(d + 'T23:59:59');
+        if (!isNaN(dt) && dt < now) toClose.push(l.id);
+        return;
       }
     });
 
@@ -80,6 +91,22 @@ export default async function handler(req, res) {
         if (!u.ok) throw new Error(await u.text());
       }
     }
+
+    // One-time fix: reactivate listings incorrectly expired (until-further-notice ones)
+    const reactivateIds = [
+      '425c80fb-5efd-4439-a44d-b9681384d2a8','3f3d275b-6808-4d29-a3d5-09c72c0b10ce',
+      '278a13cc-f7b2-4097-8e98-c9f959ddb8a6','6d5d75fa-37dc-4b3f-9d29-90d089496f46',
+      'a90269ff-88dc-42e7-bc3c-21b61f9f4cc6','22b9d2bd-02bb-4389-b284-78c2638b6467',
+      '5af3d787-c39f-4c4d-b83c-3694079606ec','59caa311-225f-4790-bda2-670d900fcb03',
+      'ddff84c3-2eb5-4940-8883-f443591f34cf','e3bac477-d1fd-40f3-b58e-a83e7c1fbca1'
+    ];
+    try {
+      const rIds = reactivateIds.map(id => `"${id}"`).join(',');
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/listings?id=in.(${rIds})&status=eq.false`,
+        { method: 'PATCH', headers, body: JSON.stringify({ status: true }) }
+      );
+    } catch(e) { /* non-critical */ }
 
     // Also clean up skills_direction on non-skills listings (one-time data fix)
     let skillsCleaned = 0;
