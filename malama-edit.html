@@ -436,7 +436,6 @@ async function saveEdits() {
     pet_friendly: document.getElementById('editPetFriendly').value === 'true',
     event_date: document.getElementById('editEventDate').value || null,
     volunteer_needs: document.getElementById('editVolunteerNeeds').value.trim() || null,
-    expires_at: new Date(Date.now() + 72 * 3600000).toISOString()
   };
 
   const { error } = await sb.from('listings').update(payload).eq('id', listingId);
