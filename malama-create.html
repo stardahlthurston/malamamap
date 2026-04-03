@@ -1420,7 +1420,7 @@ async function saveListing() {
     event_date: _eventDates.includes('ongoing') ? 'ongoing' : (_eventDates.length > 0 ? [..._eventDates].filter(d=>d!=='ongoing').map(e=>e.split('|')[0]).sort()[0] : null),
     volunteer_needs: document.getElementById('editVolunteerNeeds')?.value.trim()||null,
     volunteer_signup_url: document.getElementById('editVolunteerSignupUrl')?.value.trim()||null,
-    skills_direction: window._skillsDir || 'offering',
+    skills_direction: selectedTypes.has('skills_labor') ? (window._skillsDir || 'offering') : null,
   };
 
   const editId = window._editListingId;

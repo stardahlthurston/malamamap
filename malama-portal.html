@@ -2341,7 +2341,7 @@ async function saveListing() {
     name, type,
     status: document.getElementById('editStatus').value === 'true',
     location: document.getElementById('editLocation')?.value || '',
-    skills_direction: document.getElementById('editSkillsDirection')?.value || 'offering',
+    skills_direction: (type||'').includes('skills_labor') ? (document.getElementById('editSkillsDirection')?.value || 'offering') : null,
     ...getVolData(),
     address,
     lat: coords.lat, lng: coords.lng,
@@ -3731,12 +3731,12 @@ async function renderAdminPage() {
         <p class="admin-stat-label">Certified nonprofits</p>
       </div>
       <div class="admin-stat-card" style="cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;" onclick="openSkillsModal('offering',window._adminAllListings||[])" title="Click to view offering listings">
-        <p class="admin-stat-num" style="color:var(--sage);">${allListings.filter(l => l.skills_direction === 'offering' || (l.type === 'skills_labor' && !l.skills_direction)).length}</p>
+        <p class="admin-stat-num" style="color:var(--sage);">${allListings.filter(l => (l.type||'').includes('skills_labor') && (l.skills_direction === 'offering' || !l.skills_direction)).length}</p>
         <p class="admin-stat-label">Skills: Offering</p>
         <p style="font-size:0.62rem;color:var(--sage);margin-top:3px;">↓ Click to view</p>
       </div>
       <div class="admin-stat-card" style="cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;" onclick="openSkillsModal('seeking',window._adminAllListings||[])" title="Click to view seeking listings">
-        <p class="admin-stat-num" style="color:#7b5ea7;">${allListings.filter(l => l.skills_direction === 'seeking').length}</p>
+        <p class="admin-stat-num" style="color:#7b5ea7;">${allListings.filter(l => (l.type||'').includes('skills_labor') && l.skills_direction === 'seeking').length}</p>
         <p class="admin-stat-label">Skills: Seeking</p>
         <p style="font-size:0.62rem;color:#7b5ea7;margin-top:3px;">↓ Click to view</p>
       </div>
@@ -3928,7 +3928,8 @@ function renderAdminRows(listings, claims, ownerMap={}) {
 // ══════════════════════════════════════
 function openSkillsModal(direction, allListings) {
   const listings = (allListings || window._adminAllListings || []).filter(l => {
-    if (direction === 'offering') return l.skills_direction === 'offering' || (l.type === 'skills_labor' && !l.skills_direction);
+    if (!(l.type||'').includes('skills_labor')) return false;
+    if (direction === 'offering') return l.skills_direction === 'offering' || !l.skills_direction;
     if (direction === 'seeking') return l.skills_direction === 'seeking';
     return l.skills_direction === direction;
   });
@@ -4041,7 +4042,8 @@ function filterAdminBySkillsDir(direction) {
     const listing = (window._adminAllListings || []).find(l => l.id === id);
     if (!listing) { row.style.display = 'none'; return; }
     let match;
-    if (direction === 'offering') match = listing.skills_direction === 'offering' || (listing.type === 'skills_labor' && !listing.skills_direction);
+    if (!(listing.type||'').includes('skills_labor')) { row.style.display = 'none'; return; }
+    if (direction === 'offering') match = listing.skills_direction === 'offering' || !listing.skills_direction;
     else if (direction === 'seeking') match = listing.skills_direction === 'seeking';
     else match = listing.skills_direction === direction;
     row.style.display = match ? '' : 'none';

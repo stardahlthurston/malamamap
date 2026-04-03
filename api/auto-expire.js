@@ -81,7 +81,27 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ expired: toClose.length, ids: toClose });
+    // Also clean up skills_direction on non-skills listings (one-time data fix)
+    let skillsCleaned = 0;
+    try {
+      const sr = await fetch(
+        `${SUPABASE_URL}/rest/v1/listings?skills_direction=not.is.null&type=not.like.*skills_labor*&select=id`,
+        { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } }
+      );
+      if (sr.ok) {
+        const badListings = await sr.json();
+        if (badListings.length) {
+          const badIds = badListings.map(l => `"${l.id}"`).join(',');
+          await fetch(
+            `${SUPABASE_URL}/rest/v1/listings?id=in.(${badIds})`,
+            { method: 'PATCH', headers, body: JSON.stringify({ skills_direction: null }) }
+          );
+          skillsCleaned = badListings.length;
+        }
+      }
+    } catch(e) { /* non-critical */ }
+
+    return res.status(200).json({ expired: toClose.length, ids: toClose, skillsCleaned });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
