@@ -3867,6 +3867,9 @@ async function renderAdminPage() {
   window._adminAllListings = allListings;
   window._adminClaims = claims;
   window._adminOwnerMap = ownerMap;
+
+  // Apply default filter (Active only) after rendering
+  filterAdminTable();
 }
 
 function renderAdminRows(listings, claims, ownerMap={}) {
