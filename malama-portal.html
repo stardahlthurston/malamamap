@@ -3934,8 +3934,6 @@ function openSkillsModal(direction, allListings) {
     return l.skills_direction === direction;
   });
 
-  // Also filter the admin table below
-  filterAdminBySkillsDir(direction);
 
   const dirLabel = direction === 'offering' ? 'Offering Skills' : direction === 'seeking' ? 'Seeking Skills' : direction;
   const rowsHtml = listings.length === 0
