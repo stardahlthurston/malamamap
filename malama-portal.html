@@ -122,6 +122,9 @@ body { font-family:'Nunito',sans-serif; background:#f4f6f4; color:var(--text-dar
 .open-pill { font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 10px; border-radius:100px; }
 .open-pill.open { background:var(--sage-pale); color:var(--sage-deep); }
 .open-pill.closed { background:#f0f0f0; color:#888; }
+.hours-pill { font-size:0.65rem; font-weight:700; letter-spacing:0.04em; padding:2px 8px; border-radius:100px; margin-left:5px; }
+.hours-pill.now-open { background:#e6f4ea; color:#2d7a4a; }
+.hours-pill.now-closed { background:#fde8e6; color:#b03020; }
 .card-body { padding:1.25rem 1.4rem; }
 .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.5rem; margin-bottom:1.25rem; }
 .field-label { font-size:0.67rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
@@ -1372,11 +1375,74 @@ function renderListingsPage() {
     ${displayListings.length === 0 ? `<div class="empty-state" style="padding:2rem;"><p style="color:var(--text-muted);font-size:0.9rem;text-align:center;">No ${listingsTabFilter === 'inactive' ? 'inactive' : 'active'} listings.</p></div>` : displayListings.map(l => renderListingCard(l)).join('')}`;
 }
 
+// ── Open/Closed helpers ──
+function parseTimeMins(s) {
+  const m = (s || '').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+  if (!m) return null;
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2] || '0');
+  if (m[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+  if (m[3].toUpperCase() === 'AM' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+function isOpenNow(hours) {
+  if (!hours || !hours.trim()) return null;
+  const h = hours.trim();
+  if (h === 'Open 24 hours' || h.includes('24/7')) return true;
+  if (h === 'Sunrise \u2013 Sunset') return null; // can't compute
+
+  const now = new Date();
+  const hst = new Date(now.toLocaleString('en-US', { timeZone: 'Pacific/Honolulu' }));
+  const dayAbbr = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][hst.getDay()];
+  const curMins = hst.getHours() * 60 + hst.getMinutes();
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  const parts = h.split('\u00b7').map(p => p.trim()); // split on ·
+  let dayOk = true;
+  let timePart = '';
+
+  for (const part of parts) {
+    if (/\bFrom\b|\bUntil\b/i.test(part)) continue; // skip date range segments
+    if (dayNames.some(d => part.includes(d))) {
+      dayOk = part.includes(dayAbbr);
+    } else if (/AM|PM/i.test(part)) {
+      timePart = part;
+    }
+  }
+
+  if (!dayOk) return false;
+  if (!timePart) return null;
+
+  const opens = timePart.match(/Opens at\s+(\d{1,2}(?::\d{2})?\s*(?:AM|PM))/i);
+  if (opens) {
+    const m = parseTimeMins(opens[1]);
+    return m !== null ? curMins >= m : null;
+  }
+
+  const range = timePart.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM))\s*[\u2013\-]\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM))/i);
+  if (range) {
+    const openM = parseTimeMins(range[1]);
+    const closeM = parseTimeMins(range[2]);
+    if (openM === null || closeM === null) return null;
+    if (closeM < openM) return curMins >= openM || curMins < closeM; // overnight
+    return curMins >= openM && curMins < closeM;
+  }
+
+  return null;
+}
+
 function renderListingCard(l) {
   const rawItems = Array.isArray(l.items) ? l.items : [];
   const givingItems = rawItems.filter(i => i.startsWith('GIVING:')).map(i => i.replace('GIVING:',''));
   const acceptingItems = rawItems.filter(i => i.startsWith('ACCEPTING:')).map(i => i.replace('ACCEPTING:',''));
   const plainItems = rawItems.filter(i => !i.startsWith('GIVING:') && !i.startsWith('ACCEPTING:'));
+  const openNow = l.status ? isOpenNow(l.hours) : null;
+  const hoursPill = openNow === true
+    ? `<span class="hours-pill now-open">Open now</span>`
+    : openNow === false
+      ? `<span class="hours-pill now-closed">Closed</span>`
+      : '';
   return `
     <div class="card" id="card-${l.id}">
       <div class="card-header">
@@ -1384,7 +1450,10 @@ function renderListingCard(l) {
           <a href="malama-listing.html?id=${l.id}" class="card-title" style="text-decoration:none;color:inherit;">${escapeHtml(l.name)}</a>
           ${l.verified ? `<span class="verified-badge">✓ Verified Org</span>` : ''}${l.nonprofit ? `<span class="nonprofit-badge">✦ Nonprofit</span>` : ''}${l.main_hub ? `<span class="hub-badge">⭐ Fully Stocked Hub</span>` : ''}
         </div>
-        <span class="open-pill ${l.status ? 'open' : 'closed'}">${l.status ? 'Active' : 'Inactive'}</span>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <span class="open-pill ${l.status ? 'open' : 'closed'}">${l.status ? 'Active' : 'Inactive'}</span>
+          ${hoursPill}
+        </div>
       </div>
       <div class="card-body">
         <div class="status-card" style="margin-bottom:1rem;">
@@ -3884,12 +3953,19 @@ function renderAdminRows(listings, claims, ownerMap={}) {
     const updatedStr = l.updated_at ? new Date(l.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
     const hasClaim = claims?.some(c => c.listing_id === l.id);
 
+    const adminOpenNow = l.status ? isOpenNow(l.hours) : null;
+    const adminHoursTag = adminOpenNow === true
+      ? `<span class="admin-tag" style="background:#e6f4ea;color:#2d7a4a;margin-left:4px;">Open</span>`
+      : adminOpenNow === false
+        ? `<span class="admin-tag" style="background:#fde8e6;color:#b03020;margin-left:4px;">Closed</span>`
+        : '';
     return `<tr data-id="${l.id}" data-name="${escapeHtml((l.name||'').toLowerCase())}" data-area="${escapeHtml((l.location||'').toLowerCase())}" data-status="${l.status?'open':'closed'}" data-type="${l.type||''}" data-unclaimed="${isUnclaimed}" data-community="${!isUnclaimed && l.user_id !== '04e3776b-b75f-4701-888e-511a9cf21382'}">
-      <td>
+      <td style="white-space:nowrap;">
         <span class="${l.status ? 'status-dot-open' : 'status-dot-closed'}"></span>
         <button class="admin-action-btn" style="font-size:0.62rem;color:${l.status?'var(--sage)':'var(--text-muted)'};border-color:${l.status?'var(--sage)':'#ccc'};" onclick="toggleAdminStatus('${l.id}',${l.status},this)">
           ${l.status ? 'Active' : 'Inactive'}
         </button>
+        ${adminHoursTag}
       </td>
       <td>
         <a href="malama-listing.html?id=${l.id}" target="_blank" style="font-weight:700;color:var(--sage-deep);text-decoration:none;">${escapeHtml(l.name||'Untitled')}</a>
