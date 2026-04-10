@@ -1924,11 +1924,10 @@ function escHtml(str) {
 // TOGGLE STATUS
 // ══════════════════════════════════════
 async function toggleStatus(id, val) {
-  // Route through admin API to bypass RLS
-  const resp = await fetch('/api/admin-action', {
+  const resp = await fetch('/api/toggle-status', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'update_listing', authUserId: currentUser.id, listingId: id, payload: { status: val } })
+    body: JSON.stringify({ listingId: id, status: val, authUserId: currentUser.id })
   });
   if (!resp.ok) { const j = await resp.json().catch(() => ({})); showToast('Error: ' + (j.error || resp.status)); return; }
   const l = myListings.find(x => x.id === id);
