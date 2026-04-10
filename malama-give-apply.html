@@ -228,12 +228,18 @@ async function submitApplication() {
     verified: false
   };
 
-  const { error } = await sb.from('listings').insert(payload);
+  // Route through API to bypass RLS (public form, no user auth required)
+  const apiRes = await fetch('/api/create-listing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const apiData = await apiRes.json().catch(() => ({}));
 
-  if (error) {
+  if (!apiRes.ok) {
     btn.disabled = false;
     btn.textContent = 'Submit for review →';
-    return showError('Error submitting: ' + error.message);
+    return showError('Error submitting: ' + (apiData.error || apiRes.status));
   }
 
   // Notify Star

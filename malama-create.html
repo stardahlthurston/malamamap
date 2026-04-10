@@ -1426,8 +1426,14 @@ async function saveListing() {
   const editId = window._editListingId;
   let error;
   if (editId) {
-    // Don't overwrite user_id on edit
-    ({ error } = await sb.from('listings').update(payload).eq('id', editId));
+    // Route through API to bypass RLS — verifies ownership server-side
+    const updateRes = await fetch('/api/update-listing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listingId: editId, payload, authUserId: currentUser?.id })
+    });
+    const updateData = await updateRes.json().catch(() => ({}));
+    error = updateRes.ok ? null : { message: updateData.error || updateRes.status };
   } else {
     // Check for duplicate address (fuzzy match on street)
     const streetPart = address.split(',')[0].trim();

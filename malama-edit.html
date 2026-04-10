@@ -438,9 +438,14 @@ async function saveEdits() {
     volunteer_needs: document.getElementById('editVolunteerNeeds').value.trim() || null,
   };
 
-  const { error } = await sb.from('listings').update(payload).eq('id', listingId);
-  if (!error) fetch('/api/check-item-thresholds', { method: 'POST' }).catch(() => {});
-  if (error) { showToast('Error: ' + error.message); btn.disabled=false; btn.textContent='Save changes →'; return; }
+  const updateRes = await fetch('/api/update-listing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ listingId, payload, authUserId: currentUser?.id })
+  });
+  const updateData = await updateRes.json().catch(() => ({}));
+  if (!updateRes.ok) { showToast('Error: ' + (updateData.error || updateRes.status)); btn.disabled=false; btn.textContent='Save changes →'; return; }
+  fetch('/api/check-item-thresholds', { method: 'POST' }).catch(() => {});
 
   showToast('🌺 Changes saved!');
   setTimeout(() => window.location.href = 'malama-portal.html', 1500);
