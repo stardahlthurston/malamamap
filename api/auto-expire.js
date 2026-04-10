@@ -92,21 +92,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // One-time fix: reactivate listings incorrectly expired (until-further-notice ones)
-    const reactivateIds = [
-      '425c80fb-5efd-4439-a44d-b9681384d2a8','3f3d275b-6808-4d29-a3d5-09c72c0b10ce',
-      '278a13cc-f7b2-4097-8e98-c9f959ddb8a6','6d5d75fa-37dc-4b3f-9d29-90d089496f46',
-      'a90269ff-88dc-42e7-bc3c-21b61f9f4cc6','22b9d2bd-02bb-4389-b284-78c2638b6467',
-      '5af3d787-c39f-4c4d-b83c-3694079606ec','59caa311-225f-4790-bda2-670d900fcb03',
-      'ddff84c3-2eb5-4940-8883-f443591f34cf','e3bac477-d1fd-40f3-b58e-a83e7c1fbca1'
-    ];
-    try {
-      const rIds = reactivateIds.map(id => `"${id}"`).join(',');
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/listings?id=in.(${rIds})&status=eq.false`,
-        { method: 'PATCH', headers, body: JSON.stringify({ status: true }) }
-      );
-    } catch(e) { /* non-critical */ }
+    // (one-time reactivation block removed — was forcing specific listings back to active on every load)
 
     // Also clean up skills_direction on non-skills listings (one-time data fix)
     let skillsCleaned = 0;
